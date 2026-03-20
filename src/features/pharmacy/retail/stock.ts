@@ -77,18 +77,18 @@ export function formatStockQuantity(
   breakdown: Pick<StockBreakdown, "units" | "subUnits" | "subUnitsPerUnit">,
   medicine: { form?: string; sub_unit?: string }
 ): string {
-  const formLabel = medicine.form || "units";
-  const subUnitLabel = medicine.sub_unit || "sub-units";
+  const unitLabel = medicine.sub_unit || "units";
+  const subUnitLabel = medicine.form || "sub-units";
 
   if (breakdown.subUnitsPerUnit <= 1 || breakdown.subUnits <= 0) {
-    return `${breakdown.units} ${formLabel}`;
+    return `${breakdown.units} ${unitLabel}`;
   }
 
   if (breakdown.units <= 0) {
     return `${breakdown.subUnits} ${subUnitLabel}`;
   }
 
-  return `${breakdown.units} ${formLabel} + ${breakdown.subUnits} ${subUnitLabel}`;
+  return `${breakdown.units} ${unitLabel} + ${breakdown.subUnits} ${subUnitLabel}`;
 }
 
 export function getMedicineAvailability(medicine: StockCarrier): {

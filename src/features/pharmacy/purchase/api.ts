@@ -1,5 +1,5 @@
 import { ApiResponse } from '@/src/lib/types';
-import { Party, Medicine, PurchaseInvoice } from './types'
+import { Party, Medicine, PurchaseFormMetadata, PurchaseInvoice } from './types'
 
 export async function getAllPartiesName(): Promise<Party[]> {
   const res = await fetch('/api/party');
@@ -12,12 +12,12 @@ export async function getAllPartiesName(): Promise<Party[]> {
 }
 
 export async function getAllMedicines(): Promise<Medicine[]> {
-  const res = await fetch('/api/medicine');
-  if (!res.ok) throw new Error("Failed to fetch Data from api/medicine");
+  const res = await fetch('/api/medicine/purchase-search');
+  if (!res.ok) throw new Error("Failed to fetch Data from /api/medicine/purchase-search");
   const data = await res.json();
   return data.map((m: any) => ({
     ...m,
-    id: m.medicine_id
+    id: m.id // Backend now returns 'id' directly
   }));
 }
 
@@ -34,15 +34,16 @@ export async function submitPurchase(invoice: PurchaseInvoice): Promise<ApiRespo
 }
 
 /**
- * Fetches the last invoice number from the database to suggest a sequence
+ * Fetches purchase form metadata previews for invoice, internal batch code,
+ * and the suggested supplier lot number.
  */
-export async function getLastInvoice(): Promise<string | null> {
+export async function getPurchaseFormMetadata(): Promise<PurchaseFormMetadata | null> {
   try {
-    const res = await fetch('/api/pharmacy/purchase/utils?type=last-invoice');
+    const res = await fetch('/api/pharmacy/purchase/utils?type=form-metadata');
     const response: ApiResponse<any> = await res.json();
-    return response.success && response.data ? response.data.invoice_no : null;
+    return response.success && response.data ? response.data : null;
   } catch (err) {
-    console.error('Failed to fetch last invoice', err);
+    console.error('Failed to fetch purchase form metadata', err);
     return null;
   }
 }

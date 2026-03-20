@@ -9,6 +9,7 @@ interface CartTableProps {
   onSelectItem: (itemId: string | null) => void;
   onUpdateItem: (itemId: string, updates: Partial<CartItemType>) => void;
   onRemoveItem: (itemId: string) => void;
+  onEditItem: (itemId: string) => void;
   prescriptionMode?: boolean;
   onResolveUnavailable?: (item: CartItemType) => void;
 }
@@ -19,6 +20,7 @@ export const CartTable: React.FC<CartTableProps> = ({
   onSelectItem,
   onUpdateItem,
   onRemoveItem,
+  onEditItem,
   prescriptionMode = false,
   onResolveUnavailable,
 }) => {
@@ -39,6 +41,7 @@ export const CartTable: React.FC<CartTableProps> = ({
               onSelect={() => onSelectItem(item.id)}
               onUpdate={(updates) => onUpdateItem(item.id, updates)}
               onRemove={() => onRemoveItem(item.id)}
+              onEdit={() => onEditItem(item.id)}
               prescriptionMode={prescriptionMode}
               onResolveUnavailable={onResolveUnavailable}
             />

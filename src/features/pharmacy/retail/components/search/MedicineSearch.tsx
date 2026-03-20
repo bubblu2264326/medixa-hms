@@ -185,17 +185,22 @@ export const MedicineSearch: React.FC<MedicineSearchProps> = ({
                   </span>
                 </div>
 
-                {/* 3. Batch info (if exists) */}
+                {/* 3. Supplier lot info (if exists) */}
                 <div className="shrink-0 hidden md:flex flex-col">
                   {medicine.batch_number ? (
                     <>
-                      <span className={`text-[9px] font-black uppercase tracking-widest leading-none mb-1 ${index === focusedIndex ? 'text-indigo-200' : 'text-slate-400'}`}>Batch</span>
+                      <span className={`text-[9px] font-black uppercase tracking-widest leading-none mb-1 ${index === focusedIndex ? 'text-indigo-200' : 'text-slate-400'}`}>Lot / Batch</span>
                       <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${index === focusedIndex ? 'bg-black/20 text-indigo-100' : 'bg-indigo-50 text-indigo-600'}`}>
                         {medicine.batch_number}
                       </span>
+                      {medicine.batch_code ? (
+                        <span className={`mt-1 text-[9px] font-mono ${index === focusedIndex ? 'text-indigo-100' : 'text-slate-400'}`}>
+                          Ref: {medicine.batch_code}
+                        </span>
+                      ) : null}
                     </>
                   ) : (
-                    <span className="text-[10px] text-slate-300 italic">No Batch</span>
+                    <span className="text-[10px] text-slate-300 italic">No lot</span>
                   )}
                 </div>
 

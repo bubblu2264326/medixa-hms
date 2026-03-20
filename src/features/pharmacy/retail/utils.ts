@@ -78,7 +78,6 @@ export const generateReference = (): string => {
 /**
  * Validate medicine stock availability
  */
-///fix it 
 // Quick client-side validation (use cached medicine data)
 export const validateStockClientSide = (
   medicine: Medicine,
@@ -121,7 +120,7 @@ export const parseBarcode = (input: string): {
  * Check if medicine requires prescription
  */
 export const requiresPrescription = (medicine: Medicine): boolean => {
-  return medicine.category === 'prescription' || medicine.category === 'controlled';
+  return medicine.requires_prescription === true;
 };
 
 /**

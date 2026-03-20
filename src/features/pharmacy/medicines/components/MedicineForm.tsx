@@ -25,6 +25,7 @@ interface Medicine {
   requires_prescription?: boolean;
   sub_unit?: string;
   sub_units_per_unit?: number;
+  unit_price?: number;
   sub_unit_price?: number;
   allow_sub_unit_sale?: boolean;
 }
@@ -172,6 +173,7 @@ function Field({
   required,
   type = "text",
   step,
+  min,
   placeholder,
   helperText,
   suggestions = [],
@@ -188,6 +190,7 @@ function Field({
   required?: boolean;
   type?: "text" | "number";
   step?: string;
+  min?: number | string;
   placeholder?: string;
   helperText?: string;
   suggestions?: Array<string | number>;
@@ -333,6 +336,7 @@ function Field({
           step={step}
           name={name}
           required={required}
+          min={min}
           value={value ?? ""}
           placeholder={placeholder}
           autoComplete="off"
@@ -356,6 +360,11 @@ function Field({
             <ChevronDown size={18} className={`transition ${isOpen ? "rotate-180" : ""}`} />
           </button>
         ) : null}
+        {helperText && (
+          <div className="absolute -bottom-5 left-1 text-[11px] font-medium text-slate-500 whitespace-nowrap">
+            {helperText}
+          </div>
+        )}
         {hasDropdown && isOpen ? (
           <div className="absolute left-0 right-0 top-[calc(100%+0.55rem)] z-30 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_20px_45px_rgba(15,23,42,0.14)]">
             <div className="border-b border-slate-100 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
@@ -816,18 +825,45 @@ export default function MedicineForm({ medicine, onClose, onSuccess }: MedicineF
                   name="sub_units_per_unit"
                   label="Sub Units / Unit"
                   type="number"
+                  min="1"
+                  required
                   value={formData.sub_units_per_unit}
                   onChange={handleChange}
                 />
                 <Field
-                  id="sub_unit_price"
-                  name="sub_unit_price"
-                  label="Sub Unit Price"
+                  id="unit_price"
+                  name="unit_price"
+                  label="Unit Price"
                   type="number"
                   step="0.01"
-                  value={formData.sub_unit_price}
+                  value={formData.unit_price}
                   onChange={handleChange}
                 />
+                <div className="relative">
+                  <Field
+                    id="sub_unit_price"
+                    name="sub_unit_price"
+                    label="Sub Unit Price"
+                    type="number"
+                    step="0.01"
+                    value={formData.sub_unit_price}
+                    onChange={handleChange}
+                    helperText={
+                      formData.unit_price && formData.sub_units_per_unit && Number(formData.sub_units_per_unit) > 0
+                        ? `Suggested: ${(Number(formData.unit_price) / Number(formData.sub_units_per_unit)).toFixed(2)}`
+                        : undefined
+                    }
+                  />
+                  {formData.unit_price && formData.sub_units_per_unit && Number(formData.sub_units_per_unit) > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setFieldValue("sub_unit_price", Number((Number(formData.unit_price) / Number(formData.sub_units_per_unit)).toFixed(2)))}
+                      className="absolute right-0 -bottom-5 text-xs font-semibold text-cyan-600 hover:text-cyan-800"
+                    >
+                      Use Suggested
+                    </button>
+                  )}
+                </div>
                 <Field
                   id="min_stock_level"
                   name="min_stock_level"

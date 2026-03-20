@@ -129,7 +129,7 @@ export const PurchaseMedicineSearch: React.FC<PurchaseMedicineSearchProps> = ({
                                 </span>
                                 {medicine.manufacturer && (
                                     <span className={`text-[10px] font-medium truncate mt-0.5 ${index === focusedIndex ? 'text-emerald-100/80' : 'text-slate-500'}`}>
-                                        By: {medicine.manufacturer}
+                                        Manufacturer: {medicine.manufacturer}
                                     </span>
                                 )}
                             </div>
@@ -141,7 +141,7 @@ export const PurchaseMedicineSearch: React.FC<PurchaseMedicineSearchProps> = ({
                                     Stk: {medicine.stock_quantity ?? 0}
                                 </div>
                                 <div className={`font-black text-sm ${index === focusedIndex ? "text-white" : "text-emerald-600"}`}>
-                                    MRP: {(medicine.price ?? 0).toLocaleString()}
+                                    MRP: {medicine.display_mrp !== null ? medicine.display_mrp.toLocaleString() : "N/A"}
                                 </div>
                             </div>
                         </button>

@@ -10,7 +10,7 @@ export const CartHeader: React.FC = () => {
       "
     >
       <div>Product Detail</div>
-      <div>Batch #</div>
+      <div>Lot / Batch</div>
       <div className="text-center">Qty</div>
       <div className="text-center">Sub</div>
       <div className="text-right pr-4">Base</div>

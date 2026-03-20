@@ -13,7 +13,8 @@ import {
   History,
   Users,
   ArrowLeftRight,
-  Layout
+  Layout,
+  BarChart3
 } from "lucide-react";
 
 
@@ -21,12 +22,16 @@ export default function Pharmacist({
   retail,
   returnMedicine,
   purchase,
-  medicines
+  medicines,
+  reports,
+  children
 }: {
   retail: React.ReactNode;
   returnMedicine: React.ReactNode;
   purchase: React.ReactNode;
   medicines: React.ReactNode;
+  reports: React.ReactNode;
+  children: React.ReactNode;
 }) {
   return (
     <Suspense fallback={<div className="h-screen flex items-center justify-center">Loading...</div>}>
@@ -35,6 +40,8 @@ export default function Pharmacist({
         returnMedicine={returnMedicine} 
         purchase={purchase} 
         medicines={medicines} 
+        reports={reports}
+        children={children}
       />
     </Suspense>
   )
@@ -44,12 +51,16 @@ function PharmacistContent({
   retail,
   returnMedicine,
   purchase,
-  medicines
+  medicines,
+  reports,
+  children
 }: {
   retail: React.ReactNode;
   returnMedicine: React.ReactNode;
   purchase: React.ReactNode;
   medicines: React.ReactNode;
+  reports: React.ReactNode;
+  children: React.ReactNode;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -77,6 +88,7 @@ function PharmacistContent({
     { id: "addParty", label: "Parties", icon: <Users size={16} /> },
     { id: "purchaseReturn", label: "P. Return", icon: <ArrowLeftRight size={16} /> },
     { id: "medicines", label: "Medicines", icon: <PlusCircle size={16} /> },
+    { id: "reports", label: "Reports", icon: <BarChart3 size={16} /> },
   ];
 
   return (
@@ -143,8 +155,10 @@ function PharmacistContent({
                 {selectedTab === "purchases" && purchase}
                 {selectedTab === "purchaseReturn" && <PurchaseReturn />}
                 {selectedTab === "medicines" && medicines}
+                {selectedTab === "reports" && reports}
                 {selectedTab === "addParty" && <PartiesView />}
                 {selectedTab === "transactions" && <TransactionsView />}
+                {children}
               </div>
             </div>
           </div>

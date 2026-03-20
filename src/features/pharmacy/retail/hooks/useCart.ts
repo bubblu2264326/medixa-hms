@@ -68,7 +68,8 @@ export const useCart = () => {
         customPrice,
         lineTotal,
         batchId: medicine.batch_id,
-        batchNumber: medicine.batch_number
+        batchNumber: medicine.batch_number,
+        batchCode: medicine.batch_code
       };
       return [...prev, newItem];
     });

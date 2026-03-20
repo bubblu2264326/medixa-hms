@@ -2,7 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/database/db';
 import { ApiResponse, Transaction } from '@/src/lib/types';
 import { generateReference, getCurrentStaffId } from '@/src/lib/utils';
-import { StockValidationError, validateInventoryItemsForSale } from './stockValidation';
+import {
+  StockValidationError,
+  validateInventoryItemsForSale,
+  allocateInventoryForSale,
+  BatchAllocation,
+} from './stockValidation';
 
 function getLivePrescriptionAvailabilityStatus(availableQuantity: number, isOverride: boolean) {
   if (isOverride) {
@@ -98,7 +103,29 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    await validateInventoryItemsForSale(client, transaction.items);
+    // ─── Determine allocation mode ──────────────────────────────
+    // If any inventory-backed item has a batchId, use legacy per-batch validation.
+    // Otherwise, use FEFO allocation (backend picks the batches).
+    const inventoryBackedItems = billableItems.filter(
+      (item) => item.isBillable !== false && item.isInventoryBacked !== false && item.fulfillmentMode !== 'override'
+    );
+    const hasBatchIds = inventoryBackedItems.some(
+      (item) => item.batchId || item.medicine?.batch_id
+    );
+
+    let fefoAllocations: Map<number, BatchAllocation[]> | null = null;
+
+    if (hasBatchIds) {
+      // Legacy mode: frontend specified batch IDs
+      await validateInventoryItemsForSale(client, transaction.items);
+    } else if (inventoryBackedItems.length > 0) {
+      // FEFO mode: backend picks batches
+      const results = await allocateInventoryForSale(client, transaction.items);
+      fefoAllocations = new Map();
+      for (const result of results) {
+        fefoAllocations.set(result.medicineId, result.allocations);
+      }
+    }
 
     // Insert into pharmacy_sale
     const saleResult = await client.query(`
@@ -141,11 +168,91 @@ export async function POST(request: NextRequest) {
     const saleId = saleResult.rows[0].sale_id;
     const saleTimestamp = saleResult.rows[0].sale_timestamp;
 
-
     // Insert sale details
     for (const item of billableItems) {
       const isOverride = item.isInventoryBacked === false || item.fulfillmentMode === 'override';
       const subUnitsPerUnit = (item.medicine as any).sub_units_per_unit || 1;
+      const medicineId = Number(item.medicine.medicine_id ?? item.medicine.id);
+
+      // ─── FEFO multi-batch split ─────────────────────────────
+      if (!isOverride && fefoAllocations && fefoAllocations.has(medicineId)) {
+        const allocations = fefoAllocations.get(medicineId)!;
+        // Remove these allocations so they aren't reused by another item with the same medicine_id
+        fefoAllocations.delete(medicineId);
+
+        for (const alloc of allocations) {
+          const unitPrice = alloc.unitPrice;
+          const subUnitPrice = alloc.subUnitPrice || (unitPrice / subUnitsPerUnit);
+          const itemTotalBeforeDiscount = (alloc.allocatedQuantity * unitPrice) + (alloc.allocatedSubQuantity * subUnitPrice);
+          const discountAmount = Number(((itemTotalBeforeDiscount * (item.discountPercent || 0)) / 100).toFixed(2));
+          const lineTotal = Number((itemTotalBeforeDiscount - discountAmount).toFixed(2));
+
+          await client.query(`
+            INSERT INTO pharmacy_sale_detail (
+              sale_id,
+              medicine_id,
+              batch_id,
+              quantity,
+              sub_quantity,
+              unit_sale_price,
+              sub_unit_sale_price,
+              discount_percent,
+              discount_amount,
+              line_total,
+              prescription_medicine_id,
+              reason_code,
+              reason_note,
+              handled_by
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+          `, [
+            saleId,
+            medicineId,
+            alloc.batchId,
+            alloc.allocatedQuantity,
+            alloc.allocatedSubQuantity,
+            unitPrice,
+            subUnitPrice,
+            item.discountPercent || 0,
+            discountAmount,
+            lineTotal,
+            (item as any).prescriptionMedicineId || null,
+            null,
+            null,
+            null,
+          ]);
+        }
+
+        // Handle prescription linkage for FEFO items
+        if (transaction.prescriptionId && (item as any).prescriptionMedicineId) {
+          const requestedUnits = Number(item.quantity || 0);
+          const liveAvailableQuantity = Math.max(0, Number(item.availableQuantity || 0) - requestedUnits);
+          const liveAvailabilityStatus = getLivePrescriptionAvailabilityStatus(liveAvailableQuantity, false);
+
+          await client.query(`
+            UPDATE prescription_medicines
+            SET
+              dispensed_by = $1,
+              dispensed_quantity = $2,
+              dispensed_at = CURRENT_TIMESTAMP,
+              updated_at = CURRENT_TIMESTAMP,
+              available_quantity_snapshot = $5,
+              availability_status = $6
+            WHERE prescription_medicine_id = $3
+              AND prescription_id = $4
+          `, [
+            staffId,
+            item.quantity,
+            (item as any).prescriptionMedicineId,
+            transaction.prescriptionId,
+            liveAvailableQuantity,
+            liveAvailabilityStatus
+          ]);
+        }
+
+        continue;
+      }
+
+      // ─── Legacy single-batch path ───────────────────────────
       const subUnitPrice = item.medicine.batch_sale_sub_unit_price
         || (item.medicine as any).sub_unit_price
         || (item.price / subUnitsPerUnit);
@@ -179,7 +286,7 @@ export async function POST(request: NextRequest) {
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
       `, [
         saleId,
-        item.medicine.medicine_id ?? item.medicine.id,
+        medicineId,
         isOverride ? null : (item.batchId || null),
         item.quantity,
         item.subQuantity || 0,

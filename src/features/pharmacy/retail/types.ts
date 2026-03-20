@@ -20,10 +20,12 @@ export interface Medicine {
   dosage_unit: string;
   form: string;
   category: 'prescription' | 'otc' | 'controlled';
+  requires_prescription?: boolean;
 
   // Batch specific fields from v_medicine_pos (merged at runtime)
   batch_id?: number;
   batch_number?: string;
+  batch_code?: string;
   batch_stock_quantity?: number;
   batch_stock_sub_quantity?: number;
   batch_sale_price?: number;
@@ -65,6 +67,7 @@ export interface CartItem {
   lineTotal: number;
   batchId?: number;
   batchNumber?: string;
+  batchCode?: string;
   saleId?: number;
   saleDetailId?: number;
   prescriptionMedicineId?: number;

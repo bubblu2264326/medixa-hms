@@ -8,13 +8,23 @@ export async function GET() {
     try {
 
         const sql = `
-            SELECT 
+            SELECT
                 m.*,
                 m.medicine_id as id,
-                COALESCE(SUM(mb.stock_quantity), 0) as stock_quantity,
-                COALESCE(SUM(mb.stock_sub_quantity), 0) as stock_sub_quantity
+                (
+                  COALESCE(SUM(
+                    (COALESCE(mb.stock_quantity, 0) * COALESCE(NULLIF(m.sub_units_per_unit, 0), 1))
+                    + COALESCE(mb.stock_sub_quantity, 0)
+                  ), 0) / COALESCE(NULLIF(m.sub_units_per_unit, 0), 1)
+                )::integer as stock_quantity,
+                (
+                  COALESCE(SUM(
+                    (COALESCE(mb.stock_quantity, 0) * COALESCE(NULLIF(m.sub_units_per_unit, 0), 1))
+                    + COALESCE(mb.stock_sub_quantity, 0)
+                  ), 0) % COALESCE(NULLIF(m.sub_units_per_unit, 0), 1)
+                )::integer as stock_sub_quantity
             FROM medicine m
-            LEFT JOIN medicine_batch mb ON m.medicine_id = mb.medicine_id 
+            LEFT JOIN medicine_batch mb ON m.medicine_id = mb.medicine_id
                 AND (mb.expiry_date > CURRENT_DATE OR mb.expiry_date IS NULL)
             GROUP BY m.medicine_id
         `;

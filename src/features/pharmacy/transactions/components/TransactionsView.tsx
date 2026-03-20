@@ -11,7 +11,7 @@ import { Button } from '@/src/components/ui/Button';
 
 type Transaction = {
   txn_id: number;
-  txn_type: 'purchase' | 'sale' | 'sale_return' | 'purchase_return';
+  txn_type: 'purchase' | 'sale' | 'sale_return' | 'purchase_return' | 'adjustment';
   quantity: number;
   sub_quantity: number;
   created_at: string;
@@ -36,7 +36,10 @@ const TYPE_CONFIG = {
   sale: { label: 'Sale Out', color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100', icon: <ShoppingCart size={14} /> },
   sale_return: { label: 'Sale Return', color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-100', icon: <RotateCcw size={14} /> },
   purchase_return: { label: 'Pur. Return', color: 'text-rose-600', bg: 'bg-rose-50', border: 'border-rose-100', icon: <ArrowUpRight size={14} /> },
+  adjustment: { label: 'Adjustment', color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-100', icon: <Activity size={14} /> },
 };
+
+const DEFAULT_CONFIG = { label: 'Other', color: 'text-slate-600', bg: 'bg-slate-50', border: 'border-slate-100', icon: <Activity size={14} /> };
 
 export function TransactionsView() {
   const router = useRouter();
@@ -101,8 +104,8 @@ export function TransactionsView() {
           />
         </div>
         
-        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200/60">
-          {['all', 'purchase', 'sale', 'sale_return', 'purchase_return'].map((t) => (
+        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200/60 overflow-x-auto max-w-full">
+          {['all', 'purchase', 'sale', 'sale_return', 'purchase_return', 'adjustment'].map((t) => (
             <button
               key={t}
               onClick={() => setTypeFilter(t)}
@@ -145,7 +148,7 @@ export function TransactionsView() {
             </thead>
             <tbody className="divide-y divide-slate-50/50">
               {filtered.map((txn) => {
-                const config = TYPE_CONFIG[txn.txn_type];
+                const config = TYPE_CONFIG[txn.txn_type] || DEFAULT_CONFIG;
                 const dateObj = new Date(txn.created_at);
                 
                 return (

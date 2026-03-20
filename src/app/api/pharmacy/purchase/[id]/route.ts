@@ -54,6 +54,7 @@ export async function GET(
         m.dosage_unit,
         m.sub_unit,
         mb.batch_number,
+        mb.batch_code,
         mb.expiry_date,
         mb.sale_price,
         mb.sale_sub_unit_price
@@ -73,6 +74,7 @@ export async function GET(
       sub_unit_cost: Number(row.sub_unit_cost),
       batch_id: row.batch_id,
       batch_number: row.batch_number,
+      batch_code: row.batch_code,
       expiry_date: row.expiry_date ? new Date(row.expiry_date).toISOString().split('T')[0] : '',
       sale_price: Number(row.sale_price),
       sale_sub_unit_price: Number(row.sale_sub_unit_price),
@@ -149,14 +151,8 @@ export async function PUT(
     `, [id]);
     const existingDetails = existingResult.rows;
 
-    // Build a lookup key for each item: medicine_id + batch_number
-    const incomingItems = items.map((item: any) => ({
-      ...item,
-      key: `${item.medicine_id}_${item.batch_number}`
-    }));
-
+    // Use a mapping to reconcile incoming vs existing
     const existingItems = await Promise.all(existingDetails.map(async (row: any) => {
-      // Get batch_number for comparison
       const batchRes = await client.query(
         `SELECT batch_number FROM medicine_batch WHERE batch_id = $1`, [row.batch_id]
       );
@@ -167,15 +163,12 @@ export async function PUT(
       };
     }));
 
-    // 3. Delete removed items (triggers will decrement stock)
-    const incomingKeys = new Set(incomingItems.map((i: any) => i.key));
+    // 3. Delete removed items
+    const incomingKeys = new Set(items.map((i: any) => `${i.medicine_id}_${i.batch_number}`));
     const itemsToDelete = existingItems.filter(e => !incomingKeys.has(e.key));
 
     for (const item of itemsToDelete) {
-      await client.query(
-        `DELETE FROM medicine_purchase_detail WHERE id = $1`,
-        [item.id]
-      );
+      await client.query(`DELETE FROM medicine_purchase_detail WHERE id = $1`, [item.id]);
     }
 
     // 4. Update existing or insert new items
@@ -192,59 +185,86 @@ export async function PUT(
         sale_sub_unit_price
       } = item;
 
-      // Ensure batch exists or create
+      // Batch Resolution: medicine_id + batch_number + party_id
       let batchId: number;
-      const batchCheck = await client.query(
-        `SELECT batch_id FROM medicine_batch WHERE medicine_id = $1 AND batch_number = $2`,
-        [medicine_id, batch_number]
-      );
+      const batchCheck = await client.query(`
+        SELECT batch_id, batch_code, purchase_price, purchase_sub_unit_price, sale_price, sale_sub_unit_price, expiry_date 
+        FROM medicine_batch 
+        WHERE medicine_id = $1 AND batch_number = $2 AND party_id = $3
+      `, [medicine_id, batch_number, party_id]);
 
       if (batchCheck.rows.length > 0) {
-        batchId = batchCheck.rows[0].batch_id;
-        await client.query(`
-          UPDATE medicine_batch SET
-            purchase_price = COALESCE($1, purchase_price),
-            purchase_sub_unit_price = COALESCE($2, purchase_sub_unit_price),
-            sale_price = COALESCE($3, sale_price),
-            sale_sub_unit_price = COALESCE($4, sale_sub_unit_price),
-            expiry_date = COALESCE($5, expiry_date)
-          WHERE batch_id = $6
-        `, [unit_cost, sub_unit_cost, sale_price, sale_sub_unit_price, expiry_date, batchId]);
+        const existingBatch = batchCheck.rows[0];
+        batchId = existingBatch.batch_id;
+
+        // Validation
+        const tolerance = 0.01;
+        const isPriceMismatch = 
+            Math.abs((existingBatch.purchase_price || 0) - (unit_cost || 0)) >= tolerance ||
+            Math.abs((existingBatch.purchase_sub_unit_price || 0) - (sub_unit_cost || 0)) >= tolerance ||
+            Math.abs((existingBatch.sale_price || 0) - (sale_price || 0)) >= tolerance ||
+            Math.abs((existingBatch.sale_sub_unit_price || 0) - (sale_sub_unit_price || 0)) >= tolerance;
+        
+        const existingExpiry = existingBatch.expiry_date ? new Date(existingBatch.expiry_date).toISOString().split('T')[0] : null;
+        const newExpiry = expiry_date ? new Date(expiry_date).toISOString().split('T')[0] : null;
+        
+        if (isPriceMismatch || (existingExpiry !== newExpiry)) {
+            throw new Error(`BATCH_MISMATCH: Price or Expiry mismatch for batch "${batch_number}"`);
+        }
+        // Metadata Update removed in Phase 2 for reuse consistency
       } else {
-        const batchCreate = await client.query(`
-          INSERT INTO medicine_batch (
-            medicine_id, batch_number, expiry_date,
-            purchase_price, purchase_sub_unit_price,
-            sale_price, sale_sub_unit_price,
-            stock_quantity, stock_sub_quantity,
-            received_date, party_id
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, 0, 0, NOW(), $8)
-          RETURNING batch_id
-        `, [medicine_id, batch_number, expiry_date, unit_cost, sub_unit_cost, sale_price, sale_sub_unit_price, party_id]);
-        batchId = batchCreate.rows[0].batch_id;
+        try {
+            const batchCreate = await client.query(`
+              INSERT INTO medicine_batch (
+                medicine_id, batch_number, expiry_date,
+                purchase_price, purchase_sub_unit_price,
+                sale_price, sale_sub_unit_price,
+              stock_quantity, stock_sub_quantity,
+              received_date, party_id
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, 0, 0, NOW(), $8)
+              RETURNING batch_id, batch_code
+            `, [medicine_id, batch_number, expiry_date, unit_cost, sub_unit_cost, sale_price, sale_sub_unit_price, party_id]);
+            batchId = batchCreate.rows[0].batch_id;
+        } catch (err: any) {
+            if (err.code === '23505') {
+                const retry = await client.query(`
+                  SELECT batch_id, purchase_price, purchase_sub_unit_price, sale_price, sale_sub_unit_price, expiry_date
+                  FROM medicine_batch 
+                  WHERE medicine_id = $1 AND batch_number = $2 AND party_id = $3
+                `, [medicine_id, batch_number, party_id]);
+                if (retry.rows.length > 0) {
+                  const existing = retry.rows[0];
+                  const tolerance = 0.01;
+                  const existingExpiry = existing.expiry_date ? new Date(existing.expiry_date).toISOString().split('T')[0] : null;
+                  const newExpiry = expiry_date ? new Date(expiry_date).toISOString().split('T')[0] : null;
+                  if (
+                    Math.abs((existing.purchase_price || 0) - (unit_cost || 0)) >= tolerance ||
+                    Math.abs((existing.purchase_sub_unit_price || 0) - (sub_unit_cost || 0)) >= tolerance ||
+                    Math.abs((existing.sale_price || 0) - (sale_price || 0)) >= tolerance ||
+                    Math.abs((existing.sale_sub_unit_price || 0) - (sale_sub_unit_price || 0)) >= tolerance ||
+                    existingExpiry !== newExpiry
+                  ) {
+                    throw new Error(`BATCH_MISMATCH (Race): Conflict for batch "${batch_number}"`);
+                  }
+                  batchId = existing.batch_id;
+                } else throw err;
+            } else throw err;
+        }
       }
 
-      // Check if this item already exists in the detail table
       const key = `${medicine_id}_${batch_number}`;
       const existingItem = existingItems.find(e => e.key === key);
 
       if (existingItem) {
-        // Update existing detail row
         await client.query(`
           UPDATE medicine_purchase_detail SET
-            quantity = $1,
-            unit_cost = $2,
-            sub_quantity = $3,
-            sub_unit_cost = $4,
-            batch_id = $5
+            quantity = $1, unit_cost = $2, sub_quantity = $3, sub_unit_cost = $4, batch_id = $5
           WHERE id = $6
         `, [quantity, unit_cost, sub_quantity || 0, sub_unit_cost || 0, batchId, existingItem.id]);
       } else {
-        // Insert new detail row (trigger will increment stock)
         await client.query(`
           INSERT INTO medicine_purchase_detail (
-            purchase_id, medicine_id, quantity, unit_cost,
-            sub_quantity, sub_unit_cost, batch_id
+            purchase_id, medicine_id, quantity, unit_cost, sub_quantity, sub_unit_cost, batch_id
           ) VALUES ($1, $2, $3, $4, $5, $6, $7)
         `, [id, medicine_id, quantity, unit_cost, sub_quantity || 0, sub_unit_cost || 0, batchId]);
       }
@@ -257,7 +277,7 @@ export async function PUT(
     `, [
       staffId,
       'PURCHASE_EDITED',
-      `Medicine purchase invoice #${invoice_no} (ID: ${id}) edited with ${items.length} items.`
+      `Medicine purchase invoice #${invoice_no} (ID: ${id}) edited.`
     ]);
 
     await client.query('COMMIT');
@@ -267,13 +287,21 @@ export async function PUT(
       message: 'Purchase invoice updated successfully'
     });
 
-  } catch (error) {
+  } catch (error: any) {
     await client.query('ROLLBACK');
     console.error('Purchase update error:', error);
+    
+    let status = 500;
+    let errorMessage = 'Failed to update purchase invoice.';
+    if (error.message.startsWith('BATCH_MISMATCH')) {
+        status = 400;
+        errorMessage = error.message;
+    }
+
     return NextResponse.json<ApiResponse>({
       success: false,
-      error: 'Failed to update purchase invoice.'
-    }, { status: 500 });
+      error: errorMessage
+    }, { status });
   } finally {
     client.release();
   }

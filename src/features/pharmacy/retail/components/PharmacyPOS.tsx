@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { usePatient } from '@/contexts/PatientIdContext';
@@ -61,6 +61,7 @@ const PharmacyPOS: React.FC = () => {
   const [overrideQuantity, setOverrideQuantity] = useState(1);
   const [overridePrice, setOverridePrice] = useState<number>(0);
   const [overrideError, setOverrideError] = useState<string | null>(null);
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [isPortalReady, setIsPortalReady] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -76,6 +77,7 @@ const PharmacyPOS: React.FC = () => {
     setSubQuantity(0);
     setDiscountPercent(0);
     setCustomPrice(undefined);
+    setEditingItemId(null);
     setIsEditing(false);
     setEditId(null);
     setActivePrescription(null);
@@ -322,7 +324,7 @@ const PharmacyPOS: React.FC = () => {
         ? new Date(medicine.expiry_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
         : 'N/A';
 
-      const batchInfo = medicine.batch_number ? ` [Batch: ${medicine.batch_number}]` : '';
+      const batchInfo = medicine.batch_number ? ` [Lot: ${medicine.batch_number}]` : '';
       setSearchQuery(`${medicine.brand_name} ${medicine.dosage_value}${medicine.dosage_unit}${batchInfo} (Exp: ${expiryDate})`);
 
       // Focus quantity input for fast entry
@@ -634,6 +636,24 @@ const PharmacyPOS: React.FC = () => {
     }
   };
 
+  const handleEditItem = useCallback((itemId: string) => {
+    const item = cart.find(i => i.id === itemId);
+    if (!item) return;
+
+    setItemSearched(item.medicine);
+    setQuantity(item.quantity);
+    setSubQuantity(item.subQuantity);
+    setDiscountPercent(item.discountPercent);
+    setCustomPrice(item.customPrice);
+    setEditingItemId(item.id);
+    setIsEditing(true);
+
+    // Focus first input
+    qtyInputRef.current?.focus();
+
+    toast.success(`Editing ${item.medicine.brand_name}`, { icon: '📝' });
+  }, [cart]);
+
   const handleSearchSelected = () => {
     if (activePrescription) {
       toast.error('Prescription cart is locked to prescribed medicines');
@@ -648,7 +668,17 @@ const PharmacyPOS: React.FC = () => {
     }
 
     try {
-      addItem(itemSearched, quantity, subQuantity, discountPercent, customPrice);
+      if (editingItemId) {
+        updateItem(editingItemId, {
+          quantity,
+          subQuantity,
+          discountPercent,
+          customPrice
+        });
+        toast.success('Item updated', { icon: '✅' });
+      } else {
+        addItem(itemSearched, quantity, subQuantity, discountPercent, customPrice);
+      }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to add item');
       return;
@@ -662,6 +692,10 @@ const PharmacyPOS: React.FC = () => {
     setSubQuantity(0);
     setDiscountPercent(0);
     setCustomPrice(undefined);
+    setEditingItemId(null);
+    if (posMode !== 'EDIT' && posMode !== 'RETURN') {
+      setIsEditing(false);
+    }
 
     // Refocus search for next item
     setTimeout(() => searchInputRef.current?.focus(), 100);
@@ -868,16 +902,26 @@ const PharmacyPOS: React.FC = () => {
                   <p className="text-sm font-bold text-indigo-600 truncate">{itemSearched.brand_name}</p>
                 </div>
                 {itemSearched.batch_number && (
-                  <span className="text-[10px] font-mono bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded shrink-0">
-                    BN: {itemSearched.batch_number}
-                  </span>
+                  <div className="flex flex-col items-end shrink-0">
+                    <span className="text-[10px] font-mono bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded">
+                      LOT: {itemSearched.batch_number}
+                    </span>
+                    {itemSearched.batch_code ? (
+                      <span className="mt-1 text-[9px] font-mono text-slate-400">
+                        Ref: {itemSearched.batch_code}
+                      </span>
+                    ) : null}
+                  </div>
                 )}
               </div>
             )}
 
             {/* Add Button */}
             <div className="shrink-0">
-              <AddProductButton handleSearchSelected={handleSearchSelected} />
+              <AddProductButton
+                handleSearchSelected={handleSearchSelected}
+                isEditing={Boolean(editingItemId)}
+              />
             </div>
           </div>
         </div>
@@ -905,6 +949,7 @@ const PharmacyPOS: React.FC = () => {
               onSelectItem={selectItem}
               onUpdateItem={updateItem}
               onRemoveItem={removeItem}
+              onEditItem={handleEditItem}
               prescriptionMode={Boolean(activePrescription)}
               onResolveUnavailable={openOverrideModal}
             />

@@ -25,6 +25,7 @@ export interface Medicine {
   // Batch specific fields
   batch_id?: number;
   batch_number?: string;
+  batch_code?: string;
   batch_stock_quantity?: number;
   batch_stock_sub_quantity?: number;
   batch_sale_price?: number;
@@ -46,6 +47,7 @@ export interface CartItem {
   lineTotal: number;
   batchId?: number;
   batchNumber?: string;
+  batchCode?: string;
   saleId?: number;
   saleDetailId?: number;
   prescriptionMedicineId?: number;
@@ -102,4 +104,5 @@ export interface ApiResponse<T = any> {
   data?: T;
   error?: string;
   message?: string;
+  code?: string;
 }
