@@ -31,11 +31,6 @@ export function Queue({
     deleteVisit,
     allowDelete: deleteEnabled,
   } = useQueue(endpoint, allowDelete);
-  const activeQueueItem = allQueue.find(
-    (item) =>
-      String(item.patient_id) === String(patientId) &&
-      (!selectedVisitId || String(item.visit_id) === String(selectedVisitId))
-  );
 
   useEffect(() => {
     if (!workspace) {
@@ -88,9 +83,6 @@ export function Queue({
             <h2 className="text-lg font-black tracking-tight text-slate-900">{title}</h2>
             {loading && <div className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />}
           </div>
-          <p className="mt-1 text-xs text-slate-500">
-            Select a patient, then work from one clinical workspace.
-          </p>
         </div>
 
         <button
@@ -100,22 +92,6 @@ export function Queue({
         >
           Collapse
         </button>
-      </div>
-
-      <div className="mt-4 rounded-[1.5rem] border border-emerald-100 bg-emerald-50/80 px-4 py-3">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <div className="text-[11px] font-black uppercase tracking-[0.2em] text-emerald-700">
-              Active Patient
-            </div>
-            <div className="mt-1 text-sm font-bold text-slate-800">
-              {activeQueueItem?.patient_name ?? "No patient selected"}
-            </div>
-          </div>
-          <div className="rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-600">
-            {queue.length} in queue
-          </div>
-        </div>
       </div>
 
       <div className="mt-4 flex items-center gap-2 rounded-2xl bg-slate-100 p-1">

@@ -115,10 +115,19 @@ export function usePatientForm() {
         const displayName = data.patient_name || sid;
         setSearchQuery(displayName);
         setPatientName(displayName); // Set this so the effect can skip searching this specific name
-        setPatientId(sid);
+        const hasExplicitVisitSelectionForPatient =
+          sid === patientId && Boolean(selectedVisitId);
+
+        if (!hasExplicitVisitSelectionForPatient) {
+          setPatientId(sid);
+        }
 
         toast.success("Patient Found");
-        await getPatientVisitInfo(sid);
+        if (hasExplicitVisitSelectionForPatient) {
+          setIsExistingVisit(true);
+        } else {
+          await getPatientVisitInfo(sid);
+        }
       } else {
         syncedPatientIdRef.current = null;
         toast.error("Patient not found");
@@ -130,7 +139,7 @@ export function usePatientForm() {
       toast.error("Error fetching patient");
       resetInfo(false);
     }
-  }, [getPatientVisitInfo, resetInfo, setPatientId]);
+  }, [getPatientVisitInfo, patientId, resetInfo, selectedVisitId, setPatientId]);
 
   const searchByName = useCallback(async (name: string) => {
     if (name.length < 2) {
