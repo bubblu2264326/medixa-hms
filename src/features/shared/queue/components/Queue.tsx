@@ -30,9 +30,14 @@ export function Queue({
     filterByName,
     deleteVisit,
     allowDelete: deleteEnabled,
+    errorMessage,
+    isStale,
   } = useQueue(endpoint, allowDelete);
+  const safeQueue = Array.isArray(queue) ? queue : [];
 
   useEffect(() => {
+    const normalizedQueue = Array.isArray(allQueue) ? allQueue : [];
+
     if (!workspace) {
       return;
     }
@@ -46,7 +51,9 @@ export function Queue({
       return;
     }
 
-    const selectedItem = allQueue.find((item) => String(item.visit_id) === String(selectedVisitId));
+    const selectedItem = normalizedQueue.find(
+      (item) => String(item.visit_id) === String(selectedVisitId)
+    );
 
     if (!selectedItem) {
       workspace.setStaleVisitSelection({
@@ -123,19 +130,27 @@ export function Queue({
         />
       </label>
 
+      {errorMessage && (
+        <div className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-medium text-amber-800">
+          {isStale
+            ? "Queue refresh failed. Showing the last known queue state."
+            : "Queue is temporarily unavailable. Please retry in a moment."}
+        </div>
+      )}
+
       <div className="mt-4 flex-1 space-y-3 overflow-auto pr-1">
-        {loading && queue.length === 0 ? (
+        {loading && safeQueue.length === 0 ? (
           <div className="flex h-40 flex-col items-center justify-center gap-3 rounded-[1.5rem] border border-dashed border-slate-200 bg-slate-50/70 text-slate-500">
             <div className="h-8 w-8 rounded-full border-2 border-emerald-200 border-t-emerald-600 animate-spin" />
             <p className="text-sm font-medium">Loading queue...</p>
           </div>
-        ) : queue.length === 0 ? (
+        ) : safeQueue.length === 0 ? (
           <div className="flex h-40 flex-col items-center justify-center gap-2 rounded-[1.5rem] border border-dashed border-slate-200 bg-slate-50/70 text-slate-500">
             <Clock3 size={24} className="text-slate-300" />
             <p className="text-sm font-medium">Queue is clear</p>
           </div>
         ) : (
-          queue.map((item) => {
+          safeQueue.map((item) => {
             const isSelected =
               String(item.patient_id) === String(patientId) &&
               (!selectedVisitId || String(item.visit_id) === String(selectedVisitId));

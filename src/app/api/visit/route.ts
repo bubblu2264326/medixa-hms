@@ -1,5 +1,6 @@
 
 import { query } from "@/database/db";
+import { publishQueueInvalidation } from "@/src/lib/server/queueEvents";
 import { NextRequest, NextResponse } from "next/server";
 
 
@@ -18,6 +19,7 @@ export async function PATCH(req: NextRequest) {
          return NextResponse.json({ error: "visit not found" }, { status: 404 });
       }
 
+      publishQueueInvalidation("visit-updated");
       return NextResponse.json(v_res.rows[0]);
    } catch (err) {
       console.error(err);
@@ -46,6 +48,7 @@ export async function POST(req: NextRequest) {
       const bill_res = await query("insert into bill(patient_id,visit_id,total_amount,payment_status) values($1,$2,$3,$4) returning *", [res.patient_id, v_res.rows[0].visit_id, 0, "Unpaid"]);
       console.log(bill_res.rows[0]);
 
+      publishQueueInvalidation("visit-created");
       return NextResponse.json(v_res.rows[0]);
    } catch (err: any) {
       console.error(err);
@@ -68,6 +71,7 @@ export async function DELETE(req: NextRequest) {
       if (deletedVisit.rows.length === 0) {
          return NextResponse.json({ error: "visit not found" }, { status: 404 });
       }
+      publishQueueInvalidation("visit-deleted");
       return NextResponse.json(deletedVisit.rows[0], { status: 200 });
    } catch (err) {
       console.error(err);

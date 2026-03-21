@@ -1,4 +1,5 @@
 import { query } from "@/database/db";
+import { ACTIVE_QUEUE_STATUSES } from "@/src/lib/server/queueConfig";
 import { getAuthenticatedDoctor } from "@/src/lib/server/doctor";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -24,13 +25,13 @@ export async function GET(req: NextRequest) {
           and v.visit_timestamp >= current_date
           and v.visit_timestamp < current_date + interval '1 day'
           and v.is_deleted = false
-          and v.status in ('waiting', 'seen_by_doctor', 'medicines_dispensed', 'lab_tests_done', 'payment_done')
+          and v.status = any($2::text[])
         order by
           case when v.visit_type = 'Emergency' then 0 else 1 end,
           v.clinic_number asc nulls last,
           v.visit_timestamp asc
       `,
-      [doctor.doctor_id]
+      [doctor.doctor_id, ACTIVE_QUEUE_STATUSES]
     );
 
     return NextResponse.json(queueResult.rows, { status: 200 });

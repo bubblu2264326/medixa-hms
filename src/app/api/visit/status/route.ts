@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import {query} from "@/database/db"
+import { publishQueueInvalidation } from "@/src/lib/server/queueEvents";
 import { getCurrentStaffId } from "@/src/lib/utils";
 ///there is  a procedure which are doing work of /visisttStatus History and /Status 
 
@@ -21,6 +22,7 @@ export async function PATCH(req:NextRequest){
         if(res.rows.length === 0){
             return NextResponse.json({message:"no patient found for that visist id"},{status:404})
         }
+        publishQueueInvalidation("visit-status-updated");
         return NextResponse.json({data:res.rows[0]},{status:200})
     } catch (err) {
         console.error(err);

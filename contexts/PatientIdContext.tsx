@@ -17,8 +17,10 @@ export function PatientContextProvider({ children }: { children: React.ReactNode
     const [selectedVisitId, setSelectedVisitId] = useState<string | null>(null);
 
     const handleSetPatientId = (id: string | null) => {
-        setPatientId(id);
-        setSelectedVisitId(null);
+        if (id !== patientId) {
+            setPatientId(id);
+            setSelectedVisitId(null);
+        }
     };
 
     const setPatientVisit = (nextPatientId: string | null, nextVisitId: string | null) => {

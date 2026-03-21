@@ -124,7 +124,7 @@ export default function MedicinePurchaseForm() {
                         setInvoiceNo(res.data.invoice_no);
                         setBatchCodePreview(res.data.items?.[0]?.batch_code || '');
                         setSupplierBatchNumber(res.data.items?.[0]?.batch_number || '');
-                        
+
                         // Defensive check for items array
                         const mappedItems = (res.data.items || []).map((item: any) => ({
                             medicine_id: item.medicine_id,
@@ -152,7 +152,7 @@ export default function MedicinePurchaseForm() {
             }
         }
         init();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // Keyboard Navigation: Side Arrow Navigation
@@ -192,7 +192,7 @@ export default function MedicinePurchaseForm() {
 
         window.addEventListener('keydown', handleArrowNav);
         return () => window.removeEventListener('keydown', handleArrowNav);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // Global Shortcuts
@@ -210,7 +210,7 @@ export default function MedicinePurchaseForm() {
         };
         window.addEventListener('keydown', handleGlobalShorcuts);
         return () => window.removeEventListener('keydown', handleGlobalShorcuts);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [items, selectedParty, invoiceNo]);
 
     // Search Logic
@@ -485,7 +485,7 @@ export default function MedicinePurchaseForm() {
                     setSupplierBatchNumber('');
                     setInvoiceNo('');
                     setBatchCodePreview('');
-                    
+
                     await refreshFormMetadata();
                 }
             } else {
@@ -671,10 +671,10 @@ export default function MedicinePurchaseForm() {
                                 </div>
                             )}
                             <div className="flex items-center gap-2">
-                                <input 
-                                    type="checkbox" 
-                                    id="autoCalc" 
-                                    checked={autoCalc} 
+                                <input
+                                    type="checkbox"
+                                    id="autoCalc"
+                                    checked={autoCalc}
                                     onChange={(e) => setAutoCalc(e.target.checked)}
                                     className="h-4 w-4 rounded text-emerald-600 focus:ring-emerald-500 cursor-pointer"
                                 />

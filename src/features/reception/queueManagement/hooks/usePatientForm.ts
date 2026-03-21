@@ -118,7 +118,7 @@ export function usePatientForm() {
         const hasExplicitVisitSelectionForPatient =
           sid === patientId && Boolean(selectedVisitId);
 
-        if (!hasExplicitVisitSelectionForPatient) {
+        if (!hasExplicitVisitSelectionForPatient && sid !== patientId) {
           setPatientId(sid);
         }
 

@@ -1,5 +1,6 @@
 import pool from "@/database/db";
 import { getAuthenticatedDoctor } from "@/src/lib/server/doctor";
+import { publishQueueInvalidation } from "@/src/lib/server/queueEvents";
 import { transitionDoctorVisitStatus } from "@/src/lib/server/doctorWorkspace";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -45,6 +46,7 @@ export async function POST(
     });
 
     await client.query("COMMIT");
+    publishQueueInvalidation("doctor-visit-status-updated");
     return NextResponse.json(result, { status: 200 });
   } catch (error) {
     await client.query("ROLLBACK");

@@ -144,7 +144,7 @@ export function Login() {
           </div>
 
           <p className="mt-6 text-xs text-gray-400 text-center">
-            Powered by <span className="font-semibold text-emerald-600">Muhammad Abdul Rehman</span>
+            Developed by <span className="font-semibold text-emerald-600">Muhammad Abdul Rehman</span>
           </p>
         </div>
 
