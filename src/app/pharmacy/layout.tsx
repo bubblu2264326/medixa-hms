@@ -6,6 +6,7 @@ import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { PurchaseReturn } from "@/src/features/pharmacy/purchaseReturn/components/PurchaseReturn";
 import { PartiesView } from "@/src/features/pharmacy/parties";
 import { TransactionsView } from "@/src/features/pharmacy/transactions";
+import { SettingsView } from "@/src/features/pharmacy/settings";
 import { SessionControls } from "@/src/components/session/SessionControls";
 import {
   ShoppingCart,
@@ -14,7 +15,8 @@ import {
   Users,
   ArrowLeftRight,
   Layout,
-  BarChart3
+  BarChart3,
+  Settings
 } from "lucide-react";
 
 
@@ -87,8 +89,9 @@ function PharmacistContent({
     { id: "transactions", label: "Transactions", icon: <History size={16} /> },
     { id: "addParty", label: "Parties", icon: <Users size={16} /> },
     { id: "purchaseReturn", label: "P. Return", icon: <ArrowLeftRight size={16} /> },
-    { id: "medicines", label: "Medicines", icon: <PlusCircle size={16} /> },
+    { id: "medicines", label: "Products", icon: <PlusCircle size={16} /> },
     { id: "reports", label: "Reports", icon: <BarChart3 size={16} /> },
+    { id: "settings", label: "Settings", icon: <Settings size={16} /> },
   ];
 
   return (
@@ -158,6 +161,7 @@ function PharmacistContent({
                 {selectedTab === "reports" && reports}
                 {selectedTab === "addParty" && <PartiesView />}
                 {selectedTab === "transactions" && <TransactionsView />}
+                {selectedTab === "settings" && <SettingsView />}
                 {children}
               </div>
             </div>

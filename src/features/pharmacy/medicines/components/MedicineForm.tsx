@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useDeferredValue, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Check, ChevronDown, Sparkles, X } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -398,9 +399,8 @@ function Field({
                       event.preventDefault();
                       selectSuggestion(suggestion);
                     }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm transition ${
-                      isActive ? "bg-cyan-50 text-cyan-900" : "text-slate-700 hover:bg-slate-50"
-                    }`}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm transition ${isActive ? "bg-cyan-50 text-cyan-900" : "text-slate-700 hover:bg-slate-50"
+                      }`}
                   >
                     <span>{suggestionText}</span>
                     {isSelected ? <Check size={16} className="text-cyan-700" /> : null}
@@ -457,11 +457,30 @@ function ToggleField({
 }
 
 export default function MedicineForm({ medicine, onClose, onSuccess }: MedicineFormProps) {
+  const [isMounted, setIsMounted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [pendingMasterCreates, setPendingMasterCreates] = useState(0);
   const [formData, setFormData] = useState<Partial<Medicine>>(medicine ? { ...DEFAULT_FORM_VALUES, ...medicine } : DEFAULT_FORM_VALUES);
   const [recommendations, setRecommendations] = useState<CatalogRecommendations>(EMPTY_RECOMMENDATIONS);
   const deferredFormData = useDeferredValue(formData);
+
+  useEffect(() => {
+    setIsMounted(true);
+    return () => setIsMounted(false);
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted) {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isMounted]);
 
   useEffect(() => {
     setFormData(medicine ? { ...DEFAULT_FORM_VALUES, ...medicine } : DEFAULT_FORM_VALUES);
@@ -638,7 +657,7 @@ export default function MedicineForm({ medicine, onClose, onSuccess }: MedicineF
         throw new Error(errorData.error || "Failed to save medicine");
       }
 
-      toast.success(`Medicine ${isEdit ? "updated" : "added"} successfully`);
+      toast.success(`Product ${isEdit ? "updated" : "added"} successfully`);
       onSuccess();
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Failed to save medicine";
@@ -648,9 +667,13 @@ export default function MedicineForm({ medicine, onClose, onSuccess }: MedicineF
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 p-2 backdrop-blur-md sm:p-4">
-      <div className="flex h-[calc(100dvh-1.5rem)] w-full max-w-6xl flex-col overflow-hidden rounded-[28px] border border-white/60 bg-[linear-gradient(180deg,#f8fbff_0%,#eef7ff_42%,#f7fbff_100%)] shadow-[0_30px_100px_rgba(15,23,42,0.32)] sm:h-[calc(100dvh-2.5rem)] lg:h-[min(860px,calc(100dvh-2.5rem))]">
+  if (!isMounted) {
+    return null;
+  }
+
+  return createPortal(
+    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/55 p-2 backdrop-blur-md sm:p-4">
+      <div className="flex h-[min(860px,calc(100dvh-1rem))] w-full max-w-6xl flex-col overflow-hidden rounded-[28px] border border-white/60 bg-[linear-gradient(180deg,#f8fbff_0%,#eef7ff_42%,#f7fbff_100%)] shadow-[0_30px_100px_rgba(15,23,42,0.32)] sm:h-[min(860px,calc(100dvh-2rem))]">
         <div className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-200 bg-white/80 px-5 py-3 backdrop-blur sm:px-6 xl:px-8">
           <div className="space-y-1">
             <div className="flex flex-wrap items-center gap-2">
@@ -660,12 +683,12 @@ export default function MedicineForm({ medicine, onClose, onSuccess }: MedicineF
               </span>
             </div>
             <h3 className="text-2xl font-semibold tracking-tight text-slate-950">
-              {medicine ? "Edit medicine" : "Add medicine"}
+              {medicine ? "Edit product" : "Add product"}
             </h3>
           </div>
           <button
             type="button"
-            aria-label="Close medicine form"
+            aria-label="Close product form"
             onClick={onClose}
             className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700"
           >
@@ -677,14 +700,14 @@ export default function MedicineForm({ medicine, onClose, onSuccess }: MedicineF
           <form id="medicine-form" onSubmit={handleSubmit} className="mx-auto max-w-5xl space-y-4 pb-6">
             <SectionCard
               eyebrow="Section 01"
-              title="Medicine identity"
+              title="Product identity"
               description=""
             >
               <div className="grid gap-5 md:grid-cols-2">
                 <Field
                   id="brand_name"
                   name="brand_name"
-                  label="Brand Name"
+                  label="Product Name (Brand Name)"
                   required
                   value={formData.brand_name}
                   onChange={handleChange}
@@ -694,7 +717,7 @@ export default function MedicineForm({ medicine, onClose, onSuccess }: MedicineF
                 <Field
                   id="generic_name"
                   name="generic_name"
-                  label="Generic Name"
+                  label="Base Name / Composition (Generic Name)"
                   required
                   value={formData.generic_name}
                   onChange={handleChange}
@@ -827,7 +850,7 @@ export default function MedicineForm({ medicine, onClose, onSuccess }: MedicineF
                   type="number"
                   min="1"
                   required
-                  value={formData.sub_units_per_unit}
+                  value={formData.sub_units_per_unit || 1}
                   onChange={handleChange}
                 />
                 <Field
@@ -846,23 +869,9 @@ export default function MedicineForm({ medicine, onClose, onSuccess }: MedicineF
                     label="Sub Unit Price"
                     type="number"
                     step="0.01"
-                    value={formData.sub_unit_price}
+                    value={formData.sub_unit_price || formData.unit_price}
                     onChange={handleChange}
-                    helperText={
-                      formData.unit_price && formData.sub_units_per_unit && Number(formData.sub_units_per_unit) > 0
-                        ? `Suggested: ${(Number(formData.unit_price) / Number(formData.sub_units_per_unit)).toFixed(2)}`
-                        : undefined
-                    }
                   />
-                  {formData.unit_price && formData.sub_units_per_unit && Number(formData.sub_units_per_unit) > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => setFieldValue("sub_unit_price", Number((Number(formData.unit_price) / Number(formData.sub_units_per_unit)).toFixed(2)))}
-                      className="absolute right-0 -bottom-5 text-xs font-semibold text-cyan-600 hover:text-cyan-800"
-                    >
-                      Use Suggested
-                    </button>
-                  )}
                 </div>
                 <Field
                   id="min_stock_level"
@@ -920,11 +929,12 @@ export default function MedicineForm({ medicine, onClose, onSuccess }: MedicineF
               disabled={loading || pendingMasterCreates > 0}
               className="rounded-2xl bg-slate-950 px-6 py-3 text-sm font-semibold text-white shadow-[0_18px_35px_rgba(15,23,42,0.25)] transition hover:bg-cyan-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {loading ? "Saving..." : pendingMasterCreates > 0 ? "Saving option..." : medicine ? "Save Changes" : "Add Medicine"}
+              {loading ? "Saving..." : pendingMasterCreates > 0 ? "Saving option..." : medicine ? "Save Changes" : "Add Product"}
             </button>
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

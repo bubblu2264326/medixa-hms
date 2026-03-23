@@ -62,7 +62,11 @@ export async function createPrescription(
   patientId: string,
   prescriptions: PrescriptionCreateItem[],
   visitId?: string | null
-) {
+): Promise<{
+  mode: "append" | "new_thread";
+  prescription_id: number;
+  visit_id: number;
+}> {
   if (!visitId) {
     throw new Error("Select a visit before submitting prescriptions");
   }

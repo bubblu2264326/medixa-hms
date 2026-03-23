@@ -12,7 +12,7 @@ export interface LoginResponse {
 }
 
 export interface DecodedToken {
-  role: "Doctor" | "Receptionist" | "Pharmacist" | "Lab_Technician";
+  role: "Doctor" | "Receptionist" | "Pharmacist" | "Lab_Technician" | "Cashier" | "Admin" | "Super Admin";
   [key: string]: any;///alows to add other keys and values 
 }
 

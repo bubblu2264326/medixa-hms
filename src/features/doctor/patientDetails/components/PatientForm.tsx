@@ -7,6 +7,7 @@ import {
   FlaskConical,
   HeartPulse,
   History,
+  Loader2,
   MapPin,
   NotebookTabs,
   Pill,
@@ -50,6 +51,10 @@ function formatValue(value: string | number | null | undefined) {
 
 function hasValue(value: string | number | null | undefined) {
   return value != null && value !== "";
+}
+
+function isFemaleGender(gender: string | null | undefined) {
+  return typeof gender === "string" && gender.trim().toLowerCase() === "female";
 }
 
 function IdentityChip({
@@ -127,8 +132,14 @@ function QuickAction({
   );
 }
 
-function WomenHealthPanel({ summary }: { summary: WomenHealthSummary | null | undefined }) {
-  if (!summary) return null;
+function WomenHealthPanel({
+  summary,
+  gender,
+}: {
+  summary: WomenHealthSummary | null | undefined;
+  gender: string | null | undefined;
+}) {
+  if (!summary || !isFemaleGender(gender)) return null;
 
   const obstetric = summary.obstetricHistory;
   const pregnancy = summary.currentPregnancy;
@@ -261,16 +272,22 @@ export default function PatientForm() {
     error,
     saveDoctorNote,
     markVisitSeen,
+    reopenVisit,
+    cancelVisit,
+    softDeleteVisit,
   } = usePatientForm();
   const { staleVisitSelection } = useDoctorWorkspace();
 
   const patient = contextSummary?.patient;
   const visit = contextSummary?.activeVisit;
   const encounterNote = contextSummary?.encounterNote;
+  const capabilities = contextSummary?.capabilities;
   const vitals = contextSummary?.vitals;
   const womenHealthSummary = contextSummary?.womenHealthSummary;
   const isSeen = visit?.status === "seen_by_doctor";
-  const isActionable = visit ? ["waiting", "seen_by_doctor"].includes(visit.status) : false;
+  const isCancelled = visit?.status === "discharged";
+  const isActionable = Boolean(capabilities?.canEditPrescriptions);
+  const canSoftDeleteVisit = Boolean(capabilities?.canSoftDeleteVisit);
   const patientLabel = formatGenderAge(patient?.gender, patient?.age);
 
   const switchTab = (tab: "pharmacyOrder" | "labOrder" | "pastVisits") => {
@@ -295,8 +312,19 @@ export default function PatientForm() {
   }
 
   return (
-    <div className="h-full">
-      <div className="h-full rounded-[2rem] border border-white/70 bg-white/85 p-6 shadow-[0_18px_50px_rgba(15,23,42,0.05)] xl:p-8">
+    <div className="relative h-full">
+      <div
+        className={`h-full rounded-[2rem] border border-white/70 bg-white/85 p-6 shadow-[0_18px_50px_rgba(15,23,42,0.05)] transition-opacity duration-200 xl:p-8 ${
+          isLoading ? "opacity-70" : "opacity-100"
+        }`}
+      >
+        {isLoading && (
+          <div className="mb-4 flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
+            <Loader2 size={16} className="animate-spin" />
+            <span aria-live="polite">Loading selected patient data...</span>
+          </div>
+        )}
+
         <div className="rounded-[1.75rem] border border-emerald-100 bg-[linear-gradient(135deg,rgba(236,253,245,0.95),rgba(255,255,255,0.96))] p-5 shadow-[0_20px_50px_rgba(16,185,129,0.08)]">
           <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
             <div className="min-w-0">
@@ -338,22 +366,57 @@ export default function PatientForm() {
                 {visit && (
                   <span
                     className={`rounded-full px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.2em] ${
-                      isSeen ? "bg-emerald-600 text-white" : "bg-amber-100 text-amber-700"
+                      isCancelled
+                        ? "bg-rose-100 text-rose-700"
+                        : isSeen
+                          ? "bg-emerald-600 text-white"
+                          : "bg-amber-100 text-amber-700"
                     }`}
                   >
-                    {isSeen ? "Seen By Doctor" : "Waiting"}
+                    {isCancelled ? "Cancelled" : isSeen ? "Seen By Doctor" : "Waiting"}
                   </span>
                 )}
               </div>
 
-              <Button
-                type="button"
-                onClick={markVisitSeen}
-                disabled={!visit || isSaving || isSeen || !isActionable}
-                className="h-11 rounded-2xl px-5 font-bold"
-              >
-                {isSeen ? "Already Seen" : !isActionable ? "Visit Locked" : "Mark As Seen"}
-              </Button>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  type="button"
+                  onClick={markVisitSeen}
+                  disabled={!visit || isSaving || isSeen || !isActionable}
+                  className="h-11 rounded-2xl px-5 font-bold"
+                >
+                  {isSeen ? "Already Seen" : !isActionable ? "Visit Locked" : "Mark As Seen"}
+                </Button>
+                <Button
+                  type="button"
+                  onClick={reopenVisit}
+                  disabled={!visit || isSaving || isCancelled || visit?.status === "waiting"}
+                  className="h-11 rounded-2xl border border-slate-300 bg-white px-5 font-bold text-slate-700 hover:bg-slate-50"
+                >
+                  Reopen Encounter
+                </Button>
+                <Button
+                  type="button"
+                  onClick={cancelVisit}
+                  disabled={!visit || isSaving || isCancelled || visit?.status === "dispensing"}
+                  className="h-11 rounded-2xl border border-rose-300 bg-rose-50 px-5 font-bold text-rose-700 hover:bg-rose-100"
+                >
+                  Cancel Encounter
+                </Button>
+                <Button
+                  type="button"
+                  onClick={softDeleteVisit}
+                  disabled={!visit || isSaving || !canSoftDeleteVisit}
+                  className="h-11 rounded-2xl border border-slate-300 bg-white px-5 font-bold text-slate-700 hover:bg-slate-50"
+                >
+                  Soft Delete
+                </Button>
+              </div>
+              {!canSoftDeleteVisit && capabilities?.lockReason && (
+                <p className="max-w-xl text-xs font-semibold text-amber-700">
+                  {capabilities.lockReason}
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -485,7 +548,7 @@ export default function PatientForm() {
           </section>
         </div>
 
-        <WomenHealthPanel summary={womenHealthSummary} />
+        <WomenHealthPanel summary={womenHealthSummary} gender={patient?.gender} />
 
         <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
           <section className="rounded-[1.75rem] border border-slate-200 bg-white p-5">
@@ -613,9 +676,11 @@ export default function PatientForm() {
             <QuickAction label="Open Full History" icon={History} onClick={() => switchTab("pastVisits")} />
           </div>
         </section>
-
-        {isLoading && <div className="mt-6 text-sm text-slate-500">Loading patient visit...</div>}
       </div>
+
+      {isLoading && (
+        <div className="pointer-events-none absolute inset-0 z-10 rounded-[2rem] bg-white/35 backdrop-blur-[1px]" />
+      )}
     </div>
   );
 }

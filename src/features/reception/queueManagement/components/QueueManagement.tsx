@@ -31,6 +31,14 @@ export function PatientForm() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const opdButtonRef = useRef<HTMLButtonElement>(null);
 
+  const canSubmit =
+    Boolean(patientId) &&
+    Boolean(doctor) &&
+    Boolean(visitReason?.trim()) &&
+    Boolean(visitType) &&
+    (!isExistingVisit || Boolean(selectedVisitId)) &&
+    !isProcessing;
+
   const handleSearchKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (searchResults.length > 0) {
       if (e.key === "ArrowDown") {
@@ -50,7 +58,7 @@ export function PatientForm() {
     if (e.key === "Enter" && highlightedIndex === -1) {
       e.preventDefault();
       // If we already have a patient selected and a doctor assigned, submission should be possible from search too
-      if (patientId && doctor) {
+      if (patientId && doctor && visitReason?.trim()) {
         if (isExistingVisit) {
           updateInfo();
         } else {
@@ -92,6 +100,10 @@ export function PatientForm() {
         }
         if (!doctor) {
           toast.error("Please assign a doctor");
+          return;
+        }
+        if (!visitReason?.trim()) {
+          toast.error("Please enter chief complaint");
           return;
         }
 
@@ -362,7 +374,7 @@ export function PatientForm() {
           <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
             <button
               type="button"
-              disabled={isProcessing}
+              disabled={!canSubmit}
               onClick={() => isExistingVisit ? updateInfo() : addToQueue()}
               className={`h-14 rounded-2xl font-bold text-lg transition-all active:scale-95 shadow-lg disabled:opacity-70 disabled:scale-100 flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-100`}
             >

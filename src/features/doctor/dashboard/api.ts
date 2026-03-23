@@ -44,3 +44,27 @@ export async function fetchVisitHistory(
   if (!res.ok) throw new Error("Failed to fetch visit history");
   return res.json();
 }
+
+export async function softDeleteDoctorVisit(visitId: number) {
+  const res = await fetch(`/api/doctor/visit/${visitId}/soft-delete`, {
+    method: "DELETE",
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.error || "Failed to soft delete visit");
+  }
+  return res.json();
+}
+
+export async function reopenDoctorVisitForEdit(visitId: number) {
+  const res = await fetch(`/api/doctor/visit/${visitId}/status`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status: "waiting" }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.error || "Failed to reopen visit for editing");
+  }
+  return res.json();
+}

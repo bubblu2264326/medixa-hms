@@ -23,7 +23,12 @@ export default function InventoryPage() {
     fetch("/api/admin/inventory")
       .then(res => res.json())
       .then(d => {
-        setData(d);
+        if (d.error) {
+          console.error(d.error);
+          setData(null);
+        } else {
+          setData(d);
+        }
         setLoading(false);
       })
       .catch(err => {

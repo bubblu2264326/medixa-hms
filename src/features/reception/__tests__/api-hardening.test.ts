@@ -19,8 +19,12 @@ vi.mock("@/src/lib/server/queueEvents", () => ({
   publishQueueInvalidation: publishQueueInvalidationMock,
 }));
 
-vi.mock("@/src/lib/utils", () => ({
-  getCurrentStaffId: vi.fn(() => 1),
+vi.mock("@/src/lib/server/auth", () => ({
+  getAuthenticatedUser: vi.fn(async () => ({
+    user_code: "STAFF-1",
+    role: "Receptionist",
+    name: "Test Staff",
+  })),
 }));
 
 import { GET as getQueue } from "@/src/app/api/queue/route";
@@ -44,7 +48,9 @@ describe("reception API hardening", () => {
   });
 
   it("updates visits by visit_id only", async () => {
-    queryMock.mockResolvedValueOnce({ rows: [{ visit_id: 44, patient_id: 1 }] });
+    queryMock
+      .mockResolvedValueOnce({ rows: [{ status: "waiting" }] })
+      .mockResolvedValueOnce({ rows: [{ visit_id: 44, patient_id: 1 }] });
 
     const response = await patchVisit({
       json: async () => ({
@@ -58,13 +64,15 @@ describe("reception API hardening", () => {
     } as any);
 
     expect(response.status).toBe(200);
-    expect(queryMock).toHaveBeenCalledTimes(1);
-    expect(queryMock.mock.calls[0]?.[0]).toContain("where visit_id = $1");
-    expect(queryMock.mock.calls[0]?.[0]).not.toContain("where patient_id");
+    expect(queryMock).toHaveBeenCalledTimes(2);
+    expect(queryMock.mock.calls[1]?.[0]).toContain("where visit_id = $1");
+    expect(queryMock.mock.calls[1]?.[0]).not.toContain("where patient_id");
   });
 
   it("routes status changes through update_and_log_visit_status", async () => {
     queryMock
+      .mockResolvedValueOnce({ rows: [{ visit_id: 44, status: "waiting" }] })
+      .mockResolvedValueOnce({ rows: [{ staff_id: 1 }] })
       .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({ rows: [{ visit_id: 44, status: "seen_by_doctor" }] });
 
@@ -78,8 +86,8 @@ describe("reception API hardening", () => {
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(queryMock.mock.calls[0]?.[0]).toContain("call update_and_log_visit_status");
-    expect(queryMock.mock.calls[0]?.[1]).toEqual([44, "seen_by_doctor", null, 1]);
+    expect(queryMock.mock.calls[2]?.[0]).toContain("call update_and_log_visit_status");
+    expect(queryMock.mock.calls[2]?.[1]).toEqual([44, "seen_by_doctor", null, 1]);
     expect(body.data.status).toBe("seen_by_doctor");
     expect(publishQueueInvalidationMock).toHaveBeenCalledWith("visit-status-updated");
   });
@@ -159,13 +167,7 @@ describe("reception API hardening", () => {
 
     expect(response.status).toBe(200);
     expect(clientQueryMock.mock.calls[2]?.[0]).toContain("v.status = any");
-    expect(clientQueryMock.mock.calls[2]?.[1]?.[0]).toEqual([
-      "waiting",
-      "seen_by_doctor",
-      "medicines_dispensed",
-      "lab_tests_done",
-      "payment_done",
-    ]);
+    expect(clientQueryMock.mock.calls[2]?.[1]?.[0]).toEqual(["waiting"]);
     expect(body[0]?.visit_id).toBe(44);
     expect(clientReleaseMock).toHaveBeenCalledTimes(1);
   });

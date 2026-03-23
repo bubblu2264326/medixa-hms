@@ -270,6 +270,11 @@ export default function NewLabOrderForm() {
             </button>
           </div>
         </div>
+        {selectedVisitStatus === "medicines_dispensed" && isVisitActionable && (
+          <div className="rounded-[0.95rem] border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-800">
+            Medicines are already dispensed for this encounter. Lab ordering is still actionable.
+          </div>
+        )}
         {!isVisitActionable && (
           <div className="rounded-[0.95rem] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
             This visit is no longer actionable for lab ordering. Current status: {selectedVisitStatus ?? "unknown"}.

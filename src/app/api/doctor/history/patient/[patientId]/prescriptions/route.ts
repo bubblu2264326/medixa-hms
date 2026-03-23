@@ -6,8 +6,10 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ patientId: string }> }
 ) {
+  const HISTORY_LIMIT = 120;
+
   try {
-    const doctor = await getAuthenticatedDoctor(req);
+    await getAuthenticatedDoctor(req);
     const { patientId } = await params;
 
     const prescriptionResult = await query(
@@ -28,7 +30,8 @@ export async function GET(
           pm.instructions,
           d.doctor_name as prescribed_by,
           s.name as dispensed_by,
-          to_char(p.created_at, 'YYYY-MM-DD') as order_date
+          to_char(p.created_at, 'YYYY-MM-DD') as order_date,
+          to_char(v.visit_timestamp, 'YYYY-MM-DD HH24:MI') as visit_timestamp
         from visit v
         join prescription p on p.visit_id = v.visit_id
         join prescription_medicines pm on pm.prescription_id = p.prescription_id
@@ -36,10 +39,10 @@ export async function GET(
         join doctor d on d.doctor_id = p.doctor_id
         left join staff s on s.staff_id = pm.dispensed_by
         where v.patient_id = $1
-          and v.doctor_id = $2
         order by v.visit_timestamp desc, p.created_at desc, pm.prescription_medicine_id desc
+        limit $2
       `,
-      [Number(patientId), doctor.doctor_id]
+      [Number(patientId), HISTORY_LIMIT]
     );
 
     return NextResponse.json(prescriptionResult.rows, { status: 200 });

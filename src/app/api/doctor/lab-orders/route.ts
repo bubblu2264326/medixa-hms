@@ -1,7 +1,7 @@
 import pool from "@/database/db";
 import { getAuthenticatedDoctor } from "@/src/lib/server/doctor";
 import {
-  ensureDoctorVisitWriteAccess,
+  ensureDoctorLabOrderWriteAccess,
   resolveDoctorVisit,
 } from "@/src/lib/server/doctorWorkspace";
 import { NextRequest, NextResponse } from "next/server";
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    ensureDoctorVisitWriteAccess(String(visit.status));
+    ensureDoctorLabOrderWriteAccess(String(visit.status));
     const visitId = Number(visit.visit_id);
     const seenTestIds = new Set<number>();
     const insertedOrders = [];

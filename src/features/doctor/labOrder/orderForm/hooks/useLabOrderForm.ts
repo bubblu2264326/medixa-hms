@@ -92,7 +92,8 @@ export function useLabOrderForm() {
   const isVisitActionable =
     Boolean(selectedVisitId) &&
     !staleVisitSelection &&
-    (!selectedVisitStatus || ["waiting", "seen_by_doctor"].includes(selectedVisitStatus));
+    (!selectedVisitStatus ||
+      !["completed", "discharged"].includes(selectedVisitStatus));
 
   const onSubmit = async (data: LabOrderFormValues) => {
     if (!patientId || !selectedVisitId || !isVisitActionable) {

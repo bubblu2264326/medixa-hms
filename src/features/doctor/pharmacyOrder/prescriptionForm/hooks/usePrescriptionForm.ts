@@ -68,7 +68,7 @@ export function usePrescriptionForm() {
   const isVisitActionable =
     Boolean(selectedVisitId) &&
     !staleVisitSelection &&
-    (!selectedVisitStatus || ["waiting", "seen_by_doctor"].includes(selectedVisitStatus));
+    (!selectedVisitStatus || !["completed", "discharged"].includes(selectedVisitStatus));
 
   useEffect(() => {
     if (!searchQuery.trim()) {
@@ -163,8 +163,12 @@ export function usePrescriptionForm() {
         availability_note: item.availability_note ?? null,
       }));
 
-      await api.createPrescription(patientId, payload, selectedVisitId);
-      toast.success("Prescription created successfully!");
+      const result = await api.createPrescription(patientId, payload, selectedVisitId);
+      if (result.mode === "new_thread") {
+        toast.success("New prescription thread created for this encounter.");
+      } else {
+        toast.success("Prescription updated on existing encounter thread.");
+      }
       clearPrescription();
       window.dispatchEvent(new Event("refresh-queue"));
     } catch (error: unknown) {

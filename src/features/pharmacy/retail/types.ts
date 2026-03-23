@@ -122,6 +122,19 @@ export interface Transaction {
   visitId?: number | null;
   billId?: number | null;
   prescriptionId?: number | null;
+  patientId?: number | null;
+  settlementMode?: 'collect_now' | 'append_to_bill';
+}
+
+export interface InvoiceSummary {
+  id: string; // sale_id
+  reference: string; // payment_reference
+  timestamp: string; // sale_timestamp
+  totalAmount: number; // total_amount
+  itemsCount: number; // count(pharmacy_sale_detail)
+  patientId: number | null; // visit.patient_id
+  patientName: string | null; // patient.patient_name
+  visitId: number | null; // sale.visit_id
 }
 
 export interface Customer {
@@ -211,4 +224,5 @@ export interface ActiveVisitOption {
   doctor_id: number;
   doctor_name: string;
   visit_timestamp: string;
+  has_pending_prescription?: boolean;
 }

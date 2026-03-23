@@ -1,4 +1,13 @@
-import { PartyDetail, AddPartyInput, LedgerEntry } from './types';
+import {
+  PartyDetail,
+  AddPartyInput,
+  LedgerEntry,
+  PartySupplyFilters,
+  PartySupplyGroupBy,
+  PartySupplyResponse,
+  PartyInsights,
+  PartyInsightsFilters,
+} from './types';
 
 export async function getAllParties(): Promise<PartyDetail[]> {
   const res = await fetch('/api/party');
@@ -50,4 +59,39 @@ export async function recordPayment(payload: {
     body: JSON.stringify(payload),
   });
   if (!res.ok) throw new Error('Failed to record payment');
+}
+
+export async function getPartySupplies(
+  partyId: number,
+  filters: PartySupplyFilters = {},
+  groupBy: PartySupplyGroupBy = 'batch'
+): Promise<PartySupplyResponse> {
+  const params = new URLSearchParams();
+  params.set('groupBy', groupBy);
+  if (filters.from) params.set('from', filters.from);
+  if (filters.to) params.set('to', filters.to);
+  if (filters.medicine) params.set('medicine', filters.medicine);
+  if (filters.page) params.set('page', String(filters.page));
+  if (filters.pageSize) params.set('pageSize', String(filters.pageSize));
+
+  const suffix = params.toString() ? `?${params.toString()}` : '';
+  const res = await fetch(`/api/pharmacy/party/${partyId}/supplies${suffix}`);
+  if (!res.ok) throw new Error('Failed to fetch party supplies');
+  const payload = await res.json();
+  return payload.data as PartySupplyResponse;
+}
+
+export async function getPartyInsights(
+  partyId: number,
+  filters: PartyInsightsFilters = {}
+): Promise<PartyInsights> {
+  const params = new URLSearchParams();
+  if (filters.from) params.set('from', filters.from);
+  if (filters.to) params.set('to', filters.to);
+  if (filters.deadStockDays) params.set('deadStockDays', String(filters.deadStockDays));
+  const suffix = params.toString() ? `?${params.toString()}` : '';
+  const res = await fetch(`/api/pharmacy/party/${partyId}/insights${suffix}`);
+  if (!res.ok) throw new Error('Failed to fetch party insights');
+  const payload = await res.json();
+  return payload.data as PartyInsights;
 }

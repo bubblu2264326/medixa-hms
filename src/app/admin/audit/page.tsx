@@ -3,16 +3,11 @@ import React, { useState, useEffect } from "react";
 import { 
   Activity, 
   Clock, 
-  User, 
-  Database, 
   Shield, 
   Search, 
   Calendar, 
   ArrowRight,
   Filter,
-  CheckCircle2,
-  AlertTriangle,
-  Settings,
   MoreVertical,
   ChevronDown
 } from "lucide-react";
@@ -23,17 +18,18 @@ export default function AuditLogsPage() {
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [historyMode, setHistoryMode] = useState(false);
 
   useEffect(() => {
-    fetchLogs();
-  }, []);
+    fetchLogs(historyMode ? 500 : 50);
+  }, [historyMode]);
 
-  const fetchLogs = () => {
+  const fetchLogs = (limit = 50) => {
     setLoading(true);
-    fetch("/api/admin/audit-logs?limit=50")
+    fetch(`/api/admin/audit-logs?limit=${limit}`)
       .then(res => res.json())
       .then(data => {
-        setLogs(data);
+        setLogs(Array.isArray(data) ? data : []);
         setLoading(false);
       })
       .catch(err => {
@@ -123,7 +119,14 @@ export default function AuditLogsPage() {
                       <div className="w-12 h-12 border-4 border-slate-100 border-t-indigo-600 rounded-full animate-spin" />
                       <p className="text-xs font-black text-slate-400 tracking-widest uppercase">Fetching encrypted logs...</p>
                    </div>
-                ) : filteredLogs.map((log, idx) => (
+                ) : filteredLogs.length === 0 ? (
+                  <div className="py-20 flex flex-col items-center gap-3 text-center">
+                    <p className="text-sm font-bold text-slate-500">No audit events matched your current filters.</p>
+                    <p className="text-xs font-semibold text-slate-400">
+                      New admin and cashier actions will appear here automatically.
+                    </p>
+                  </div>
+                ) : filteredLogs.map((log) => (
                    <div key={log.log_id} className="relative py-6 px-4 md:px-8 group hover:bg-slate-50/50 transition-all">
                       <div className="flex flex-col md:flex-row md:items-center gap-6 relative z-10">
                          {/* Icon/Dot */}
@@ -160,7 +163,9 @@ export default function AuditLogsPage() {
 
                                <p className="text-xs font-medium text-slate-500 italic">
                                   {log.details ? (
-                                    typeof log.details === 'string' ? log.details : JSON.stringify(log.details).slice(0, 100) + '...'
+                                    typeof log.details === "string"
+                                      ? log.details
+                                      : JSON.stringify(log.details).slice(0, 160)
                                   ) : `Automated action performed on ${log.entity_type || 'system'}`}
                                </p>
                             </div>
@@ -178,7 +183,11 @@ export default function AuditLogsPage() {
           </div>
 
           <div className="p-8 bg-slate-50/50 border-t border-slate-50 flex items-center justify-center">
-             <Button variant="outline" className="rounded-2xl border-slate-200 bg-white shadow-sm font-black text-[10px] uppercase tracking-widest py-3 px-8 hover:bg-slate-50">
+             <Button
+                variant="outline"
+                className="rounded-2xl border-slate-200 bg-white shadow-sm font-black text-[10px] uppercase tracking-widest py-3 px-8 hover:bg-slate-50"
+                onClick={() => setHistoryMode(true)}
+             >
                 Load Historical Data
                 <ChevronDown className="w-4 h-4 ml-2" />
              </Button>

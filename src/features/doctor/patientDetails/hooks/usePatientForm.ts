@@ -13,7 +13,7 @@ import {
 import * as api from "../api";
 
 export function usePatientForm() {
-  const { patientId, selectedVisitId } = usePatient();
+  const { patientId, selectedVisitId, clearSelection } = usePatient();
   const {
     clearStaleVisitSelection,
     setSelectedVisitStatus,
@@ -134,12 +134,12 @@ export function usePatientForm() {
     }
   }
 
-  async function markVisitSeen() {
+  async function updateVisitStatus(status: "seen_by_doctor" | "waiting" | "discharged") {
     if (!contextSummary?.activeVisit) return;
 
     setIsSaving(true);
     try {
-      const response = await api.updateVisitStatus(contextSummary.activeVisit.visit_id);
+      const response = await api.updateVisitStatus(contextSummary.activeVisit.visit_id, status);
       setContextSummary((current) =>
         current
           ? {
@@ -150,10 +150,45 @@ export function usePatientForm() {
       );
       setSelectedVisitStatus(response.visit.status);
       window.dispatchEvent(new Event("refresh-queue"));
-      toast.success("Visit status updated");
+      if (status === "seen_by_doctor") {
+        toast.success("Encounter marked as seen");
+      } else if (status === "waiting") {
+        toast.success("Encounter reopened for amendment");
+      } else {
+        toast.success("Encounter cancelled");
+      }
     } catch (err) {
       console.error(err);
       toast.error(err instanceof Error ? err.message : "Failed to update status");
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function softDeleteVisit() {
+    if (!contextSummary?.activeVisit) return;
+    if (!contextSummary.capabilities?.canSoftDeleteVisit) {
+      toast.error(
+        contextSummary.capabilities?.lockReason ||
+          "Encounter cannot be deleted in the current state"
+      );
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      await api.softDeleteVisit(contextSummary.activeVisit.visit_id);
+      toast.success("Encounter soft deleted");
+      clearSelection();
+      setContextSummary(null);
+      setRecentVisits([]);
+      setRecentPrescriptions([]);
+      setDoctorNoteDraft("");
+      setSelectedVisitStatus(null);
+      window.dispatchEvent(new Event("refresh-queue"));
+    } catch (err) {
+      console.error(err);
+      toast.error(err instanceof Error ? err.message : "Failed to soft delete encounter");
     } finally {
       setIsSaving(false);
     }
@@ -170,6 +205,9 @@ export function usePatientForm() {
     isSaving,
     error,
     saveDoctorNote,
-    markVisitSeen,
+    markVisitSeen: () => updateVisitStatus("seen_by_doctor"),
+    reopenVisit: () => updateVisitStatus("waiting"),
+    cancelVisit: () => updateVisitStatus("discharged"),
+    softDeleteVisit,
   };
 }

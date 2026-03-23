@@ -6,6 +6,7 @@ import {
   PrescriptionSaleResponse,
   PatientSearchResult,
   ActiveVisitOption,
+  InvoiceSummary,
 } from './types';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '/api';
@@ -192,13 +193,68 @@ export const holdTransaction = async (
  */
 export const getHeldTransactions = async (): Promise<ApiResponse<Transaction[]>> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/transactions/held`);
+    const response = await fetch(`${API_BASE_URL}/transactions/hold`);
     const data = await response.json();
     return data;
   } catch {
     return {
       success: false,
       error: 'Failed to fetch held transactions'
+    };
+  }
+};
+
+/**
+ * Soft-delete a held transaction
+ */
+export const deleteHeldTransaction = async (holdId: string): Promise<ApiResponse> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/transactions/hold?holdId=${encodeURIComponent(holdId)}`, {
+      method: 'DELETE',
+    });
+    const data = await response.json();
+    return data;
+  } catch {
+    return {
+      success: false,
+      error: 'Failed to delete held transaction'
+    };
+  }
+};
+
+/**
+ * Get completed transactions (Invoices)
+ */
+export const getTransactions = async (query?: string): Promise<ApiResponse<Transaction[]>> => {
+  try {
+    const url = query 
+      ? `${API_BASE_URL}/transactions?query=${encodeURIComponent(query)}`
+      : `${API_BASE_URL}/transactions`;
+    const response = await fetch(url);
+    const data = await response.json();
+    return data;
+  } catch {
+    return {
+      success: false,
+      error: 'Failed to fetch transactions'
+    };
+  }
+};
+
+/**
+ * Search invoices for return mode (Completed sales only)
+ */
+export const searchInvoices = async (query: string): Promise<ApiResponse<InvoiceSummary[]>> => {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/transactions?query=${encodeURIComponent(query)}`
+    );
+    const data = await response.json();
+    return data;
+  } catch {
+    return {
+      success: false,
+      error: 'Failed to search invoices'
     };
   }
 };

@@ -85,10 +85,62 @@ describe("doctor visit and history apis", () => {
 
     expect(response.status).toBe(200);
     expect(queryMock.mock.calls[0]?.[0]).toContain("where v.visit_id = $1");
+    const currentPregnancyQuery = queryMock.mock.calls
+      .map(([sql]) => String(sql))
+      .find((sql) => sql.includes("from current_pregnancy"));
+    expect(currentPregnancyQuery).toContain("order by pregnancy_id desc");
+    expect(currentPregnancyQuery).not.toContain("pregnanacy_id");
     expect(body.patient.contact_number).toBe("03001234567");
     expect(body.encounterNote.doctor_note).toBe("Continue monitoring");
     expect(body.womenHealthSummary.obstetricHistory.gravida).toBe(2);
     expect(body.womenHealthSummary.currentPregnancy.gestational_age_weeks).toBe(20);
+  });
+
+  it("returns 200 with null women health summary when optional women-health queries fail", async () => {
+    queryMock
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            visit_id: 58,
+            patient_id: 10,
+            doctor_id: 7,
+            visit_timestamp: "2026-03-18T12:30:00.000Z",
+            visit_type: "OPD",
+            clinic_number: 58,
+            status: "waiting",
+            reason: "Follow up",
+            doctor_name: "Dr. Ahmed Khan",
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            patient_id: 10,
+            patient_name: "Ayesha Khan",
+            age: 26,
+            gender: "Female",
+            cnic: "11111-1111111-2",
+            contact_number: "03001234568",
+            address: "Johar Town",
+          },
+        ],
+      })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [{ visit_id: 58, blood_pressure: "118/76" }] })
+      .mockRejectedValueOnce(new Error("column does not exist"))
+      .mockResolvedValueOnce({ rows: [{ gravida: 1, para: 0, abortions: 0 }] })
+      .mockResolvedValueOnce({ rows: [{ gestational_age_weeks: 12, complications: null }] });
+
+    const response = await getVisitContext({} as any, {
+      params: Promise.resolve({ visitId: "58" }),
+    } as any);
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.patient.patient_id).toBe(10);
+    expect(body.vitals.blood_pressure).toBe("118/76");
+    expect(body.womenHealthSummary).toBeNull();
   });
 
   it("returns 404 when the selected doctor visit no longer exists", async () => {
@@ -130,6 +182,8 @@ describe("doctor visit and history apis", () => {
 
     expect(response.status).toBe(200);
     expect(queryMock.mock.calls[0]?.[0]).toContain("order by v.visit_timestamp desc, v.visit_id desc");
+    expect(queryMock.mock.calls[0]?.[0]).not.toContain("v.doctor_id = $2");
+    expect(queryMock.mock.calls[0]?.[1]).toEqual([1, 120]);
     expect(body[0].reason).toBe("Reception complaint");
   });
 
@@ -155,6 +209,8 @@ describe("doctor visit and history apis", () => {
     const body = await response.json();
 
     expect(response.status).toBe(200);
+    expect(queryMock.mock.calls[0]?.[0]).not.toContain("v.doctor_id = $2");
+    expect(queryMock.mock.calls[0]?.[1]).toEqual([1, 120]);
     expect(body[0].dosage).toBe("1 tablet");
   });
 
@@ -178,6 +234,8 @@ describe("doctor visit and history apis", () => {
 
     expect(response.status).toBe(200);
     expect(queryMock.mock.calls[0]?.[0]).toContain("order by v.visit_timestamp desc, lo.order_id desc");
+    expect(queryMock.mock.calls[0]?.[0]).not.toContain("v.doctor_id = $2");
+    expect(queryMock.mock.calls[0]?.[1]).toEqual([1, 120]);
     expect(body[0]).toMatchObject({
       urgency: "Urgent",
       status: "Pending",

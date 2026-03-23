@@ -507,7 +507,13 @@ export default function NewPrescriptionForm() {
         </div>
         {!isVisitActionable && (
           <div className="rounded-[0.95rem] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-            This visit is no longer actionable for prescribing. Current status: {selectedVisitStatus ?? "unknown"}.
+            This visit is no longer actionable for prescribing. Current status:{" "}
+            {selectedVisitStatus ?? "unknown"}.
+          </div>
+        )}
+        {selectedVisitStatus === "medicines_dispensed" && isVisitActionable && (
+          <div className="rounded-[0.95rem] border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-800">
+            Medicines have been dispensed. You can still append/amend prescription orders for this encounter until hard-close.
           </div>
         )}
       </form>

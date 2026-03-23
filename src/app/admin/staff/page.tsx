@@ -35,7 +35,7 @@ export default function StaffManagementPage() {
     name: "",
     user_code: "",
     role: "Staff",
-    phone: "",
+    contact_number: "",
     email: "",
     password: ""
   });
@@ -49,11 +49,17 @@ export default function StaffManagementPage() {
     fetch("/api/admin/staff")
       .then(res => res.json())
       .then(data => {
-        setStaff(data);
+        if (data.error) {
+          console.error(data.error);
+          setStaff([]);
+        } else {
+          setStaff(Array.isArray(data) ? data : []);
+        }
         setLoading(false);
       })
       .catch(err => {
         console.error(err);
+        setStaff([]);
         setLoading(false);
       });
   };
@@ -95,10 +101,10 @@ export default function StaffManagementPage() {
     }
   };
 
-  const filteredStaff = staff.filter(s => 
-    s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    s.user_code.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredStaff = Array.isArray(staff) ? staff.filter(s => 
+    s.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    s.user_code?.toLowerCase().includes(searchQuery.toLowerCase())
+  ) : [];
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
@@ -157,7 +163,7 @@ export default function StaffManagementPage() {
                       <td className="py-5 px-6">
                          <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center font-black text-slate-400 text-xs shadow-inner">
-                               {s.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
+                               {s.name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2) || "?"}
                             </div>
                             <div>
                                <p className="text-sm font-black text-slate-800">{s.name}</p>

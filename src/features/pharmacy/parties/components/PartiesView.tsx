@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { PartyDetail } from '../types';
+import { PartyDetail, PartyPermissions } from '../types';
 import { getAllParties } from '../api';
 import { AddPartyDialog } from './AddPartyDialog';
-import { PartyLedgerPanel } from './PartyLedgerPanel';
+import { PartyDetailModal } from './PartyDetailModal';
 import { Building2, Plus, Search, Phone, MapPin, ChevronRight, Users } from 'lucide-react';
 
 function initials(name: string) {
@@ -28,6 +28,9 @@ export function PartiesView() {
   const [search, setSearch] = useState('');
   const [showAdd, setShowAdd] = useState(false);
   const [selectedParty, setSelectedParty] = useState<PartyDetail | null>(null);
+  const [permissions, setPermissions] = useState<PartyPermissions>({
+    canViewFinancials: false,
+  });
 
   async function load() {
     setLoading(true);
@@ -39,6 +42,36 @@ export function PartiesView() {
   }
 
   useEffect(() => { load(); }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const loadUser = async () => {
+      try {
+        const response = await fetch('/api/user', { signal: controller.signal });
+        if (!response.ok) {
+          return;
+        }
+
+        const payload = await response.json();
+        if (controller.signal.aborted) {
+          return;
+        }
+
+        setPermissions({
+          canViewFinancials: payload?.role !== 'Pharmacist',
+        });
+      } catch {
+        if (controller.signal.aborted) {
+          return;
+        }
+      }
+    };
+
+    void loadUser();
+
+    return () => controller.abort();
+  }, []);
 
   const filtered = useMemo(() =>
     parties.filter(p =>
@@ -131,7 +164,11 @@ export function PartiesView() {
       )}
 
       {selectedParty && (
-        <PartyLedgerPanel party={selectedParty} onClose={() => setSelectedParty(null)} />
+        <PartyDetailModal
+          party={selectedParty}
+          permissions={permissions}
+          onClose={() => setSelectedParty(null)}
+        />
       )}
     </div>
   );

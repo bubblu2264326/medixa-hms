@@ -82,6 +82,15 @@ export type WomenHealthSummary = {
 export type PatientContextSummary = {
   patient: PatientInfo;
   activeVisit: VisitInfo;
+  capabilities?: {
+    isQueueActive: boolean;
+    canEditPrescriptions: boolean;
+    canEditLabs: boolean;
+    canSoftDeleteVisit: boolean;
+    canAppendPrescription: boolean;
+    shouldCreateNewPrescription: boolean;
+    lockReason: string | null;
+  };
   encounterNote: {
     visit_id: string | number;
     patient_id: string | number;

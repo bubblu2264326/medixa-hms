@@ -88,6 +88,18 @@ export interface Transaction {
   items: CartItem[];
   payment: PaymentDetails;
   cashier: string;
+  /**
+   * POS mode for pharmacy transactions.
+   * - SALE: normal sale flow
+   * - RETURN: sale return/refund flow
+   * - EDIT: editing an existing sale
+   */
+  mode?: 'SALE' | 'RETURN' | 'EDIT';
+  /**
+   * If this sale was resumed from a held POS transaction, pass the `pos_held_transaction.hold_id`
+   * so the backend can mark the held record as completed and hide it from the "Held Transactions" list.
+   */
+  holdId?: string | null;
   customer?: {
     name?: string;
     phone?: string;
@@ -97,6 +109,8 @@ export interface Transaction {
   billId?: number;
   customerId?: number;
   prescriptionId?: number;
+  patientId?: number | null;
+  settlementMode?: 'collect_now' | 'append_to_bill';
 }
 
 export interface ApiResponse<T = any> {

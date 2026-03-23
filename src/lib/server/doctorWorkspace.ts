@@ -1,4 +1,13 @@
 import type { PoolClient } from "pg";
+import {
+  assertVisitStatusTransition,
+  canAppendPrescriptionThread,
+  canDoctorEditLabOrders,
+  canDoctorEditPrescriptions,
+  canDoctorSoftDeleteVisit,
+  getDoctorVisitLockReason,
+  shouldCreateNewPrescriptionThread,
+} from "@/src/lib/server/visitLifecycle";
 
 type QueryResultRow = { [key: string]: unknown };
 
@@ -184,14 +193,7 @@ export async function getDoctorVisitContext(
 
   const resolvedPatientId = Number(visit.patient_id);
 
-  const [
-    patientResult,
-    encounterNote,
-    vitalsResult,
-    menstrualResult,
-    obstetricResult,
-    currentPregnancyResult,
-  ] = await Promise.all([
+  const [patientResult, encounterNote, vitalsResult, paymentSnapshotResult] = await Promise.all([
     runQuery(
       db,
       `
@@ -214,58 +216,19 @@ export async function getDoctorVisitContext(
     runQuery(
       db,
       `
-        select
-          menarch_age,
-          cycle_length_days,
-          bleeding_days,
-          menstrual_regular,
-          contraception_history,
-          gynecologic_surgeries,
-          medical_conditions,
-          menopause_status,
-          notes
-        from menstrual_history
-        where patient_id = $1
-        order by menstrual_history_id desc
-        limit 1
-      `,
-      [resolvedPatientId]
-    ),
-    runQuery(
-      db,
-      `
-        select
-          is_first_pregnancy,
-          married_years,
-          gravida,
-          para,
-          abortions,
-          edd,
-          last_menstrual_cycle,
-          notes
-        from obstetric_history
-        where patient_id = $1
-        order by obstetric_history_id desc
-        limit 1
-      `,
-      [resolvedPatientId]
-    ),
-    runQuery(
-      db,
-      `
-        select
-          multiple_pregnancy,
-          complications,
-          ultrasound_findings,
-          fetal_heart_rate_bpm,
-          placenta_position,
-          presentation,
-          gestational_age_weeks,
-          notes
-        from current_pregnancy
-        where visit_id = $1
-        order by pregnanacy_id desc
-        limit 1
+        SELECT
+          b.bill_id,
+          b.payment_status,
+          b.total_amount,
+          COALESCE(SUM(cpt.amount), 0) AS paid_amount,
+          GREATEST(COALESCE(b.total_amount, 0) - COALESCE(SUM(cpt.amount), 0), 0) AS due_amount,
+          MAX(cpt.created_at) AS last_payment_at
+        FROM bill b
+        LEFT JOIN cashier_payment_txn cpt ON cpt.bill_id = b.bill_id
+        WHERE b.visit_id = $1
+        GROUP BY b.bill_id, b.payment_status, b.total_amount
+        ORDER BY b.bill_id DESC
+        LIMIT 1
       `,
       [visitId]
     ),
@@ -273,6 +236,79 @@ export async function getDoctorVisitContext(
 
   if (!patientResult.rows[0]) {
     throw new Error("Patient record not found");
+  }
+
+  let menstrualHistory: QueryResultRow | null = null;
+  let obstetricHistory: QueryResultRow | null = null;
+  let currentPregnancy: QueryResultRow | null = null;
+
+  try {
+    const [menstrualResult, obstetricResult, currentPregnancyResult] = await Promise.all([
+      runQuery(
+        db,
+        `
+          select
+            menarch_age,
+            cycle_length_days,
+            bleeding_days,
+            menstrual_regular,
+            contraception_history,
+            gynecologic_surgeries,
+            medical_conditions,
+            menopause_status,
+            notes
+          from menstrual_history
+          where patient_id = $1
+          order by menstrual_history_id desc
+          limit 1
+        `,
+        [resolvedPatientId]
+      ),
+      runQuery(
+        db,
+        `
+          select
+            is_first_pregnancy,
+            married_years,
+            gravida,
+            para,
+            abortions,
+            edd,
+            last_menstrual_cycle,
+            notes
+          from obstetric_history
+          where patient_id = $1
+          order by obstetric_history_id desc
+          limit 1
+        `,
+        [resolvedPatientId]
+      ),
+      runQuery(
+        db,
+        `
+          select
+            multiple_pregnancy,
+            complications,
+            ultrasound_findings,
+            fetal_heart_rate_bpm,
+            placenta_position,
+            presentation,
+            gestational_age_weeks,
+            notes
+          from current_pregnancy
+          where visit_id = $1
+          order by pregnancy_id desc
+          limit 1
+        `,
+        [visitId]
+      ),
+    ]);
+
+    menstrualHistory = menstrualResult.rows[0] ?? null;
+    obstetricHistory = obstetricResult.rows[0] ?? null;
+    currentPregnancy = currentPregnancyResult.rows[0] ?? null;
+  } catch (error) {
+    console.error("Failed to load optional women health context", error);
   }
 
   const materializedEncounterNote =
@@ -287,20 +323,44 @@ export async function getDoctorVisitContext(
       updated_at: null,
     } satisfies DoctorEncounterNoteRecord);
 
+  const patientRecord = patientResult.rows[0];
+  const normalizedGender =
+    typeof patientRecord.gender === "string" ? patientRecord.gender.trim().toLowerCase() : "";
+  const isFemalePatient = normalizedGender === "female";
+
   const womenHealthSummary =
-    menstrualResult.rows[0] || obstetricResult.rows[0] || currentPregnancyResult.rows[0]
+    isFemalePatient && (menstrualHistory || obstetricHistory || currentPregnancy)
       ? {
-          menstrualHistory: menstrualResult.rows[0] ?? null,
-          obstetricHistory: obstetricResult.rows[0] ?? null,
-          currentPregnancy: currentPregnancyResult.rows[0] ?? null,
+          menstrualHistory,
+          obstetricHistory,
+          currentPregnancy,
         }
       : null;
 
   return {
-    patient: patientResult.rows[0],
+    patient: patientRecord,
     activeVisit: visit,
+    capabilities: {
+      isQueueActive: visit.status === "waiting",
+      canEditPrescriptions: canDoctorEditPrescriptions(String(visit.status)),
+      canEditLabs: canDoctorEditLabOrders(String(visit.status)),
+      canSoftDeleteVisit: canDoctorSoftDeleteVisit(String(visit.status)),
+      canAppendPrescription: canAppendPrescriptionThread(String(visit.status)),
+      shouldCreateNewPrescription: shouldCreateNewPrescriptionThread(String(visit.status)),
+      lockReason: getDoctorVisitLockReason(String(visit.status)),
+    },
     encounterNote: materializedEncounterNote,
     vitals: vitalsResult.rows[0] ?? null,
+    paymentSnapshot: paymentSnapshotResult.rows[0]
+      ? {
+          billId: Number(paymentSnapshotResult.rows[0].bill_id ?? 0),
+          paymentStatus: String(paymentSnapshotResult.rows[0].payment_status ?? "Unpaid"),
+          totalAmount: Number(paymentSnapshotResult.rows[0].total_amount ?? 0),
+          paidAmount: Number(paymentSnapshotResult.rows[0].paid_amount ?? 0),
+          dueAmount: Number(paymentSnapshotResult.rows[0].due_amount ?? 0),
+          lastPaymentAt: paymentSnapshotResult.rows[0].last_payment_at ?? null,
+        }
+      : null,
     womenHealthSummary,
   };
 }
@@ -310,9 +370,11 @@ export async function transitionDoctorVisitStatus(
   {
     visitId,
     doctorId,
+    nextStatus,
   }: {
     visitId: number;
     doctorId: number;
+    nextStatus: string;
   }
 ) {
   const visit = await resolveDoctorVisit(db, {
@@ -325,14 +387,12 @@ export async function transitionDoctorVisitStatus(
     throw new Error("Visit not found for this doctor");
   }
 
-  if (visit.status !== "waiting") {
-    throw new Error("Only waiting visits can be marked as seen by doctor");
-  }
+  const { to } = assertVisitStatusTransition(String(visit.status), nextStatus, "doctor");
 
   await runQuery(
     db,
     `call update_and_log_visit_status($1, $2, $3, $4)`,
-    [visitId, "seen_by_doctor", doctorId, null]
+    [visitId, to, doctorId, null]
   );
 
   const updatedVisit = await resolveDoctorVisit(db, { visitId, doctorId });
@@ -356,7 +416,19 @@ export async function transitionDoctorVisitStatus(
 }
 
 export function ensureDoctorVisitWriteAccess(status: string) {
-  if (!["waiting", "seen_by_doctor"].includes(status)) {
+  if (!canDoctorEditPrescriptions(status)) {
     throw new Error("Selected visit is no longer actionable from the doctor workspace");
+  }
+}
+
+export function ensureDoctorLabOrderWriteAccess(status: string) {
+  if (!canDoctorEditLabOrders(status)) {
+    throw new Error("Selected visit is no longer actionable from the doctor workspace");
+  }
+}
+
+export function ensureDoctorSoftDeleteAccess(status: string) {
+  if (!canDoctorSoftDeleteVisit(status)) {
+    throw new Error("Selected visit cannot be deleted because encounter is hard-locked");
   }
 }

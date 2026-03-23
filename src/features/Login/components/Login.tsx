@@ -1,14 +1,15 @@
 // app/login/components/Login.tsx
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Sparkles, Target, Star, Sun, Rocket, ThumbsUp, Trophy,
   Flame, Lightbulb, Smile, Mountain, Crown, Heart, Medal,
-  Lock, Eye, EyeOff, User, Stethoscope,
+  Lock, Eye, EyeOff, User, AlertCircle,
 } from "lucide-react";
-import Link from "next/link";
 import { Quote } from "../types";
 import { useLogin } from "../hooks/useLogin";
+
+const USER_CODE_REGEX = /^[A-Z]{3}\d{3}$/;
 
 const motivationalQuotes: Quote[] = [
   { text: "Dream big. Work hard. Stay humble.", icon: Star },
@@ -26,111 +27,298 @@ const motivationalQuotes: Quote[] = [
   { text: "Keep shining—your effort will speak louder than words.", icon: Sparkles },
   { text: "Hard work beats talent when talent doesn’t work hard.", icon: Heart },
 ];
+
+function FieldMessage({
+  id,
+  tone,
+  children,
+}: {
+  id: string;
+  tone: "helper" | "error";
+  children: string;
+}) {
+  return (
+    <p
+      id={id}
+      className={`min-h-4 mt-1 text-[11px] leading-4 ${tone === "error" ? "text-red-600" : "text-gray-500"
+        }`}
+      aria-live="polite"
+    >
+      {children}
+    </p>
+  );
+}
+
 export function Login() {
   const {
     userCode, name, designation, password, showPassword,
-    isLoading, isFetchingInfo, error, setUserCode, setName, setDesignation,
-    setPassword, setShowPassword, getUserData, verifyUserLogin,
+    isLoading, isFetchingInfo, lookupError, authError, setUserCode,
+    setPassword, setShowPassword, verifyUserLogin,
   } = useLogin();
 
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
-  const CurrentIcon = motivationalQuotes[currentQuoteIndex].icon;
+  const [submitAttempted, setSubmitAttempted] = useState(false);
+  const [touched, setTouched] = useState<{ userCode: boolean; password: boolean }>({
+    userCode: false,
+    password: false,
+  });
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentQuoteIndex((prev) => (prev + 1) % motivationalQuotes.length);
     }, 4000);
     return () => clearInterval(interval);
   }, []);
+
+  const userCodeRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
+
+  // Auto-focus password field when user info is fetched
+  useEffect(() => {
+    if (name && designation && !isFetchingInfo) {
+      passwordRef.current?.focus();
+    }
+  }, [name, designation, isFetchingInfo]);
+
+  useEffect(() => {
+    if (authError) passwordRef.current?.focus();
+  }, [authError]);
+
+  const trimmedUserCode = userCode.trim();
+  const profileVerified =
+    Boolean(name) &&
+    Boolean(designation) &&
+    !isFetchingInfo &&
+    USER_CODE_REGEX.test(trimmedUserCode) &&
+    !lookupError;
+  const shouldShowUserCodeFeedback = touched.userCode || submitAttempted;
+  const shouldShowPasswordFeedback = touched.password || submitAttempted || Boolean(authError);
+
+  const userCodeError = (() => {
+    if (!shouldShowUserCodeFeedback) return "";
+    if (!trimmedUserCode) return "Enter your staff code.";
+    if (!USER_CODE_REGEX.test(trimmedUserCode)) {
+      return "Invalid format. Use 3 letters + 3 numbers (e.g., DOC001).";
+    }
+    if (lookupError) return lookupError;
+    return "";
+  })();
+
+  const passwordError = (() => {
+    if (!shouldShowPasswordFeedback) return "";
+    if (!password.trim()) return "Enter your password.";
+    if (authError) return authError;
+    return "";
+  })();
+
+  const canSubmit =
+    trimmedUserCode &&
+    USER_CODE_REGEX.test(trimmedUserCode) &&
+    !lookupError &&
+    !isFetchingInfo &&
+    Boolean(name) &&
+    Boolean(designation) &&
+    Boolean(password.trim());
+
+  const handleSubmit = () => {
+    setSubmitAttempted(true);
+    setTouched({ userCode: true, password: true });
+
+    if (!trimmedUserCode || !USER_CODE_REGEX.test(trimmedUserCode) || lookupError) {
+      userCodeRef.current?.focus();
+      return;
+    }
+
+    if (!password.trim()) {
+      passwordRef.current?.focus();
+      return;
+    }
+
+    if (!canSubmit) {
+      return;
+    }
+
+    verifyUserLogin();
+  };
+
+  const userCodeHint = userCodeError
+    ? userCodeError
+    : isFetchingInfo && trimmedUserCode && USER_CODE_REGEX.test(trimmedUserCode)
+      ? "Looking up your profile…"
+      : profileVerified
+        ? ""
+        : submitAttempted &&
+          trimmedUserCode &&
+          USER_CODE_REGEX.test(trimmedUserCode) &&
+          !lookupError &&
+          !isFetchingInfo &&
+          (!name || !designation)
+          ? "Verification pending. Please wait or re-check the code."
+          : "Enter your staff code (e.g., DOC001).";
+
+  const passwordHint = passwordError ? passwordError : "Use your account password.";
   return (
     <div className="flex min-h-screen w-full bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 items-center justify-center p-4">
-      <div className="flex w-full max-w-5xl h-[600px] shadow-2xl rounded-3xl overflow-hidden">
+      <div className="flex w-full max-w-5xl min-h-[640px] lg:h-[640px] shadow-2xl rounded-3xl overflow-hidden">
         {/* LEFT - LOGIN FORM */}
-        <div className="flex flex-col w-full lg:w-1/2 bg-white p-8 lg:p-12 relative">
+        <div className="flex flex-col w-full lg:w-1/2 bg-white p-6 lg:p-10 relative">
           {/* Logo */}
-          <div className="flex items-center gap-3 mb-8">
-            <div className="h-12 w-12 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center shadow-xl border border-white/20">
-              <img src="/logo_img.svg" alt="Logo" className="h-8 w-8 object-contain" />
+          <div className="flex items-center gap-3 mb-6">
+            <div className="h-10 w-10 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center shadow-xl border border-white/20">
+              <img src="/logo_img.svg" alt="Logo" className="h-7 w-7 object-contain" />
             </div>
             <div>
-              <h1 className="font-bold text-emerald-800 text-3xl leading-tight">
+              <h1 className="font-bold text-emerald-800 text-2xl leading-tight">
                 Dr Fauzia Ishaq Clinic
               </h1>
               <p className="text-xs text-emerald-600 font-medium tracking-wide">CLINICAL EXCELLENCE</p>
             </div>
           </div>
 
-          <h2 className="font-bold text-3xl text-gray-800 mb-2">Welcome Back!</h2>
-          <p className="text-sm text-gray-500 mb-6">Sign in to access your dashboard</p>
-
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
-              {error}
-            </div>
-          )}
+          <h2 className="font-bold text-2xl text-gray-800 mb-1">Welcome Back!</h2>
+          <p className="text-sm text-gray-500 mb-3">Sign in to access your dashboard</p>
 
           {/* Input fields */}
-          <div className="flex flex-col gap-4 flex-1">
-            <div className="relative">
-              <input
-                type="text"
-                value={userCode}
-                onChange={(e) => setUserCode(e.target.value.toUpperCase())}
-                placeholder="User Code (e.g., DOC001)"
-                autoComplete="off"
-                className="w-full h-12 px-4 pl-11 text-gray-700 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500"
-              />
-              <User className="absolute left-3.5 top-3.5 h-5 w-5 text-gray-400" />
-              {isFetchingInfo && !name && (
-                <div className="absolute right-3.5 top-3.5">
-                  <div className="h-5 w-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-                </div>
-              )}
+          <div className="flex flex-col gap-3 flex-1">
+            <div>
+              <div className="flex items-center justify-between">
+                <label htmlFor="login-userCode" className="block text-xs font-medium text-gray-700">
+                  User Code
+                </label>
+                {profileVerified && (
+                  <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700 border border-emerald-200">
+                    Verified
+                  </span>
+                )}
+              </div>
+              <div className="relative mt-1">
+                <input
+                  id="login-userCode"
+                  ref={userCodeRef}
+                  type="text"
+                  value={userCode}
+                  onChange={(e) => setUserCode(e.target.value.toUpperCase())}
+                  onBlur={() => setTouched((prev) => ({ ...prev, userCode: true }))}
+                  onKeyDown={(e) => {
+                    if (e.key === "ArrowDown") {
+                      e.preventDefault();
+                      passwordRef.current?.focus();
+                    }
+                  }}
+                  placeholder="e.g., DOC001"
+                  autoComplete="off"
+                  aria-invalid={Boolean(userCodeError)}
+                  aria-describedby="login-userCode-help"
+                  className={`w-full h-11 px-4 pl-11 pr-11 text-gray-700 text-sm bg-gray-50 border rounded-xl outline-none transition-colors focus:ring-2 ${userCodeError
+                    ? "border-red-300 focus:ring-red-200 focus:border-red-400"
+                    : "border-gray-200 focus:ring-emerald-500 focus:border-emerald-500"
+                    }`}
+                />
+                <User
+                  className={`absolute left-3.5 top-3.5 h-5 w-5 ${userCodeError ? "text-red-500" : "text-gray-400"}`}
+                  aria-hidden="true"
+                />
+                {Boolean(userCodeError) && !isFetchingInfo && (
+                  <AlertCircle className="absolute right-3.5 top-3.5 h-5 w-5 text-red-500" aria-hidden="true" />
+                )}
+                {isFetchingInfo && !name && !userCodeError && (
+                  <div className="absolute right-3.5 top-3.5">
+                    <div className="h-5 w-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                  </div>
+                )}
+              </div>
+              <FieldMessage
+                id="login-userCode-help"
+                tone={userCodeError ? "error" : "helper"}
+              >
+                {userCodeHint}
+              </FieldMessage>
             </div>
 
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Full Name"
-              disabled={!userCode}
-              autoComplete="off"
-              className="w-full h-12 px-4 text-gray-700 text-sm bg-gray-50 border border-gray-200 rounded-xl disabled:opacity-50"
-            />
-
-            <input
-              type="text"
-              value={designation}
-              onChange={(e) => setDesignation(e.target.value)}
-              placeholder="Designation"
-              disabled={!userCode}
-              autoComplete="off"
-              className="w-full h-12 px-4 text-gray-700 text-sm bg-gray-50 border border-gray-200 rounded-xl disabled:opacity-50"
-            />
-
-            <div className="relative">
+            <div>
+              <label htmlFor="login-name" className="block text-xs font-medium text-gray-700">
+                Full Name
+              </label>
               <input
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && verifyUserLogin()}
-                placeholder="Password"
-                autoComplete="current-password"
-                className="w-full h-12 px-4 pl-11 pr-11 text-gray-700 text-sm bg-gray-50 border border-gray-200 rounded-xl"
+                id="login-name"
+                type="text"
+                value={name}
+                readOnly
+                tabIndex={-1}
+                placeholder="Auto-filled after verification"
+                autoComplete="off"
+                className="w-full h-11 mt-1 px-4 text-gray-700 text-sm bg-gray-50 border border-gray-200 rounded-xl cursor-default"
               />
-              <Lock className="absolute left-3.5 top-3.5 h-5 w-5 text-gray-400" />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3.5 top-3.5 text-gray-400 hover:text-gray-600"
+            </div>
+
+            <div>
+              <label htmlFor="login-designation" className="block text-xs font-medium text-gray-700">
+                Designation
+              </label>
+              <input
+                id="login-designation"
+                type="text"
+                value={designation}
+                readOnly
+                tabIndex={-1}
+                placeholder="Auto-filled after verification"
+                autoComplete="off"
+                className="w-full h-11 mt-1 px-4 text-gray-700 text-sm bg-gray-50 border border-gray-200 rounded-xl cursor-default"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="login-password" className="block text-xs font-medium text-gray-700">
+                Password
+              </label>
+              <div className="relative mt-1">
+                <input
+                  id="login-password"
+                  ref={passwordRef}
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onBlur={() => setTouched((prev) => ({ ...prev, password: true }))}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleSubmit();
+                    if (e.key === "ArrowUp") {
+                      e.preventDefault();
+                      userCodeRef.current?.focus();
+                    }
+                  }}
+                  placeholder="Enter your password"
+                  autoComplete="current-password"
+                  aria-invalid={Boolean(passwordError)}
+                  aria-describedby="login-password-help"
+                  className={`w-full h-11 px-4 pl-11 pr-11 text-gray-700 text-sm bg-gray-50 border rounded-xl outline-none transition-colors focus:ring-2 ${passwordError
+                    ? "border-red-300 focus:ring-red-200 focus:border-red-400"
+                    : "border-gray-200 focus:ring-emerald-500 focus:border-emerald-500"
+                    }`}
+                />
+                <Lock
+                  className={`absolute left-3.5 top-3.5 h-5 w-5 ${passwordError ? "text-red-500" : "text-gray-400"}`}
+                  aria-hidden="true"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-3.5 text-gray-400 hover:text-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
+              <FieldMessage
+                id="login-password-help"
+                tone={passwordError ? "error" : "helper"}
               >
-                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-              </button>
+                {passwordHint}
+              </FieldMessage>
             </div>
 
             <button
-              onClick={verifyUserLogin}
-              disabled={isLoading}
-              className="w-full h-12 mt-2 text-white font-semibold bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl hover:from-emerald-700 hover:to-teal-700 transition-all shadow-lg disabled:opacity-50"
+              onClick={handleSubmit}
+              disabled={isLoading || isFetchingInfo}
+              className="w-full h-11 mt-2 text-white font-semibold bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl hover:from-emerald-700 hover:to-teal-700 transition-all shadow-lg disabled:opacity-50"
             >
               {isLoading ? (
                 <div className="flex items-center justify-center gap-2">
@@ -138,14 +326,17 @@ export function Login() {
                   <span>Logging in...</span>
                 </div>
               ) : (
-                "Sign In"
+                isFetchingInfo ? "Verifying..." : "Sign In"
               )}
             </button>
           </div>
 
-          <p className="mt-6 text-xs text-gray-400 text-center">
-            Developed by <span className="font-semibold text-emerald-600">Muhammad Abdul Rehman</span>
-          </p>
+          <div className="mt-auto pt-10">
+            <p className="text-xs text-gray-400 text-center">
+              Developed by{" "}
+              <span className="font-semibold text-emerald-600">Muhammad Abdul Rehman</span>
+            </p>
+          </div>
         </div>
 
         {/* RIGHT - QUOTES */}

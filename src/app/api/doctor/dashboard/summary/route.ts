@@ -11,10 +11,20 @@ export async function GET(req: NextRequest) {
 
     const summaryResult = await query(
       `
+        with seen_events as (
+          select distinct vsh.visit_id
+          from visit_status_history vsh
+          join visit v on v.visit_id = vsh.visit_id
+          where vsh.status = 'seen_by_doctor'
+            and v.doctor_id = $1
+            and v.is_deleted = false
+            and vsh.updated_at::date between coalesce($2::date, current_date)
+            and coalesce($3::date, current_date)
+        )
         select
           count(*)::int as assigned_total,
           count(*) filter (where status = 'waiting')::int as waiting_total,
-          count(*) filter (where status = 'seen_by_doctor')::int as checked_total,
+          (select count(*)::int from seen_events) as checked_total,
           count(*) filter (
             where status not in ('waiting', 'seen_by_doctor')
           )::int as other_progressed_total

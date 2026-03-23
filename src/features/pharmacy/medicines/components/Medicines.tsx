@@ -234,7 +234,7 @@ export const Medicines: React.FC = () => {
           <div className="p-2.5 bg-indigo-500 text-white rounded-xl shadow-lg shadow-indigo-500/20">
             <Package size={20} />
           </div>
-          Medicines Management
+          Products Management
         </h2>
         <div className="flex flex-wrap items-center gap-3">
           {(Object.keys(MASTER_META) as MasterType[]).map((type) => {
@@ -257,7 +257,7 @@ export const Medicines: React.FC = () => {
             className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-md shadow-indigo-200"
           >
             <PlusCircle size={18} />
-            <span>Add Medicine</span>
+            <span>Add Product</span>
           </button>
         </div>
       </div>
@@ -269,7 +269,7 @@ export const Medicines: React.FC = () => {
           </label>
           <input
             type="text"
-            placeholder="Search by brand, generic name, or category..."
+            placeholder="Search by product/brand, base/generic name, or category..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-slate-400"
@@ -293,13 +293,13 @@ export const Medicines: React.FC = () => {
               {loading ? (
                 <tr>
                   <td colSpan={7} className="py-8 text-center text-slate-500">
-                    Loading medicines...
+                    Loading products...
                   </td>
                 </tr>
               ) : filteredMedicines.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-8 text-center text-slate-500">
-                    No medicines found.
+                    No products found.
                   </td>
                 </tr>
               ) : (
@@ -323,7 +323,7 @@ export const Medicines: React.FC = () => {
                       <button
                         onClick={() => handleEdit(medicine)}
                         className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                        title="Edit Medicine"
+                        title="Edit Product"
                       >
                         <Edit2 size={16} />
                       </button>

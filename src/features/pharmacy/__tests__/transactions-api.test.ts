@@ -17,13 +17,14 @@ vi.mock("@/src/lib/utils", () => ({
   getCurrentStaffId: getCurrentStaffIdMock,
 }));
 
-import { POST as postTransaction } from "@/src/app/api/transactions/route";
+import { POST as postTransaction, GET as getInvoices } from "@/src/app/api/transactions/route";
 import { GET as getTransaction, PUT as putTransaction } from "@/src/app/api/transactions/[id]/route";
 import { GET as getSaleReturn } from "@/src/app/api/transactions/return/[id]/route";
 
 describe("pharmacy transaction detail routes", () => {
   beforeEach(() => {
     queryMock.mockReset();
+    queryMock.mockResolvedValue({ rows: [] });
     connectMock.mockReset();
     releaseMock.mockReset();
     getCurrentStaffIdMock.mockReset();
@@ -103,6 +104,42 @@ describe("pharmacy transaction detail routes", () => {
     expect(releaseMock).toHaveBeenCalledTimes(1);
   });
 
+  it("searches completed invoices by reference or patient name", async () => {
+    queryMock.mockResolvedValueOnce({
+      rows: [
+        {
+          sale_id: 44,
+          payment_reference: "TXN-1774178288599-172",
+          sale_timestamp: "2026-03-22T10:44:22.000Z",
+          total_amount: "155.50",
+          visit_id: 12,
+          patient_id: 9,
+          patient_name: "Ali Khan",
+          items_count: 3,
+        },
+      ],
+    });
+
+    const response = await getInvoices({
+      nextUrl: new URL("http://localhost/api/transactions?query=ali"),
+    } as any);
+
+    const body = await response.json();
+    expect(body.success).toBe(true);
+    expect(body.data).toEqual([
+      {
+        id: "44",
+        reference: "TXN-1774178288599-172",
+        timestamp: "2026-03-22T10:44:22.000Z",
+        totalAmount: 155.5,
+        itemsCount: 3,
+        patientId: 9,
+        patientName: "Ali Khan",
+        visitId: 12,
+      },
+    ]);
+  });
+
   it("stores override prescription items in the unified sale detail path", async () => {
     queryMock
       .mockResolvedValueOnce({})
@@ -117,6 +154,8 @@ describe("pharmacy transaction detail routes", () => {
       })
       .mockResolvedValueOnce({})
       .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({ rows: [{ status: "dispensing" }] })
       .mockResolvedValueOnce({})
       .mockResolvedValueOnce({});
 
@@ -186,8 +225,8 @@ describe("pharmacy transaction detail routes", () => {
             stock_quantity: 10,
             stock_sub_quantity: 0,
             sub_units_per_unit: 10,
-            form: "box",
-            sub_unit: "tabs",
+            form: "tab",
+            sub_unit: "box",
           },
         ],
       })
@@ -255,8 +294,8 @@ describe("pharmacy transaction detail routes", () => {
             stock_quantity: 10,
             stock_sub_quantity: 0,
             sub_units_per_unit: 10,
-            form: "box",
-            sub_unit: "tabs",
+            form: "tab",
+            sub_unit: "box",
           },
         ],
       })
@@ -314,6 +353,103 @@ describe("pharmacy transaction detail routes", () => {
     expect(releaseMock).toHaveBeenCalledTimes(1);
   });
 
+  it("uses FEFO allocation for prescription sales even when cart items include a batchId", async () => {
+    queryMock
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({
+        rows: [{ prescription_id: 13, visit_id: 44 }],
+      })
+      .mockResolvedValueOnce({
+        rows: [{ bill_id: 71 }],
+      })
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            batch_id: 5,
+            batch_number: "LOT-00004",
+            stock_quantity: 1,
+            stock_sub_quantity: 0,
+            unit_price: 45,
+            sub_unit_price: 4.5,
+            expiry_date: "2026-12-01",
+          },
+          {
+            batch_id: 6,
+            batch_number: "LOT-00005",
+            stock_quantity: 5,
+            stock_sub_quantity: 0,
+            unit_price: 45,
+            sub_unit_price: 4.5,
+            expiry_date: "2027-01-01",
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        rows: [{ sale_id: 21, sale_timestamp: "2026-03-19T10:30:00.000Z" }],
+      })
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({ rows: [{ status: "dispensing" }] })
+      .mockResolvedValueOnce({});
+
+    const response = await postTransaction(
+      {
+        json: async () => ({
+          visitId: 44,
+          billId: null,
+          payment: {
+            payableAmount: 90,
+            type: "CASH",
+            paidAmount: 90,
+            dueAmount: 0,
+            changeAmount: 0,
+            adjustmentPercent: 0,
+            adjustment: 0,
+          },
+          customerId: 1,
+          prescriptionId: 13,
+          reference: "TXN-RX-FEFO-001",
+          cashier: "Current User",
+          status: "completed",
+          mode: "SALE",
+          items: [
+            {
+              medicine: {
+                id: 5,
+                medicine_id: 5,
+                sub_units_per_unit: 1,
+                batch_sale_sub_unit_price: 4.5,
+              },
+              quantity: 2,
+              subQuantity: 0,
+              price: 45,
+              discountPercent: 0,
+              batchId: 5,
+              prescriptionMedicineId: 99,
+            },
+          ],
+        }),
+      } as any
+    );
+
+    expect(response.status).toBe(200);
+
+    const fefoAllocationQuery = queryMock.mock.calls.find((call) =>
+      String(call[0]).includes("WHERE mb.medicine_id = $1")
+      && String(call[0]).includes("ORDER BY mb.expiry_date ASC NULLS LAST")
+    );
+    expect(fefoAllocationQuery).toBeTruthy();
+
+    const saleDetailInserts = queryMock.mock.calls.filter((call) =>
+      String(call[0]).includes("INSERT INTO pharmacy_sale_detail")
+    );
+    expect(saleDetailInserts.length).toBe(2);
+    expect(releaseMock).toHaveBeenCalledTimes(1);
+  });
+
   it("rejects overselling stock before writing a sale", async () => {
     queryMock
       .mockResolvedValueOnce({})
@@ -325,8 +461,8 @@ describe("pharmacy transaction detail routes", () => {
             stock_quantity: 1,
             stock_sub_quantity: 0,
             sub_units_per_unit: 1,
-            form: "box",
-            sub_unit: "tabs",
+            form: "tab",
+            sub_unit: "box",
           },
         ],
       })
@@ -360,8 +496,8 @@ describe("pharmacy transaction detail routes", () => {
                 brand_name: "Metformin",
                 batch_number: "BCH005",
                 sub_units_per_unit: 1,
-                form: "box",
-                sub_unit: "tabs",
+                form: "tab",
+                sub_unit: "box",
               },
               quantity: 2,
               subQuantity: 0,
@@ -399,8 +535,8 @@ describe("pharmacy transaction detail routes", () => {
             stock_quantity: 1,
             stock_sub_quantity: 0,
             sub_units_per_unit: 1,
-            form: "box",
-            sub_unit: "tabs",
+            form: "tab",
+            sub_unit: "box",
           },
         ],
       })
@@ -431,8 +567,8 @@ describe("pharmacy transaction detail routes", () => {
                 brand_name: "Metformin",
                 batch_number: "BCH005",
                 sub_units_per_unit: 1,
-                form: "box",
-                sub_unit: "tabs",
+                form: "tab",
+                sub_unit: "box",
               },
               quantity: 4,
               subQuantity: 0,
@@ -449,7 +585,7 @@ describe("pharmacy transaction detail routes", () => {
     const body = await response.json();
 
     expect(response.status).toBe(409);
-    expect(body.error).toContain("Only 3 box available");
+    expect(body.error).toContain("Only 3 boxes available");
     expect(queryMock.mock.calls.some((call) => String(call[0]).includes("UPDATE pharmacy_sale SET"))).toBe(false);
     expect(releaseMock).toHaveBeenCalledTimes(1);
   });
@@ -503,6 +639,69 @@ describe("pharmacy transaction detail routes", () => {
 
     expect(response.status).toBe(200);
     expect(body.data.items[0].id).toBe("3");
+    expect(releaseMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("appends pharmacy dispense to bill without collecting payment at POS", async () => {
+    queryMock
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({
+        rows: [{ sale_id: 37, sale_timestamp: "2026-03-23T12:00:00.000Z" }],
+      })
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({
+        rows: [{ bill_pharmacy_sale_id: 91 }],
+      })
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({});
+
+    const response = await postTransaction(
+      {
+        json: async () => ({
+          visitId: 44,
+          billId: 71,
+          settlementMode: "append_to_bill",
+          payment: {
+            payableAmount: 120,
+            type: "CASH",
+            paidAmount: 0,
+            dueAmount: 120,
+            changeAmount: 0,
+            adjustmentPercent: 0,
+            adjustment: 0,
+          },
+          customerId: null,
+          prescriptionId: null,
+          reference: "TXN-APPEND-001",
+          cashier: "Current User",
+          status: "completed",
+          mode: "SALE",
+          items: [
+            {
+              medicine: {
+                id: 5,
+                medicine_id: 5,
+                sub_units_per_unit: 10,
+              },
+              quantity: 2,
+              subQuantity: 0,
+              price: 60,
+              discountPercent: 0,
+              isBillable: true,
+              isInventoryBacked: false,
+              lineTotal: 120,
+            },
+          ],
+        }),
+      } as any
+    );
+
+    expect(response.status).toBe(200);
+    expect(queryMock.mock.calls.some((call) => String(call[0]).includes("INSERT INTO bill_pharmacy_sale"))).toBe(true);
+    expect(queryMock.mock.calls.some((call) => String(call[0]).includes("UPDATE bill"))).toBe(true);
+    expect(queryMock.mock.calls.some((call) => String(call[0]).includes("INSERT INTO bill_item"))).toBe(true);
     expect(releaseMock).toHaveBeenCalledTimes(1);
   });
 });

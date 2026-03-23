@@ -1,5 +1,9 @@
 
 export type Prescription = {
+  visit_id: string | number;
+  visit_timestamp?: string;
+  prescription_id?: string | number;
+  prescription_medicine_id?: string | number;
   order_date: string;
   category: string;
   generic_name: string;

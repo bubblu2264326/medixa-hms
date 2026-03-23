@@ -1,8 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/database/db";
+import { AuthError, requireAdminOrSuperAdmin } from "@/src/lib/server/auth";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    await requireAdminOrSuperAdmin(req);
     // 1. Overall Summary
     const summary = await query(`
       SELECT 
@@ -67,6 +69,9 @@ export async function GET() {
       recentPatients: recentPatients.rows
     });
   } catch (error: any) {
+    if (error instanceof AuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     console.error("Patients API Error:", error);
     return NextResponse.json({ error: "Failed to fetch patient analytics" }, { status: 500 });
   }

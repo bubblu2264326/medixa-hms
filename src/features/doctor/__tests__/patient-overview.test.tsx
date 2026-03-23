@@ -50,6 +50,15 @@ describe("doctor patient overview", () => {
           status: "waiting",
           visit_timestamp: "2026-03-18T12:30:00.000Z",
         },
+        capabilities: {
+          isQueueActive: true,
+          canEditPrescriptions: true,
+          canEditLabs: true,
+          canSoftDeleteVisit: true,
+          canAppendPrescription: true,
+          shouldCreateNewPrescription: false,
+          lockReason: null,
+        },
         encounterNote: {
           visit_id: "47",
           patient_id: "1",
@@ -125,6 +134,9 @@ describe("doctor patient overview", () => {
       error: null,
       saveDoctorNote: vi.fn(),
       markVisitSeen: vi.fn(),
+      reopenVisit: vi.fn(),
+      cancelVisit: vi.fn(),
+      softDeleteVisit: vi.fn(),
     });
   });
 
@@ -147,6 +159,30 @@ describe("doctor patient overview", () => {
       contextSummary: {
         ...mockUsePatientForm.mock.results[0]?.value.contextSummary,
         womenHealthSummary: null,
+      },
+    });
+
+    render(<PatientForm />);
+
+    expect(screen.queryByText("Women's Health")).toBeNull();
+  });
+
+  it("hides women's health for male patients even when payload contains summary data", () => {
+    const original = mockUsePatientForm();
+
+    mockUsePatientForm.mockReturnValue({
+      ...original,
+      contextSummary: {
+        ...original.contextSummary,
+        patient: {
+          ...original.contextSummary.patient,
+          gender: "Male",
+        },
+        womenHealthSummary: {
+          obstetricHistory: { gravida: 3, para: 2, abortions: 0 },
+          menstrualHistory: { cycle_length_days: 28 },
+          currentPregnancy: { gestational_age_weeks: 24 },
+        },
       },
     });
 

@@ -4,6 +4,10 @@ import {
   ensureDoctorVisitWriteAccess,
   resolveDoctorVisit,
 } from "@/src/lib/server/doctorWorkspace";
+import {
+  canAppendPrescriptionThread,
+  shouldCreateNewPrescriptionThread,
+} from "@/src/lib/server/visitLifecycle";
 import { NextRequest, NextResponse } from "next/server";
 
 type PrescriptionPayload = {
@@ -92,17 +96,25 @@ export async function POST(req: NextRequest) {
       seenMedicineIds.add(medicineId);
     }
 
-    const existingPrescription = await client.query(
+    const appendMode = canAppendPrescriptionThread(String(visit.status));
+    const newThreadMode = shouldCreateNewPrescriptionThread(String(visit.status));
+    const selectionMode: "append" | "new_thread" =
+      newThreadMode || !appendMode ? "new_thread" : "append";
+
+    const latestPrescription = await client.query(
       `
         select prescription_id
         from prescription
         where visit_id = $1
+        order by prescription_id desc
         limit 1
       `,
       [visitId]
     );
 
-    let prescriptionId = existingPrescription.rows[0]?.prescription_id;
+    let prescriptionId = selectionMode === "append"
+      ? latestPrescription.rows[0]?.prescription_id
+      : null;
 
     if (!prescriptionId) {
       const prescriptionResult = await client.query(
@@ -188,6 +200,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(
       {
+        mode: selectionMode,
         prescription_id: prescriptionId,
         visit_id: visitId,
         medicines: insertedMedicines,

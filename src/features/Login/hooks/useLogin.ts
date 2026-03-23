@@ -13,7 +13,8 @@ export function useLogin() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetchingInfo, setIsFetchingInfo] = useState(false);
-  const [error, setError] = useState("");
+  const [lookupError, setLookupError] = useState<string>("");
+  const [authError, setAuthError] = useState<string>("");
   const router = useRouter();
 
 
@@ -31,27 +32,44 @@ export function useLogin() {
       case "Lab_Technician":
         router.replace("/lab");
         break;
+      case "Cashier":
+        router.replace("/cashier");
+        break;
+      case "Admin":
+      case "Super Admin":
+        router.replace("/admin");
+        break;
       default:
         router.replace("/");
     }
   };
 
   useEffect(() => {
+    setAuthError("");
+  }, [password]);
+
+  useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
-      if (userCode.trim()) {
-        const userCodeRegex = /^[A-Z]{3}\d{3}$/;
-        if (userCodeRegex.test(userCode)) {
-          getUserData();
-        } else {
-          setError("Invalid format (e.g., STF001)");
-          setName("");
-          setDesignation("");
-        }
-      } else {
-        setError("");
+      const trimmedUserCode = userCode.trim();
+      const userCodeRegex = /^[A-Z]{3}\d{3}$/;
+
+      setAuthError("");
+
+      if (!trimmedUserCode) {
+        setLookupError("");
         setName("");
         setDesignation("");
+        return;
       }
+
+      if (!userCodeRegex.test(trimmedUserCode)) {
+        setLookupError("");
+        setName("");
+        setDesignation("");
+        return;
+      }
+
+      getUserData();
     }, 500);
 
     return () => clearTimeout(delayDebounceFn);
@@ -59,11 +77,11 @@ export function useLogin() {
 
   const getUserData = async () => {
     setIsFetchingInfo(true);
-    setError("");
+    setLookupError("");
 
     try {
       const data = await fetchUserData(userCode);
-      if (!data) setError("User code not found");
+      if (!data) setLookupError("User code not found");
       else {
         setName(data.name);
         setDesignation(data.role);
@@ -74,13 +92,8 @@ export function useLogin() {
   };
 
   const verifyUserLogin = async () => {
-    if (!userCode || !name || !designation || !password) {
-      setError("Please fill in all fields");
-      return;
-    }
-
     setIsLoading(true);
-    setError("");
+    setAuthError("");
 
     try {
       const data = await loginUser(userCode, password);
@@ -88,7 +101,7 @@ export function useLogin() {
 
       if (data?.role) redirectByRole(data.role);
     } catch (err: any) {
-      setError(err.message || "Login failed");
+      setAuthError(err.message || "Login failed");
     } finally {
       setIsLoading(false);
     }
@@ -103,7 +116,8 @@ export function useLogin() {
     showPassword,
     isLoading,
     isFetchingInfo,
-    error,
+    lookupError,
+    authError,
     setUserCode,
     setName,
     setDesignation,

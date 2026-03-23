@@ -1,8 +1,19 @@
 import pool from "@/database/db";
 import { NextRequest, NextResponse } from "next/server";
+import { AuthError, requireAdminOrSuperAdmin } from "@/src/lib/server/auth";
+import { logAuditEvent } from "@/src/lib/server/audit";
 
 // GET: Fetch attendance records (can filter by date or staff_id)
 export async function GET(req: NextRequest) {
+    try {
+        await requireAdminOrSuperAdmin(req);
+    } catch (error) {
+        if (error instanceof AuthError) {
+            return NextResponse.json({ error: error.message }, { status: error.status });
+        }
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(req.url);
     const date = searchParams.get("date") || new Date().toISOString().split("T")[0];
     const staffId = searchParams.get("staff_id");
@@ -34,6 +45,17 @@ export async function GET(req: NextRequest) {
 
 // POST: Mark attendance (Hybrid endpoint for Fingerprint/Mobile)
 export async function POST(req: NextRequest) {
+    let userCode = "system";
+    try {
+        const user = await requireAdminOrSuperAdmin(req);
+        userCode = user.user_code;
+    } catch (error) {
+        if (error instanceof AuthError) {
+            return NextResponse.json({ error: error.message }, { status: error.status });
+        }
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await req.json();
     const { user_code, marked_by } = body;
 
@@ -65,6 +87,21 @@ export async function POST(req: NextRequest) {
                  RETURNING *`,
                 [staff_id, today, marked_by || "System"]
             );
+            await logAuditEvent(
+                {
+                    actorUserCode: userCode,
+                    action: "Attendance check-in marked",
+                    entityType: "staff_attendance",
+                    entityId: insertRes.rows[0]?.attendance_id ?? null,
+                    details: {
+                        staffId: Number(staff_id),
+                        date: today,
+                        markedBy: marked_by || "System",
+                        event: "check_in",
+                    },
+                },
+                client
+            );
             return NextResponse.json({ message: "Check-in successful", data: insertRes.rows[0] });
         } else {
             // Check-out (if not already checked out)
@@ -79,6 +116,21 @@ export async function POST(req: NextRequest) {
                  WHERE attendance_id = $1 
                  RETURNING *`,
                 [record.attendance_id]
+            );
+            await logAuditEvent(
+                {
+                    actorUserCode: userCode,
+                    action: "Attendance check-out marked",
+                    entityType: "staff_attendance",
+                    entityId: updateRes.rows[0]?.attendance_id ?? null,
+                    details: {
+                        staffId: Number(staff_id),
+                        date: today,
+                        markedBy: marked_by || "System",
+                        event: "check_out",
+                    },
+                },
+                client
             );
             return NextResponse.json({ message: "Check-out successful", data: updateRes.rows[0] });
         }

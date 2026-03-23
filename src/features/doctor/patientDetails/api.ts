@@ -41,16 +41,34 @@ export async function saveDoctorEncounterNote(
   return res.json();
 }
 
-export async function updateVisitStatus(visitId: string): Promise<{ visit: { status: string } }> {
+export async function updateVisitStatus(
+  visitId: string,
+  status: string
+): Promise<{ visit: { status: string } }> {
   const res = await fetch(`/api/doctor/visit/${visitId}/status`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ status: "seen_by_doctor" }),
+    body: JSON.stringify({ status }),
   });
 
   if (!res.ok) {
     const data = await res.json().catch(() => null);
     throw new Error(data?.error || "Failed to update visit status");
+  }
+
+  return res.json();
+}
+
+export async function softDeleteVisit(
+  visitId: string
+): Promise<{ visit: { is_deleted: boolean; status: string } }> {
+  const res = await fetch(`/api/doctor/visit/${visitId}/soft-delete`, {
+    method: "DELETE",
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.error || "Failed to soft delete visit");
   }
 
   return res.json();

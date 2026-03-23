@@ -7,4 +7,7 @@ export interface QueueItem {
   doctor_name: string;
   status?: string;
   visit_type: "OPD" | "Emergency" | "Other";
+  bill_id?: string | number | null;
+  payment_status?: "Unpaid" | "Partial" | "Paid" | null;
+  due_amount?: number | null;
 }

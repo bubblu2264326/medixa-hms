@@ -19,6 +19,7 @@ export default async function LoginPage() {
     if (role === "Receptionist") return redirect("/receptionist");
     if (role === "Pharmacist") return redirect("/pharmacy");
     if (role === "Lab_Technician") return redirect("/lab");
+    if (role === "Cashier") return redirect("/cashier");
     if (role === "Admin" || role === "Super Admin") return redirect("/admin");
   }
 

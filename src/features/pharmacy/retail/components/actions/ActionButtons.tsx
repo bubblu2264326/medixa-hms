@@ -1,11 +1,14 @@
+"use client"
 import React, { useState } from 'react';
 import { CartItem, PaymentDetails } from '../../types';
-import { submitTransaction, holdTransaction, printReceipt, openCashDrawer } from '../../api';
+import { submitTransaction, holdTransaction, openCashDrawer } from '../../api';
 import { generateReference, formatCurrency } from '../../utils';
 import toast from 'react-hot-toast';
 import { CloseButton } from './CloseButton';
 import { PrintButton } from './PrintButton';
 import { PayDueButton } from './PayDueButton';
+import { fireAndForgetPrint, printReceiptUnified } from '@/src/features/pharmacy/printing/unifiedPrint';
+import { usePharmacyPrinterSettings } from '@/src/features/pharmacy/settings/hooks/usePharmacyPrinterSettings';
 
 interface ActionButtonsProps {
   cart: CartItem[];
@@ -22,6 +25,7 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
 }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [lastTransactionId, setLastTransactionId] = useState<string | null>(null);
+  const { settings: printerSettings } = usePharmacyPrinterSettings();
 
   const handlePayNow = async () => {
 
@@ -45,7 +49,7 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
       const response = await submitTransaction(transaction);
       if (response.success && response.data) {
         setLastTransactionId(response.data.id);
-        await printReceipt(response.data.id);
+        if (printerSettings.autoPrint) fireAndForgetPrint(response.data.id);
         if (payment.type === 'CASH') await openCashDrawer();
         toast.success('Transaction completed successfully!');
         onComplete();
@@ -87,8 +91,7 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
   const handlePrint = async () => {
     if (!lastTransactionId) return toast.error('No recent transaction to print');
     try {
-      const res = await printReceipt(lastTransactionId);
-      if (!res.success) toast.error(res.error || 'Failed to print receipt');
+      await printReceiptUnified(lastTransactionId);
     } catch (err) {
       console.error(err);
       toast.error('Error while printing');

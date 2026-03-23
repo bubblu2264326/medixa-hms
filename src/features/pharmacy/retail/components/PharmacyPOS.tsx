@@ -8,12 +8,14 @@ import { QuantityInput, SubQuantityInput, DiscountInput, CustomPriceInput } from
 import { CartTable } from './cart';
 import { CheckoutCard, CheckoutCardHandle } from './payment/CheckoutCard';
 import { useCart, usePayment, useMedicineSearch } from '../hooks';
-import { fetchPrescriptionSale, searchPrescriptionPatients, fetchActiveVisits, updateVisitWorkflowStatus } from '../api';
-import { Medicine, POSMode, ApiResponse, Transaction, PrescriptionSaleResponse, PatientSearchResult, ActiveVisitOption, CartItem, OverrideReasonCode } from '../types';
+import { fetchPrescriptionSale, searchPrescriptionPatients, fetchActiveVisits, updateVisitWorkflowStatus, searchInvoices } from '../api';
+import { Medicine, POSMode, ApiResponse, Transaction, PrescriptionSaleResponse, PatientSearchResult, ActiveVisitOption, CartItem, OverrideReasonCode, InvoiceSummary } from '../types';
+import { usePharmacyPosSettings } from '@/src/features/pharmacy/settings/hooks/usePharmacyPosSettings';
 import AddProductButton from './product-entry/AddProductButton';
 import { Maximize, Minimize, Layout, ShoppingCart, RotateCcw, Link2Off, Search, UserRound, TriangleAlert } from 'lucide-react';
-import toast from 'react-hot-toast';
+import toast, { ToastBar, Toaster } from 'react-hot-toast';
 import { getMedicineAvailability, validateRequestedStock } from '../stock';
+import { formatCurrency } from '../utils';
 
 const OVERRIDE_REASON_OPTIONS: Array<{ value: OverrideReasonCode; label: string }> = [
   { value: 'purchased_from_other_store', label: 'Purchased from other store' },
@@ -27,12 +29,9 @@ const PharmacyPOS: React.FC = () => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { patientId, selectedVisitId, setPatientVisit, clearSelection } = usePatient();
+  const { settings: posSettings } = usePharmacyPosSettings();
   const modeParam = searchParams.get('mode');
   const initialMode: POSMode = modeParam === 'return' ? 'RETURN' : modeParam === 'edit_return' ? 'RETURN' : 'SALE';
-
-  const { cart, selectedItem, addItem, updateItem, removeItem, clearCart, loadCart, selectItem } = useCart();
-  const { payment, setPaymentType, setPaidAmount, setAdjustment, resetPayment, loadPayment } = usePayment(cart);
-  const { results, isSearching, search, clearResults, invalidateCache } = useMedicineSearch();
 
   // Product entry state
   const [quantity, setQuantity] = useState<number>(1);
@@ -45,8 +44,26 @@ const PharmacyPOS: React.FC = () => {
   const [posMode, setPosMode] = useState<POSMode>(initialMode);
   const [isEditing, setIsEditing] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
+  const [resumedHoldId, setResumedHoldId] = useState<string | null>(null);
+  const [resumedHoldMeta, setResumedHoldMeta] = useState<{
+    visitId?: number | null;
+    billId?: number | null;
+    prescriptionId?: number | null;
+    patientId?: number | null;
+    customerId?: number;
+    customerName?: string;
+  } | null>(null);
   const [activePrescription, setActivePrescription] = useState<PrescriptionSaleResponse | null>(null);
   const [patientSearchQuery, setPatientSearchQuery] = useState('');
+  const [invoiceSearchQuery, setInvoiceSearchQuery] = useState('');
+  const [invoiceSearchResults, setInvoiceSearchResults] = useState<InvoiceSummary[]>([]);
+  const [isInvoiceSearching, setIsInvoiceSearching] = useState(false);
+  const [highlightedInvoiceIndex, setHighlightedInvoiceIndex] = useState(-1);
+  const [showInvoiceResults, setShowInvoiceResults] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState<InvoiceSummary | null>(null);
+  const [loadedInvoicePayment, setLoadedInvoicePayment] = useState<any | null>(null);
+  const [returnSelectedIds, setReturnSelectedIds] = useState<Set<string>>(new Set());
+  const [refSaleId, setRefSaleId] = useState<string | number | null>(null);
   const [patientSearchResults, setPatientSearchResults] = useState<PatientSearchResult[]>([]);
   const [isPatientSearching, setIsPatientSearching] = useState(false);
   const [highlightedPatientIndex, setHighlightedPatientIndex] = useState(-1);
@@ -64,7 +81,30 @@ const PharmacyPOS: React.FC = () => {
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [isPortalReady, setIsPortalReady] = useState(false);
 
+  const { cart, selectedItem, addItem, updateItem, removeItem, clearCart, loadCart, selectItem } = useCart();
+  const selectedReturnCart = useMemo(
+    () => (posMode === 'RETURN' ? cart.filter((item) => returnSelectedIds.has(item.id)) : cart),
+    [cart, posMode, returnSelectedIds]
+  );
+  const { payment, setPaymentType, setPaidAmount, setAdjustment, resetPayment, loadPayment } = usePayment(selectedReturnCart);
+  const { results, isSearching, search, clearResults, invalidateCache } = useMedicineSearch();
+  const invoiceChipBaseClass =
+    'rounded-full border px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.1em]';
+
+  const [qtyLimitFlash, setQtyLimitFlash] = useState(false);
+  const [subQtyLimitFlash, setSubQtyLimitFlash] = useState(false);
+  const qtyFlashTimeoutRef = useRef<number | null>(null);
+  const subQtyFlashTimeoutRef = useRef<number | null>(null);
+
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const parsePatientSearchLabel = useCallback((value: string): string | undefined => {
+    const trimmed = value.trim();
+    if (!trimmed) return undefined;
+    if (trimmed.startsWith('Patient #')) return undefined;
+    if (trimmed.startsWith('Invoice:')) return undefined;
+    return trimmed;
+  }, []);
 
   const resetPosSession = React.useCallback(() => {
     clearCart();
@@ -80,6 +120,8 @@ const PharmacyPOS: React.FC = () => {
     setEditingItemId(null);
     setIsEditing(false);
     setEditId(null);
+    setResumedHoldId(null);
+    setResumedHoldMeta(null);
     setActivePrescription(null);
     setPatientSearchQuery('');
     setPatientSearchResults([]);
@@ -95,6 +137,15 @@ const PharmacyPOS: React.FC = () => {
     setOverrideQuantity(1);
     setOverridePrice(0);
     setOverrideError(null);
+    setInvoiceSearchQuery('');
+    setInvoiceSearchResults([]);
+    setIsInvoiceSearching(false);
+    setHighlightedInvoiceIndex(-1);
+    setShowInvoiceResults(false);
+    setSelectedInvoice(null);
+    setLoadedInvoicePayment(null);
+    setReturnSelectedIds(new Set());
+    setRefSaleId(null);
     setPosMode('SALE');
     clearSelection();
 
@@ -104,6 +155,61 @@ const PharmacyPOS: React.FC = () => {
 
     router.replace(params.toString() ? `${pathname}?${params.toString()}` : pathname);
   }, [clearCart, resetPayment, clearResults, invalidateCache, searchParams, router, pathname, clearSelection]);
+
+  const clearPosSessionForModeSwitch = useCallback(
+    (nextMode: POSMode) => {
+      clearCart();
+      resetPayment();
+      clearResults();
+      invalidateCache();
+      setItemSearched(undefined);
+      setSearchQuery('');
+      setQuantity(1);
+      setSubQuantity(0);
+      setDiscountPercent(0);
+      setCustomPrice(undefined);
+      setEditingItemId(null);
+      setIsEditing(false);
+      setEditId(null);
+      setResumedHoldId(null);
+      setResumedHoldMeta(null);
+      setActivePrescription(null);
+      setPatientSearchQuery('');
+      setPatientSearchResults([]);
+      setHighlightedPatientIndex(-1);
+      setShowPatientResults(false);
+      setVisitOptions([]);
+      setVisitPickerPatient(null);
+      setVisitPickerError(null);
+      setLoadingVisitId(null);
+      setOverrideTargetItem(null);
+      setOverrideReasonCode('purchased_from_other_store');
+      setOverrideReasonNote('');
+      setOverrideQuantity(1);
+      setOverridePrice(0);
+      setOverrideError(null);
+      setInvoiceSearchQuery('');
+      setInvoiceSearchResults([]);
+      setIsInvoiceSearching(false);
+      setHighlightedInvoiceIndex(-1);
+      setShowInvoiceResults(false);
+      setSelectedInvoice(null);
+      setLoadedInvoicePayment(null);
+      setReturnSelectedIds(new Set());
+      setRefSaleId(null);
+      clearSelection();
+      setPosMode(nextMode);
+    },
+    [
+      clearCart,
+      clearResults,
+      clearSelection,
+      invalidateCache,
+      resetPayment,
+      setEditId,
+      setIsEditing,
+    ]
+  );
 
   useEffect(() => {
     setIsPortalReady(true);
@@ -179,30 +285,91 @@ const PharmacyPOS: React.FC = () => {
     }
   }, [searchParams, loadCart, loadPayment]);
 
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      containerRef.current?.requestFullscreen().catch((err) => {
-        toast.error(`Error attempting to enable full-screen mode: ${err.message}`);
-      });
+  const enterPosFullscreen = useCallback(async () => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    try {
+      await container.requestFullscreen();
       setIsFullscreen(true);
-    } else {
-      document.exitFullscreen();
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Failed to enter fullscreen mode.';
+      toast.error(`Error attempting to enable full-screen mode: ${message}`);
       setIsFullscreen(false);
     }
-  };
+  }, []);
+
+  const exitPosFullscreen = useCallback(async () => {
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+      }
+    } catch {
+      // Ignore; we'll still force local state to non-fullscreen.
+    } finally {
+      setIsFullscreen(false);
+    }
+  }, []);
+
+  const toggleFullscreen = useCallback(() => {
+    const fullscreenElement = document.fullscreenElement;
+    const container = containerRef.current;
+    const isPosFullscreen = !!fullscreenElement && !!container && fullscreenElement === container;
+
+    if (isPosFullscreen || isFullscreen) {
+      void exitPosFullscreen();
+      return;
+    }
+
+    void enterPosFullscreen();
+  }, [enterPosFullscreen, exitPosFullscreen, isFullscreen]);
 
   // Listen for fullscreen changes (e.g. Esc key)
   useEffect(() => {
     const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
+      const fullscreenElement = document.fullscreenElement;
+      const container = containerRef.current;
+      setIsFullscreen(!!fullscreenElement && !!container && fullscreenElement === container);
     };
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
+  // If the Fullscreen API fails (permissions, user gesture requirements, etc.), reset local state.
+  useEffect(() => {
+    const handleFullscreenError = () => {
+      setIsFullscreen(false);
+      toast.error('Fullscreen failed. Your browser may block fullscreen for this action.');
+    };
+    document.addEventListener('fullscreenerror', handleFullscreenError);
+    return () => document.removeEventListener('fullscreenerror', handleFullscreenError);
+  }, []);
+
+  // ESC should always exit POS fullscreen (capture phase so it wins over dropdown/modal ESC handlers).
+  useEffect(() => {
+    const handleKeyDownCapture = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+
+      const fullscreenElement = document.fullscreenElement;
+      const container = containerRef.current;
+      const isPosFullscreen = !!fullscreenElement && !!container && fullscreenElement === container;
+      if (!isPosFullscreen && !isFullscreen) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+      void exitPosFullscreen();
+    };
+
+    window.addEventListener('keydown', handleKeyDownCapture, true);
+    return () => window.removeEventListener('keydown', handleKeyDownCapture, true);
+  }, [exitPosFullscreen, isFullscreen]);
+
   const searchInputRef = useRef<HTMLInputElement>(null);
   const patientSearchInputRef = useRef<HTMLInputElement>(null);
   const patientResultsRef = useRef<HTMLDivElement>(null);
+  const invoiceSearchInputRef = useRef<HTMLInputElement>(null);
+  const invoiceResultsRef = useRef<HTMLDivElement>(null);
   const qtyInputRef = useRef<HTMLInputElement>(null);
   const subQtyInputRef = useRef<HTMLInputElement>(null);
   const discInputRef = useRef<HTMLInputElement>(null);
@@ -261,6 +428,62 @@ const PharmacyPOS: React.FC = () => {
       node?.scrollIntoView({ block: 'nearest' });
     }
   }, [highlightedPatientIndex]);
+
+  useEffect(() => {
+    if (posMode !== 'RETURN') {
+      setInvoiceSearchResults([]);
+      setShowInvoiceResults(false);
+      setHighlightedInvoiceIndex(-1);
+      setIsInvoiceSearching(false);
+      return;
+    }
+
+    if (selectedInvoice) {
+      setInvoiceSearchResults([]);
+      setShowInvoiceResults(false);
+      setHighlightedInvoiceIndex(-1);
+      setIsInvoiceSearching(false);
+      return;
+    }
+
+    const query = invoiceSearchQuery.trim();
+    if (query.length < 2) {
+      setInvoiceSearchResults([]);
+      setShowInvoiceResults(false);
+      setHighlightedInvoiceIndex(-1);
+      return;
+    }
+
+    const timeoutId = window.setTimeout(async () => {
+      setIsInvoiceSearching(true);
+      try {
+        const response = await searchInvoices(query);
+        if (response.success && response.data) {
+          setInvoiceSearchResults(response.data);
+          setShowInvoiceResults(response.data.length > 0);
+          setHighlightedInvoiceIndex(response.data.length > 0 ? 0 : -1);
+        } else {
+          setInvoiceSearchResults([]);
+          setShowInvoiceResults(false);
+        }
+      } catch (error) {
+        console.error(error);
+        setInvoiceSearchResults([]);
+        setShowInvoiceResults(false);
+      } finally {
+        setIsInvoiceSearching(false);
+      }
+    }, 200);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [invoiceSearchQuery, posMode, selectedInvoice]);
+
+  useEffect(() => {
+    if (highlightedInvoiceIndex >= 0 && invoiceResultsRef.current) {
+      const node = invoiceResultsRef.current.children[highlightedInvoiceIndex] as HTMLElement | undefined;
+      node?.scrollIntoView({ block: 'nearest' });
+    }
+  }, [highlightedInvoiceIndex]);
 
   // Navigate between entry fields with Left/Right arrows
   useEffect(() => {
@@ -360,7 +583,7 @@ const PharmacyPOS: React.FC = () => {
       }
 
       const availableCartItems: CartItem[] = response.data.availableItems.map((item) => ({
-        id: `${item.prescriptionMedicineId}-${item.medicine.batch_id ?? item.medicine.id}`,
+        id: `rx-${item.prescriptionMedicineId}-${item.medicine.id}`,
         medicine: item.medicine,
         quantity: item.prescribedQuantity,
         subQuantity: 0,
@@ -368,8 +591,6 @@ const PharmacyPOS: React.FC = () => {
         discountedPrice: item.medicine.batch_sale_price ?? item.medicine.price,
         discountPercent: 0,
         lineTotal: item.prescribedQuantity * (item.medicine.batch_sale_price ?? item.medicine.price ?? 0),
-        batchId: item.medicine.batch_id,
-        batchNumber: item.medicine.batch_number,
         prescriptionMedicineId: item.prescriptionMedicineId,
         prescribedQuantity: item.prescribedQuantity,
         alreadyDispensedQuantity: item.alreadyDispensedQuantity,
@@ -541,6 +762,193 @@ const PharmacyPOS: React.FC = () => {
     }
   };
 
+  const clearSelectedInvoice = () => {
+    setSelectedInvoice(null);
+    setLoadedInvoicePayment(null);
+    setRefSaleId(null);
+    setInvoiceSearchQuery('');
+    setInvoiceSearchResults([]);
+    setShowInvoiceResults(false);
+    setHighlightedInvoiceIndex(-1);
+    setReturnSelectedIds(new Set());
+    resetPayment();
+    clearCart();
+    window.setTimeout(() => invoiceSearchInputRef.current?.focus(), 0);
+  };
+
+  const handleInvoiceSelected = async (invoice: InvoiceSummary) => {
+    try {
+      clearCart();
+      resetPayment();
+      setPosMode('RETURN');
+      setRefSaleId(invoice.id);
+      setSelectedInvoice(invoice);
+      setInvoiceSearchResults([]);
+      setShowInvoiceResults(false);
+      setHighlightedInvoiceIndex(-1);
+
+      const label = `Invoice: ${invoice.reference} • ${invoice.patientName ?? 'Walk-in'}`;
+      setInvoiceSearchQuery(label);
+
+      const response = await fetch(`/api/transactions/${invoice.id}`);
+      const body = await response.json();
+      if (!body?.success || !body?.data) {
+        toast.error(body?.error || 'Failed to load invoice details');
+        setSelectedInvoice(null);
+        return;
+      }
+
+      setLoadedInvoicePayment(body.data.payment ?? null);
+      const invoiceDiscountPercent = Number(body.data.payment?.adjustmentPercent ?? 0);
+      if (invoiceDiscountPercent > 0) {
+        setAdjustment(invoiceDiscountPercent);
+      } else {
+        setAdjustment(0);
+      }
+
+      const itemsFromApi = (body.data.items || []) as any[];
+      const hydratedItems: CartItem[] = itemsFromApi.map((item: any, index: number) => {
+        const medicine = item.medicine || {};
+        const hydratedMedicine: Medicine = {
+          id: Number(medicine.id ?? item.medicine_id ?? 0),
+          medicine_id: Number(medicine.medicine_id ?? medicine.id ?? item.medicine_id ?? 0),
+          brand_name: String(medicine.brand_name ?? ''),
+          generic_name: String(medicine.generic_name ?? ''),
+          barcode: String(medicine.barcode ?? ''),
+          sku: String(medicine.sku ?? ''),
+          price: Number(medicine.price ?? item.price ?? 0),
+          stock_quantity: Number(medicine.stock_quantity ?? medicine.total_stock_quantity ?? 0),
+          stock_sub_quantity: Number(medicine.stock_sub_quantity ?? medicine.total_stock_sub_quantity ?? 0),
+          sub_unit: String(medicine.sub_unit ?? ''),
+          sub_units_per_unit: Number(medicine.sub_units_per_unit ?? 1),
+          sub_unit_price: Number(medicine.sub_unit_price ?? medicine.batch_sale_sub_unit_price ?? 0),
+          allow_sub_unit_sale: Boolean(medicine.allow_sub_unit_sale ?? false),
+          category: (medicine.category ?? 'otc') as any,
+          requires_prescription: Boolean(medicine.requires_prescription ?? false),
+          dosage_value: Number(medicine.dosage_value ?? 0),
+          dosage_unit: String(medicine.dosage_unit ?? ''),
+          form: String(medicine.form ?? ''),
+          batch_id: medicine.batch_id ?? (item.batchId ?? undefined),
+          batch_number: medicine.batch_number ?? item.batchNumber ?? undefined,
+          batch_code: medicine.batch_code ?? item.batchCode ?? undefined,
+          batch_sale_price: medicine.batch_sale_price ?? undefined,
+          batch_sale_sub_unit_price: medicine.batch_sale_sub_unit_price ?? undefined,
+          expiry_date: medicine.expiry_date ?? undefined,
+        };
+
+        return {
+          ...item,
+          id: String(item.id ?? `${hydratedMedicine.id}-${Date.now()}-${index}`),
+          medicine: hydratedMedicine,
+          quantity: Number(item.quantity ?? 0),
+          subQuantity: Number(item.subQuantity ?? 0),
+          price: Number(item.price ?? 0),
+          discountedPrice: Number(item.discountedPrice ?? item.price ?? 0),
+          discountPercent: Number(item.discountPercent ?? 0),
+          lineTotal: Number(item.lineTotal ?? 0),
+          batchId: item.batchId ?? hydratedMedicine.batch_id ?? undefined,
+          batchNumber: item.batchNumber ?? hydratedMedicine.batch_number ?? undefined,
+          batchCode: item.batchCode ?? hydratedMedicine.batch_code ?? undefined,
+        };
+      });
+
+      if (hydratedItems.length > 0) {
+        loadCart(hydratedItems);
+        setReturnSelectedIds(new Set(hydratedItems.map((i) => i.id)));
+        toast.success(`Loaded ${hydratedItems.length} item(s) from ${invoice.reference}`);
+      } else {
+        toast.error('Selected invoice has no items');
+        setSelectedInvoice(null);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error(`Failed to load invoice items: ${String(error)}`);
+      setSelectedInvoice(null);
+    }
+  };
+
+  const handleInvoiceSearchKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (selectedInvoice) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        clearSelectedInvoice();
+      }
+      return;
+    }
+
+    if (!showInvoiceResults || invoiceSearchResults.length === 0) {
+      if (e.key === 'Escape') {
+        setShowInvoiceResults(false);
+      }
+      return;
+    }
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setHighlightedInvoiceIndex((prev) => (prev < invoiceSearchResults.length - 1 ? prev + 1 : 0));
+      return;
+    }
+
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setHighlightedInvoiceIndex((prev) => (prev > 0 ? prev - 1 : invoiceSearchResults.length - 1));
+      return;
+    }
+
+    if (e.key === 'Enter' && highlightedInvoiceIndex >= 0) {
+      e.preventDefault();
+      const invoice = invoiceSearchResults[highlightedInvoiceIndex];
+      if (invoice) {
+        await handleInvoiceSelected(invoice);
+      }
+      return;
+    }
+
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      setShowInvoiceResults(false);
+    }
+  };
+
+  const isReturnSelectionActive = posMode === 'RETURN' && !!selectedInvoice;
+
+  const toggleReturnInclude = useCallback((itemId: string) => {
+    setReturnSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(itemId)) {
+        next.delete(itemId);
+      } else {
+        next.add(itemId);
+      }
+      return next;
+    });
+  }, []);
+
+  const selectAllReturnItems = useCallback(() => {
+    setReturnSelectedIds(new Set(cart.map((i) => i.id)));
+  }, [cart]);
+
+  const unselectAllReturnItems = useCallback(() => {
+    setReturnSelectedIds(new Set());
+  }, []);
+
+  useEffect(() => {
+    if (!isReturnSelectionActive) return;
+    const liveIds = new Set(cart.map((i) => i.id));
+    setReturnSelectedIds((prev) => {
+      const next = new Set<string>();
+      for (const id of prev) {
+        if (liveIds.has(id)) next.add(id);
+      }
+      // If no selection exists yet (e.g., invoice loaded before state), default to all.
+      if (next.size === 0 && cart.length > 0) {
+        return new Set(cart.map((i) => i.id));
+      }
+      if (next.size === prev.size) return prev;
+      return next;
+    });
+  }, [cart, isReturnSelectionActive]);
+
   const handlePatientSelected = async (patient: PatientSearchResult) => {
     const visitsResponse = await fetchActiveVisits(String(patient.patient_id));
 
@@ -554,13 +962,16 @@ const PharmacyPOS: React.FC = () => {
       return;
     }
 
-    if (visitsResponse.data.length === 1) {
-      await loadPrescriptionCart(patient.patient_id, visitsResponse.data[0].visit_id, patient.patient_name);
+    const prescriptionReadyVisits = visitsResponse.data.filter((visit) => Boolean(visit.has_pending_prescription));
+    const candidateVisits = prescriptionReadyVisits.length > 0 ? prescriptionReadyVisits : visitsResponse.data;
+
+    if (candidateVisits.length === 1) {
+      await loadPrescriptionCart(patient.patient_id, candidateVisits[0].visit_id, patient.patient_name);
       return;
     }
 
     setVisitPickerPatient(patient);
-    setVisitOptions(visitsResponse.data);
+    setVisitOptions(candidateVisits);
     setVisitPickerError(null);
     setShowPatientResults(false);
   };
@@ -593,13 +1004,51 @@ const PharmacyPOS: React.FC = () => {
       return;
     }
 
-    if (!overrideReasonNote.trim()) {
-      setOverrideError('Reason note is required.');
+    if (!overrideQuantity || overrideQuantity <= 0) {
+      setOverrideError('Override quantity must be greater than 0.');
       return;
     }
 
-    if (!overrideQuantity || overrideQuantity <= 0) {
-      setOverrideError('Override quantity must be greater than 0.');
+    const availableQuantity = Number(overrideTargetItem.availableQuantity ?? 0);
+    const canFulfillFromStock = availableQuantity > 0 && overrideQuantity <= availableQuantity;
+
+    if (canFulfillFromStock) {
+      const stockUnitPrice = Number(
+        overrideTargetItem.medicine.batch_sale_price
+          ?? overrideTargetItem.medicine.price
+          ?? overridePrice
+          ?? 0
+      );
+
+      if (!stockUnitPrice || stockUnitPrice <= 0) {
+        setOverrideError('Valid sale price is required to include this line from stock.');
+        return;
+      }
+
+      updateItem(overrideTargetItem.id, {
+        quantity: overrideQuantity,
+        subQuantity: 0,
+        price: stockUnitPrice,
+        discountedPrice: stockUnitPrice,
+        discountPercent: 0,
+        lineTotal: overrideQuantity * stockUnitPrice,
+        fulfillmentMode: 'stock',
+        availabilityStatus: availableQuantity - overrideQuantity > 0 ? 'low_stock' : 'fulfilled',
+        overrideReasonCode: null,
+        overrideReasonNote: null,
+        isBillable: true,
+        isInventoryBacked: true,
+      });
+
+      setOverrideTargetItem(null);
+      setOverrideReasonNote('');
+      setOverrideError(null);
+      toast.success('Included from stock. Inventory will be deducted on process sale.');
+      return;
+    }
+
+    if (!overrideReasonNote.trim()) {
+      setOverrideError('Reason note is required.');
       return;
     }
 
@@ -701,93 +1150,390 @@ const PharmacyPOS: React.FC = () => {
     setTimeout(() => searchInputRef.current?.focus(), 100);
   };
 
+  const handleLoadTransaction = (tx: Transaction) => {
+    loadCart(tx.items);
+    loadPayment(tx.payment);
+    setResumedHoldId(tx.status === 'held' ? tx.id : null);
+    setResumedHoldMeta(tx.status === 'held'
+      ? {
+          visitId: tx.visitId ?? null,
+          billId: tx.billId ?? null,
+          prescriptionId: tx.prescriptionId ?? null,
+          patientId: tx.patientId ?? null,
+          customerId: tx.customerId,
+          customerName: tx.customer?.name,
+        }
+      : null);
+
+    if (tx.customerId) {
+      setPatientVisit(String(tx.customerId), tx.visitId ? String(tx.visitId) : null);
+      setPatientSearchQuery(
+        tx.customer?.name
+          || (tx.visitId ? `Patient #${tx.customerId} • Visit #${tx.visitId}` : `Patient #${tx.customerId}`)
+      );
+    }
+
+    if (tx.prescriptionId) {
+      // If it's a prescription sale, we might want to reload the prescription state
+      // but for now, loading the items is enough to resume the UI
+    }
+
+    setPosMode(tx.mode || 'SALE');
+    toast.success(`Resumed transaction ${tx.reference}`, { icon: '📥' });
+  };
+
   const selectedMedicineStock = itemSearched ? getMedicineAvailability(itemSearched).available : null;
+
+  const fallbackPatientId = activePrescription?.patientId
+    ?? selectedInvoice?.patientId
+    ?? resumedHoldMeta?.patientId
+    ?? (patientId ? Number(patientId) : null);
+  const fallbackVisitId = activePrescription?.visitId
+    ?? selectedInvoice?.visitId
+    ?? resumedHoldMeta?.visitId
+    ?? (selectedVisitId ? Number(selectedVisitId) : null);
+  const fallbackCustomerName = resumedHoldMeta?.customerName
+    ?? selectedInvoice?.patientName
+    ?? parsePatientSearchLabel(patientSearchQuery);
+
+  const flashQtyLimit = useCallback(() => {
+    setQtyLimitFlash(true);
+    if (qtyFlashTimeoutRef.current) {
+      window.clearTimeout(qtyFlashTimeoutRef.current);
+    }
+    qtyFlashTimeoutRef.current = window.setTimeout(() => setQtyLimitFlash(false), 650);
+  }, []);
+
+  const flashSubQtyLimit = useCallback(() => {
+    setSubQtyLimitFlash(true);
+    if (subQtyFlashTimeoutRef.current) {
+      window.clearTimeout(subQtyFlashTimeoutRef.current);
+    }
+    subQtyFlashTimeoutRef.current = window.setTimeout(() => setSubQtyLimitFlash(false), 650);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (qtyFlashTimeoutRef.current) window.clearTimeout(qtyFlashTimeoutRef.current);
+      if (subQtyFlashTimeoutRef.current) window.clearTimeout(subQtyFlashTimeoutRef.current);
+    };
+  }, []);
+
+  const { maxQtyByStock, maxSubQtyByStock, perUnit } = useMemo(() => {
+    if (!itemSearched || !selectedMedicineStock) {
+      return { maxQtyByStock: 9999, maxSubQtyByStock: 99, perUnit: 1 };
+    }
+
+    const normalizedPerUnit = Math.max(1, Number(itemSearched.sub_units_per_unit || 1));
+    const availableTotal = Math.max(0, Number(selectedMedicineStock.totalSubUnits || 0));
+    const cappedSub = normalizedPerUnit > 1
+      ? Math.max(0, Math.min(Number(subQuantity || 0), normalizedPerUnit - 1))
+      : 0;
+
+    const maxQty = Math.max(0, Math.floor((availableTotal - cappedSub) / normalizedPerUnit));
+    const remainingAfterQty = Math.max(0, availableTotal - (Math.max(0, Number(quantity || 0)) * normalizedPerUnit));
+    const maxSubByStock = normalizedPerUnit > 1
+      ? Math.min(normalizedPerUnit - 1, remainingAfterQty)
+      : 0;
+
+    return { maxQtyByStock: Math.min(9999, maxQty), maxSubQtyByStock: Math.min(99, maxSubByStock), perUnit: normalizedPerUnit };
+  }, [itemSearched, selectedMedicineStock, quantity, subQuantity]);
+
+  const handleQuantityChange = useCallback((nextValue: number) => {
+    if (!itemSearched || !selectedMedicineStock) {
+      setQuantity(nextValue);
+      return;
+    }
+
+    const availableTotal = Math.max(0, Number(selectedMedicineStock.totalSubUnits || 0));
+    const cappedSub = perUnit > 1 ? Math.max(0, Math.min(Number(subQuantity || 0), perUnit - 1)) : 0;
+    const computedMaxQty = Math.max(0, Math.floor((availableTotal - cappedSub) / perUnit));
+    const clampedQty = Math.max(0, Math.min(Number(nextValue || 0), computedMaxQty));
+    if (clampedQty !== nextValue) {
+      flashQtyLimit();
+    }
+    setQuantity(clampedQty);
+
+    const remainingAfterQty = Math.max(0, availableTotal - (clampedQty * perUnit));
+    const computedMaxSub = perUnit > 1 ? Math.min(perUnit - 1, remainingAfterQty) : 0;
+    if (subQuantity > computedMaxSub) {
+      setSubQuantity(computedMaxSub);
+      flashSubQtyLimit();
+    }
+  }, [flashQtyLimit, flashSubQtyLimit, itemSearched, perUnit, selectedMedicineStock, subQuantity]);
+
+  const handleSubQuantityChange = useCallback((nextValue: number) => {
+    if (!itemSearched || !selectedMedicineStock) {
+      setSubQuantity(nextValue);
+      return;
+    }
+
+    const availableTotal = Math.max(0, Number(selectedMedicineStock.totalSubUnits || 0));
+    const computedMaxSub = perUnit > 1
+      ? Math.min(perUnit - 1, Math.max(0, availableTotal - (Math.max(0, Number(quantity || 0)) * perUnit)))
+      : 0;
+    const clampedSub = Math.max(0, Math.min(Number(nextValue || 0), computedMaxSub));
+    if (clampedSub !== nextValue) {
+      flashSubQtyLimit();
+    }
+    setSubQuantity(clampedSub);
+
+    const computedMaxQty = Math.max(0, Math.floor((availableTotal - clampedSub) / perUnit));
+    if (quantity > computedMaxQty) {
+      setQuantity(computedMaxQty);
+      flashQtyLimit();
+    }
+  }, [flashQtyLimit, flashSubQtyLimit, itemSearched, perUnit, quantity, selectedMedicineStock]);
+
+  useEffect(() => {
+    if (!itemSearched || !selectedMedicineStock) return;
+
+    const availableTotal = Math.max(0, Number(selectedMedicineStock.totalSubUnits || 0));
+    const cappedSub = perUnit > 1 ? Math.max(0, Math.min(Number(subQuantity || 0), perUnit - 1)) : 0;
+    const maxQty = Math.max(0, Math.floor((availableTotal - cappedSub) / perUnit));
+    const clampedQty = Math.max(0, Math.min(Number(quantity || 0), maxQty));
+    const remainingAfterQty = Math.max(0, availableTotal - (clampedQty * perUnit));
+    const maxSub = perUnit > 1 ? Math.min(perUnit - 1, remainingAfterQty) : 0;
+    const clampedSub = Math.max(0, Math.min(cappedSub, maxSub));
+
+    if (clampedQty !== quantity) setQuantity(clampedQty);
+    if (clampedSub !== subQuantity) setSubQuantity(clampedSub);
+  }, [itemSearched, perUnit, quantity, selectedMedicineStock, subQuantity]);
 
   return (
     <div
       ref={containerRef}
-      className={`flex min-h-screen bg-slate-50 font-sans gap-6 p-6 flex-col xl:flex-row backdrop-blur-sm ${isFullscreen ? 'bg-white p-10 overflow-auto h-screen w-screen fixed inset-0 z-[9999]' : ''}`}
+      className={`flex min-h-screen bg-slate-50 font-sans gap-6 p-6 flex-col xl:flex-row backdrop-blur-sm ${isFullscreen ? 'bg-white p-6 gap-4 overflow-hidden h-[100dvh] w-[100dvw] fixed inset-0 z-[9999]' : ''}`}
     >
+      {/* When using the browser Fullscreen API, only the fullscreen element subtree is visible.
+          Render a Toaster inside this component so toast messages are visible in fullscreen. */}
+      {isFullscreen ? (
+        <Toaster
+          position="top-right"
+          containerStyle={{ zIndex: 2147483647 }}
+          toastOptions={{
+            duration: 4000,
+            style: {
+              background: "rgba(255, 255, 255, 0.95)",
+              color: "#0f172a",
+              border: "1px solid rgba(226, 232, 240, 0.9)",
+              boxShadow: "0 18px 45px rgba(2, 6, 23, 0.14)",
+              borderRadius: "16px",
+              padding: "12px 12px",
+              backdropFilter: "blur(14px)",
+              maxWidth: "420px",
+            },
+            success: {
+              iconTheme: {
+                primary: "#10b981",
+                secondary: "#ecfdf5",
+              },
+            },
+            error: {
+              duration: 6000,
+              iconTheme: {
+                primary: "#ef4444",
+                secondary: "#fef2f2",
+              },
+            },
+          }}
+        >
+          {(t) => (
+            <ToastBar toast={t}>
+              {({ icon, message }) => (
+                <div className="flex items-center gap-3">
+                  <div className="shrink-0">{icon}</div>
+                  <div className="min-w-0 flex-1 text-sm font-semibold">
+                    {message}
+                  </div>
+                  <button
+                    type="button"
+                    aria-label="Dismiss notification"
+                    onClick={() => toast.dismiss(t.id)}
+                    className="shrink-0 rounded-lg border border-slate-200 bg-white/70 px-2 py-1 text-slate-500 transition hover:bg-slate-50 hover:text-slate-700"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
+            </ToastBar>
+          )}
+        </Toaster>
+      ) : null}
       {/* Main Content Area: Entry and Cart stacked vertically */}
       <div className="flex flex-col gap-6 flex-1 min-w-0">
         {/* 1. Medicine Entry (Top) - Higher z-index for search dropdown */}
         <div className={`flex flex-col gap-4 bg-white/80 backdrop-blur-2xl rounded-[2rem] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border transition-all duration-500 relative z-20 ${posMode === 'SALE' ? 'border-white/60' : 'border-rose-200/60 shadow-rose-500/5'
           }`}>
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+          <div className={`flex flex-col gap-4 xl:flex-row xl:justify-between ${posMode === 'RETURN' && selectedInvoice ? 'xl:items-start' : 'xl:items-center'}`}>
             <div className="flex items-center gap-3 shrink-0">
               <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                 <div className="p-2 bg-indigo-500 text-white rounded-xl shadow-lg shadow-indigo-500/20">
                   <Layout size={18} />
                 </div>
-                Medicine Entry
+                                {posMode === 'SALE' ? 'Medicine Entry' : 'Return Entry'}
               </h2>
             </div>
 
-            <div className="relative w-full xl:ml-auto xl:w-[520px] xl:flex-none">
-              <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                <Search size={18} />
-              </span>
-              <input
-                ref={patientSearchInputRef}
-                type="text"
-                value={patientSearchQuery}
-                onChange={(event) => {
-                  if (activePrescription) {
-                    return;
+            {posMode === 'SALE' ? (
+              <div className="relative w-full xl:ml-auto xl:w-[520px] xl:flex-none">
+                <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+                  <Search size={18} />
+                </span>
+                <input
+                  ref={patientSearchInputRef}
+                  type="text"
+                  value={patientSearchQuery}
+                  onChange={(event) => {
+                    if (activePrescription) {
+                      return;
+                    }
+                    setPatientSearchQuery(event.target.value);
+                  }}
+                  onKeyDown={handlePatientSearchKeyDown}
+                  onFocus={() => {
+                    if (!activePrescription && patientSearchResults.length > 0) {
+                      setShowPatientResults(true);
+                    }
+                  }}
+                  onBlur={() => window.setTimeout(() => setShowPatientResults(false), 150)}
+                  placeholder={
+                    activePrescription
+                      ? `Loaded Patient #${activePrescription.patientId} • Visit #${activePrescription.visitId}`
+                      : 'Search patient by name, CNIC, patient ID, or visit ID'
                   }
-                  setPatientSearchQuery(event.target.value);
-                }}
-                onKeyDown={handlePatientSearchKeyDown}
-                onFocus={() => {
-                  if (!activePrescription && patientSearchResults.length > 0) {
-                    setShowPatientResults(true);
-                  }
-                }}
-                onBlur={() => window.setTimeout(() => setShowPatientResults(false), 150)}
-                placeholder={
-                  activePrescription
-                    ? `Loaded Patient #${activePrescription.patientId} • Visit #${activePrescription.visitId}`
-                    : 'Search patient by name, CNIC, patient ID, or visit ID'
-                }
-                className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-12 pr-14 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-emerald-300 focus:ring-4 focus:ring-emerald-500/10"
-              />
-              {isPatientSearching && (
-                <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
-                </div>
-              )}
+                  className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-12 pr-14 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-emerald-300 focus:ring-4 focus:ring-emerald-500/10"
+                />
+                {isPatientSearching && (
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
+                  </div>
+                )}
 
-              {showPatientResults && patientSearchResults.length > 0 && (
-                <div
-                  ref={patientResultsRef}
-                  className="absolute left-0 right-0 top-[calc(100%+10px)] z-50 max-h-72 overflow-y-auto rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-2xl"
-                >
-                  {patientSearchResults.map((patient, index) => (
-                    <button
-                      key={patient.patient_id}
-                      type="button"
-                      onMouseDown={(event) => event.preventDefault()}
-                      onClick={() => {
-                        void handlePatientSelected(patient);
-                      }}
-                      className={`flex w-full items-center justify-between rounded-xl px-4 py-3 text-left transition ${
-                        highlightedPatientIndex === index ? 'bg-emerald-50' : 'hover:bg-slate-50'
-                      }`}
-                    >
-                      <div className="min-w-0">
-                        <div className="truncate text-sm font-bold text-slate-900">{patient.patient_name}</div>
-                        <div className="mt-1 text-[11px] text-slate-500">
-                          CNIC: {patient.cnic || 'N/A'} • ID: {patient.patient_id} • {patient.active_visit_count} active visit{patient.active_visit_count === 1 ? '' : 's'}
+                {showPatientResults && patientSearchResults.length > 0 && (
+                  <div
+                    ref={patientResultsRef}
+                    className="absolute left-0 right-0 top-[calc(100%+10px)] z-50 max-h-72 overflow-y-auto rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-2xl"
+                  >
+                    {patientSearchResults.map((patient, index) => (
+                      <button
+                        key={patient.patient_id}
+                        type="button"
+                        onMouseDown={(event) => event.preventDefault()}
+                        onClick={() => {
+                          void handlePatientSelected(patient);
+                        }}
+                        className={`flex w-full items-center justify-between rounded-xl px-4 py-3 text-left transition ${highlightedPatientIndex === index ? 'bg-emerald-50' : 'hover:bg-slate-50'
+                          }`}
+                      >
+                        <div className="min-w-0">
+                          <div className="truncate text-sm font-bold text-slate-900">{patient.patient_name}</div>
+                          <div className="mt-1 text-[11px] text-slate-500">
+                            CNIC: {patient.cnic || 'N/A'} • ID: {patient.patient_id} • {patient.active_visit_count} active visit{patient.active_visit_count === 1 ? '' : 's'}
+                          </div>
                         </div>
-                      </div>
-                      <div className="rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-emerald-700">
-                        Select
-                      </div>
-                    </button>
-                  ))}
+                        <div className="rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-emerald-700">
+                          Select
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : posMode === 'RETURN' ? (
+              <div className="flex flex-col gap-2 w-full xl:ml-auto xl:w-[520px] xl:flex-none">
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+                    <Search size={18} />
+                  </span>
+                  <input
+                    ref={invoiceSearchInputRef}
+                    type="text"
+                    value={invoiceSearchQuery}
+                    readOnly={!!selectedInvoice}
+                    onChange={(event) => {
+                      if (selectedInvoice) return;
+                      setInvoiceSearchQuery(event.target.value);
+                    }}
+                    onKeyDown={handleInvoiceSearchKeyDown}
+                    onFocus={() => {
+                      if (!selectedInvoice && invoiceSearchResults.length > 0) {
+                        setShowInvoiceResults(true);
+                      }
+                    }}
+                    onBlur={() => window.setTimeout(() => setShowInvoiceResults(false), 150)}
+                    placeholder={selectedInvoice ? 'Invoice loaded' : 'Search invoice # or patient name'}
+                    className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-12 pr-12 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-indigo-300 focus:ring-4 focus:ring-indigo-500/10"
+                  />
+
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                    {isInvoiceSearching && !selectedInvoice ? (
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
+                    ) : null}
+
+                    {selectedInvoice ? (
+                      <button
+                        type="button"
+                        onClick={clearSelectedInvoice}
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:text-slate-900"
+                        title="Clear invoice"
+                        aria-label="Clear invoice"
+                      >
+                        ×
+                      </button>
+                    ) : null}
+                  </div>
+
+                  {showInvoiceResults && invoiceSearchResults.length > 0 && (
+                    <div
+                      ref={invoiceResultsRef}
+                      className="absolute left-0 right-0 top-[calc(100%+10px)] z-50 max-h-72 overflow-y-auto rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-2xl"
+                    >
+                      {invoiceSearchResults.map((invoice, index) => (
+                        <button
+                          key={invoice.id}
+                          type="button"
+                          onMouseDown={(event) => event.preventDefault()}
+                          onClick={() => {
+                            void handleInvoiceSelected(invoice);
+                          }}
+                          className={`flex w-full items-center justify-between rounded-xl px-4 py-3 text-left transition ${highlightedInvoiceIndex === index ? 'bg-indigo-50' : 'hover:bg-slate-50'
+                            }`}
+                        >
+                          <div className="min-w-0">
+                            <div className="truncate text-sm font-bold text-slate-900">{invoice.reference}</div>
+                            <div className="mt-1 text-[11px] text-slate-500">
+                              {invoice.patientName ?? 'Walk-in'} • {new Date(invoice.timestamp).toLocaleString()} • {invoice.itemsCount} item{invoice.itemsCount === 1 ? '' : 's'}
+                            </div>
+                          </div>
+                          <div className="shrink-0 text-right">
+                            <div className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">Total</div>
+                            <div className="mt-0.5 text-sm font-black text-indigo-700">{formatCurrency(invoice.totalAmount)}</div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+
+                {selectedInvoice && loadedInvoicePayment ? (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className={`${invoiceChipBaseClass} border-emerald-200 bg-emerald-50 text-emerald-700`}>
+                      Items Disc: {formatCurrency(Number(loadedInvoicePayment.itemsDiscount ?? 0))}
+                    </span>
+                    <span className={`${invoiceChipBaseClass} border-indigo-200 bg-indigo-50 text-indigo-700`}>
+                      Bill Disc: {Number(loadedInvoicePayment.adjustmentPercent ?? 0)}% ({formatCurrency(Number(loadedInvoicePayment.adjustment ?? 0))})
+                    </span>
+                    <span className={`${invoiceChipBaseClass} border-slate-200 bg-white text-slate-700`}>
+                      Net Paid: {formatCurrency(Number(loadedInvoicePayment.payableAmount ?? 0))}
+                    </span>
+                    <span className={`${invoiceChipBaseClass} border-slate-200 bg-white text-slate-600`}>
+                      Selected: {selectedReturnCart.length}/{cart.length}
+                    </span>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
 
             <div className="flex items-center gap-3 shrink-0">
               {activePrescription && (
@@ -803,14 +1549,19 @@ const PharmacyPOS: React.FC = () => {
                 </button>
               )}
 
-              {/* Mode Toggle Indicator */}
+              {/* Return mode invoice search is inline (no modal). */}
               <div
                 onClick={() => {
                   if (activePrescription) {
                     toast.error('Unload the prescription cart before switching POS mode');
                     return;
                   }
-                  setPosMode(prev => prev === 'SALE' ? 'RETURN' : 'SALE');
+                  const nextMode = posMode === 'SALE' ? 'RETURN' : 'SALE';
+                  if (posSettings.clearSessionOnModeSwitch) {
+                    clearPosSessionForModeSwitch(nextMode);
+                    return;
+                  }
+                  setPosMode(nextMode);
                 }}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl border-2 cursor-pointer transition-all duration-300 ${posMode === 'SALE'
                   ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
@@ -869,29 +1620,44 @@ const PharmacyPOS: React.FC = () => {
               <QuantityInput
                 ref={qtyInputRef}
                 value={quantity}
-                onChange={setQuantity}
+                onChange={handleQuantityChange}
                 label="Qty"
                 min={0}
+                max={maxQtyByStock}
                 available={selectedMedicineStock?.units}
                 onEnter={handleSearchSelected}
+                limitFlash={qtyLimitFlash}
+                onLimitHit={flashQtyLimit}
+                testId="qty"
               />
             </div>
             <div className="w-40 shrink-0">
               <SubQuantityInput
                 ref={subQtyInputRef}
                 value={subQuantity}
-                onChange={setSubQuantity}
+                onChange={handleSubQuantityChange}
                 label="Sub-Qty"
                 perUnit={itemSearched?.sub_units_per_unit}
+                max={maxSubQtyByStock}
                 available={selectedMedicineStock?.totalSubUnits}
                 onEnter={handleSearchSelected}
+                limitFlash={subQtyLimitFlash}
+                onLimitHit={flashSubQtyLimit}
+                testId="subqty"
               />
             </div>
             <div className="w-36 shrink-0">
               <DiscountInput ref={discInputRef} value={discountPercent} onChange={setDiscountPercent} label="Disc %" onEnter={handleSearchSelected} />
             </div>
             <div className="w-28 shrink-0">
-              <CustomPriceInput ref={priceInputRef} value={customPrice} onChange={setCustomPrice} label="Price" onEnter={handleSearchSelected} />
+              <CustomPriceInput
+                ref={priceInputRef}
+                value={customPrice}
+                onChange={setCustomPrice}
+                label="Price"
+                readOnly
+                onEnter={handleSearchSelected}
+              />
             </div>
 
             {/* Matched Medicine Info */}
@@ -952,18 +1718,23 @@ const PharmacyPOS: React.FC = () => {
               onEditItem={handleEditItem}
               prescriptionMode={Boolean(activePrescription)}
               onResolveUnavailable={openOverrideModal}
+              returnMode={isReturnSelectionActive}
+              includedItemIds={returnSelectedIds}
+              onToggleInclude={toggleReturnInclude}
+              onSelectAll={selectAllReturnItems}
+              onUnselectAll={unselectAllReturnItems}
             />
           </div>
         </div>
       </div>
 
       {/* 3. Right Column: Real-Store Checkout Panel */}
-      <div className="flex flex-col gap-6 w-full xl:w-[420px]">
-        <div className="bg-slate-900 rounded-[2.5rem] p-8 shadow-2xl ring-1 ring-white/10 flex flex-col h-full relative overflow-hidden">
+      <div className={`flex flex-col w-full xl:w-[420px] min-h-0 ${isFullscreen ? 'gap-4' : 'gap-6'}`}>
+        <div className={`bg-slate-900 rounded-[2.5rem] shadow-2xl ring-1 ring-white/10 flex flex-col h-full relative overflow-hidden ${isFullscreen ? 'p-6' : 'p-8'}`}>
           {/* Subtle Ambient Background glow */}
           <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 blur-[80px] -mr-16 -mt-16"></div>
 
-          <h2 className="text-2xl font-bold text-white mb-8 flex items-center gap-3 relative z-10">
+          <h2 className={`text-2xl font-bold text-white flex items-center gap-3 relative z-10 ${isFullscreen ? 'mb-5' : 'mb-8'}`}>
             <div className="w-2 h-8 bg-emerald-400 rounded-full shadow-[0_0_15px_rgba(52,211,153,0.5)]"></div>
             Finalize Sale
           </h2>
@@ -971,28 +1742,28 @@ const PharmacyPOS: React.FC = () => {
           <div className="flex-1 relative z-10">
             <CheckoutCard
               ref={checkoutRef}
-              mode={posMode}
-              cart={cart}
+              cart={selectedReturnCart}
               payment={payment}
+              onClear={activePrescription ? clearPrescriptionLink : resetPosSession}
+              mode={posMode}
+              isEditing={isEditing}
+              editId={editId}
+              onLoadTransaction={handleLoadTransaction}
+              density={isFullscreen ? 'compact' : 'comfortable'}
+              transactionMeta={{
+                visitId: fallbackVisitId,
+                billId: activePrescription?.billId ?? resumedHoldMeta?.billId ?? null,
+                prescriptionId: activePrescription?.prescriptionId ?? resumedHoldMeta?.prescriptionId ?? null,
+                patientId: fallbackPatientId,
+                customerId: resumedHoldMeta?.customerId ?? (fallbackPatientId ?? undefined) ?? undefined,
+                customerName: fallbackCustomerName,
+                holdId: resumedHoldId,
+                refSaleId: refSaleId,
+              }}
+              onComplete={resetPosSession}
               onPaymentTypeChange={setPaymentType}
               onPaidAmountChange={setPaidAmount}
               onAdjustmentChange={setAdjustment}
-              isEditing={isEditing}
-              editId={editId}
-              transactionMeta={{
-                visitId: activePrescription?.visitId ?? null,
-                billId: activePrescription?.billId ?? null,
-                prescriptionId: activePrescription?.prescriptionId ?? null,
-                customerId: activePrescription?.patientId ?? undefined,
-              }}
-              onComplete={resetPosSession}
-              onClear={() => {
-                if (activePrescription) {
-                  void clearPrescriptionLink();
-                } else {
-                  resetPosSession();
-                }
-              }}
               onBackToSearch={() => searchInputRef.current?.focus()}
             />
           </div>
@@ -1151,7 +1922,7 @@ const PharmacyPOS: React.FC = () => {
                   {visitPickerPatient.patient_name}
                 </h3>
                 <p className="mt-1 text-sm text-slate-500">
-                  Multiple active visits were found. Select the visit whose prescription should be dispensed.
+                  Multiple prescription-ready visits were found. Select the visit whose prescription should be dispensed.
                 </p>
               </div>
               <button

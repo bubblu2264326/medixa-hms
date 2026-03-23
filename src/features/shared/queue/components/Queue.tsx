@@ -2,7 +2,8 @@
 
 import { usePatient } from "@/contexts/PatientIdContext";
 import { useOptionalDoctorWorkspace } from "@/src/features/doctor/workspace/DoctorWorkspaceContext";
-import { Clock3, PanelLeftOpen, Search, Stethoscope } from "lucide-react";
+import { Clock3, PanelLeftClose, PanelLeftOpen, Search, Stethoscope } from "lucide-react";
+import Link from "next/link";
 import { useEffect } from "react";
 import { useQueue } from "../hooks/useQueue";
 
@@ -69,21 +70,21 @@ export function Queue({
 
   if (isQueueCollapsed) {
     return (
-      <div className="flex h-full w-full flex-col items-center rounded-[2rem] border border-white/70 bg-white/80 px-2 py-4 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+      <div className="flex h-full w-full flex-col items-center py-3">
         <button
           type="button"
           onClick={toggleQueueCollapsed}
-          className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-emerald-200 hover:text-emerald-700"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 shadow-sm transition-all duration-300 ease-out hover:scale-105 hover:border-emerald-200 hover:text-emerald-700 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
           aria-label="Open queue"
         >
-          <PanelLeftOpen size={18} />
+          <PanelLeftOpen size={16} className="transition-transform duration-300 ease-out" />
         </button>
       </div>
     );
   }
 
   return (
-    <div className="flex h-full flex-col rounded-[2rem] border border-white/70 bg-white/80 p-4 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+    <div className="flex h-full min-h-0 w-full flex-col rounded-[2rem] border border-white/70 bg-white/80 p-4 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur-xl">
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
@@ -95,9 +96,10 @@ export function Queue({
         <button
           type="button"
           onClick={toggleQueueCollapsed}
-          className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-600 transition hover:border-emerald-200 hover:text-emerald-700"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 transition-all duration-300 ease-out hover:scale-105 hover:border-emerald-200 hover:text-emerald-700 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+          aria-label="Collapse queue"
         >
-          Collapse
+          <PanelLeftClose size={16} className="transition-transform duration-300 ease-out" />
         </button>
       </div>
 
@@ -138,19 +140,20 @@ export function Queue({
         </div>
       )}
 
-      <div className="mt-4 flex-1 space-y-3 overflow-auto pr-1">
+      <div className="mt-4 flex-1 min-h-0 overflow-auto pr-1">
         {loading && safeQueue.length === 0 ? (
-          <div className="flex h-40 flex-col items-center justify-center gap-3 rounded-[1.5rem] border border-dashed border-slate-200 bg-slate-50/70 text-slate-500">
+          <div className="flex h-full min-h-[16rem] w-full flex-col items-center justify-center gap-3 rounded-[1.5rem] border border-dashed border-slate-200 bg-slate-50/70 text-slate-500">
             <div className="h-8 w-8 rounded-full border-2 border-emerald-200 border-t-emerald-600 animate-spin" />
             <p className="text-sm font-medium">Loading queue...</p>
           </div>
         ) : safeQueue.length === 0 ? (
-          <div className="flex h-40 flex-col items-center justify-center gap-2 rounded-[1.5rem] border border-dashed border-slate-200 bg-slate-50/70 text-slate-500">
+          <div className="flex h-full min-h-[16rem] w-full flex-col items-center justify-center gap-2 rounded-[1.5rem] border border-dashed border-slate-200 bg-slate-50/70 text-slate-500">
             <Clock3 size={24} className="text-slate-300" />
             <p className="text-sm font-medium">Queue is clear</p>
           </div>
         ) : (
-          safeQueue.map((item) => {
+          <div className="space-y-3">
+            {safeQueue.map((item) => {
             const isSelected =
               String(item.patient_id) === String(patientId) &&
               (!selectedVisitId || String(item.visit_id) === String(selectedVisitId));
@@ -195,6 +198,19 @@ export function Queue({
                           {item.status}
                         </span>
                       )}
+                      {item.payment_status && (
+                        <span
+                          className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${
+                            item.payment_status === "Paid"
+                              ? "bg-emerald-100 text-emerald-700"
+                              : item.payment_status === "Partial"
+                                ? "bg-amber-100 text-amber-700"
+                                : "bg-rose-100 text-rose-700"
+                          }`}
+                        >
+                          {item.payment_status}
+                        </span>
+                      )}
                     </div>
 
                     <div className="mt-3 text-base font-black tracking-tight text-slate-900">
@@ -209,18 +225,33 @@ export function Queue({
                       <span>{item.visit_type}</span>
                       <span>Patient #{item.patient_id}</span>
                       <span>Visit #{item.visit_id}</span>
+                      {typeof item.due_amount === "number" ? (
+                        <span>Due: PKR {Math.max(item.due_amount, 0).toFixed(0)}</span>
+                      ) : null}
                     </div>
                   </div>
 
-                  {isSelected && (
-                    <span className="rounded-full border border-emerald-200 bg-white px-2.5 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-emerald-700">
-                      Active
-                    </span>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {item.bill_id ? (
+                      <Link
+                        href={`/cashier?billId=${encodeURIComponent(String(item.bill_id))}`}
+                        onClick={(event) => event.stopPropagation()}
+                        className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-black uppercase tracking-[0.12em] text-slate-700 hover:border-emerald-200 hover:text-emerald-700"
+                      >
+                        Open Cashier
+                      </Link>
+                    ) : null}
+                    {isSelected && (
+                      <span className="rounded-full border border-emerald-200 bg-white px-2.5 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-emerald-700">
+                        Active
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             );
-          })
+            })}
+          </div>
         )}
       </div>
     </div>

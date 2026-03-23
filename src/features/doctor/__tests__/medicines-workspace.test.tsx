@@ -387,18 +387,19 @@ describe("doctor medicines workspace", () => {
     expect(screen.queryByText("Panadol")).toBeNull();
   });
 
-  it("renders collapsed previous prescriptions with summary and routes to full history", () => {
+  it("renders dense prescription table and supports fast lookup", () => {
     mockUsePreviousPrescriptions.mockReturnValue({
       loading: false,
       error: null,
       prescriptions: [
         {
+          visit_id: "58",
+          visit_timestamp: "2026-03-17 10:10",
           order_date: "2026-03-17",
           category: "Analgesic",
           generic_name: "Paracetamol",
           brand_name: "Panadol",
-          dosage_value: 500,
-          dosage_unit: "mg",
+          dosage: "1 tab",
           instructions: "Take after meals",
           prescribed_quantity: 10,
           dispensed_quantity: 8,
@@ -410,12 +411,13 @@ describe("doctor medicines workspace", () => {
           form: "tablet",
         },
         {
+          visit_id: "57",
+          visit_timestamp: "2026-03-12 09:20",
           order_date: "2026-03-12",
           category: "Antibiotic",
           generic_name: "Amoxicillin",
           brand_name: "Amoxil",
-          dosage_value: 250,
-          dosage_unit: "mg",
+          dosage: "500mg",
           instructions: "",
           prescribed_quantity: 14,
           dispensed_quantity: 14,
@@ -433,16 +435,19 @@ describe("doctor medicines workspace", () => {
 
     render(<PreviousPrescriptions />);
 
-    expect(screen.getByText("Panadol • Amoxil")).toBeTruthy();
-    expect(screen.queryByText("Take after meals")).toBeNull();
+    expect(screen.getByText("Patient Prescription History")).toBeTruthy();
+    expect(screen.queryByText("Panadol • Amoxil")).toBeNull();
+    expect(screen.getByText("Take after meals")).toBeTruthy();
 
     fireEvent.click(screen.getByRole("button", { name: "View Full History" }));
     expect(dispatchSpy).toHaveBeenCalled();
 
-    fireEvent.click(screen.getByRole("button", { name: "Expand" }));
-    fireEvent.click(screen.getByRole("button", { name: /Panadol/i }));
+    fireEvent.change(screen.getByPlaceholderText("Search medicine, doctor, visit, date..."), {
+      target: { value: "amoxil" },
+    });
 
-    expect(screen.getByText("Take after meals")).toBeTruthy();
-    expect(screen.getByText("Dr. Ahmed Khan")).toBeTruthy();
+    expect(screen.getByText("Amoxil")).toBeTruthy();
+    expect(screen.queryByText("Panadol")).toBeNull();
+    expect(screen.getAllByText("Dr. Ahmed Khan").length).toBeGreaterThan(0);
   });
 });

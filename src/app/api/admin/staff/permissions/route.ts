@@ -1,8 +1,19 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/database/db";
+import { AuthError, requireAdminOrSuperAdmin } from "@/src/lib/server/auth";
+import { logAuditEvent } from "@/src/lib/server/audit";
 
 // GET: Fetch permissions for a specific staff member
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
+    try {
+        await requireAdminOrSuperAdmin(req);
+    } catch (error) {
+        if (error instanceof AuthError) {
+            return NextResponse.json({ error: error.message }, { status: error.status });
+        }
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(req.url);
     const staffId = searchParams.get("staff_id");
 
@@ -23,8 +34,9 @@ export async function GET(req: Request) {
 }
 
 // PUT: Bulk update permissions for a staff member
-export async function PUT(req: Request) {
+export async function PUT(req: NextRequest) {
     try {
+        const user = await requireAdminOrSuperAdmin(req);
         const body = await req.json();
         const { staff_id, permissions } = body; // permissions = [{ module: 'string', can_read: boolean, can_write: boolean }]
 
@@ -42,8 +54,22 @@ export async function PUT(req: Request) {
             );
         }
 
+        await logAuditEvent({
+            actorUserCode: user.user_code,
+            action: "Staff permissions updated",
+            entityType: "staff_permissions",
+            entityId: staff_id,
+            details: {
+                staffId: Number(staff_id),
+                permissions: Array.isArray(permissions) ? permissions.slice(0, 30) : [],
+            },
+        });
+
         return NextResponse.json({ message: "Permissions updated successfully" });
     } catch (error: any) {
+        if (error instanceof AuthError) {
+            return NextResponse.json({ error: error.message }, { status: error.status });
+        }
         console.error("Permissions PUT Error:", error);
         return NextResponse.json({ error: "Failed to update permissions" }, { status: 500 });
     }

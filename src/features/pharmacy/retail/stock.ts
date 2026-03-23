@@ -77,8 +77,8 @@ export function formatStockQuantity(
   breakdown: Pick<StockBreakdown, "units" | "subUnits" | "subUnitsPerUnit">,
   medicine: { form?: string; sub_unit?: string }
 ): string {
-  const unitLabel = medicine.sub_unit || "units";
-  const subUnitLabel = medicine.form || "sub-units";
+  const unitLabel = formatUnitLabel(medicine.sub_unit || "units", breakdown.units);
+  const subUnitLabel = formatUnitLabel(medicine.form || "sub-units", breakdown.subUnits);
 
   if (breakdown.subUnitsPerUnit <= 1 || breakdown.subUnits <= 0) {
     return `${breakdown.units} ${unitLabel}`;
@@ -89,6 +89,74 @@ export function formatStockQuantity(
   }
 
   return `${breakdown.units} ${unitLabel} + ${breakdown.subUnits} ${subUnitLabel}`;
+}
+
+function formatUnitLabel(label: string, count: number): string {
+  const trimmed = String(label ?? "").trim();
+  if (!trimmed) return "";
+  if (count === 1) return trimmed;
+
+  const [prefix, lastToken] = splitLastToken(trimmed);
+  if (!lastToken) return trimmed;
+  if (looksUncountable(lastToken)) return trimmed;
+
+  const plural = pluralizeWordPreservingCase(lastToken);
+  if (!plural) return trimmed;
+  return `${prefix}${plural}`;
+}
+
+function splitLastToken(input: string): [prefix: string, token: string] {
+  const trimmed = input.trim();
+  const lastSpace = trimmed.lastIndexOf(" ");
+  if (lastSpace < 0) return ["", trimmed];
+  return [trimmed.slice(0, lastSpace + 1), trimmed.slice(lastSpace + 1)];
+}
+
+function looksUncountable(word: string): boolean {
+  const w = word.trim();
+  if (!w) return true;
+
+  // Units where pluralization is typically not desired (mg, ml, IU, etc.)
+  const unit = w.toLowerCase();
+  if (
+    unit === "mg"
+    || unit === "g"
+    || unit === "kg"
+    || unit === "mcg"
+    || unit === "ug"
+    || unit === "µg"
+    || unit === "ml"
+    || unit === "l"
+    || unit === "iu"
+    || unit === "u"
+    || unit === "meq"
+  ) {
+    return true;
+  }
+  if (/^\d+$/.test(w)) return true;
+
+  return false;
+}
+
+function pluralizeWordPreservingCase(word: string): string {
+  const w = word.trim();
+  if (!w) return w;
+
+  const lower = w.toLowerCase();
+  if (lower.endsWith("s")) return w;
+
+  const isAllCaps = w === w.toUpperCase();
+  const applyCase = (suffix: string) => (isAllCaps ? suffix.toUpperCase() : suffix);
+
+  if (lower.endsWith("ch") || lower.endsWith("sh") || /[sxz]$/.test(lower)) {
+    return `${w}${applyCase("es")}`;
+  }
+
+  if (/[^\Waeiou]y$/i.test(w)) {
+    return `${w.slice(0, -1)}${applyCase("ies")}`;
+  }
+
+  return `${w}${applyCase("s")}`;
 }
 
 export function getMedicineAvailability(medicine: StockCarrier): {

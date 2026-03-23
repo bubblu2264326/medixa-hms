@@ -21,6 +21,17 @@ function SummaryCard({
   );
 }
 
+function getVisitAccent(visitId: number) {
+  const palette = [
+    "border-emerald-200 bg-emerald-50/60",
+    "border-sky-200 bg-sky-50/60",
+    "border-amber-200 bg-amber-50/60",
+    "border-rose-200 bg-rose-50/60",
+    "border-violet-200 bg-violet-50/60",
+  ];
+  return palette[Math.abs(visitId) % palette.length];
+}
+
 export default function DoctorDashboard() {
   const {
     fromDate,
@@ -29,12 +40,22 @@ export default function DoctorDashboard() {
     setToDate,
     summary,
     checkedPatients,
-    selectedVisitId,
-    setSelectedVisitId,
-    visitHistory,
+    expandedVisitId,
+    expandedVisitHistory,
+    paginatedHistoryEntries,
+    expandedVisitHistoryPage,
+    totalHistoryPages,
+    setExpandedVisitHistoryPage,
+    visitGroupPage,
+    totalVisitPages,
+    paginatedVisitGroups,
+    setVisitGroupPage,
     loadingSummary,
     loadingHistory,
     openPatientDetails,
+    editVisit,
+    softDeleteVisit,
+    toggleVisitHistory,
   } = useDoctorDashboard();
 
   return (
@@ -107,7 +128,7 @@ export default function DoctorDashboard() {
             <div>
               <h3 className="text-xl font-black text-slate-800">Checked Patients</h3>
               <p className="text-sm text-slate-500">
-                Patients marked `seen_by_doctor` in the selected date range.
+                Visits that were marked `seen_by_doctor` in the selected date range.
               </p>
             </div>
             <span className="px-3 py-1 rounded-xl bg-emerald-50 text-emerald-700 text-xs font-black uppercase tracking-[0.2em]">
@@ -122,7 +143,8 @@ export default function DoctorDashboard() {
                   <tr className="text-left text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">
                     <th className="px-4 py-3">Patient</th>
                     <th className="px-4 py-3">Clinic No</th>
-                    <th className="px-4 py-3">Checked At</th>
+                    <th className="px-4 py-3">Seen At</th>
+                    <th className="px-4 py-3">Current Status</th>
                     <th className="px-4 py-3">History</th>
                     <th className="px-4 py-3">Action</th>
                   </tr>
@@ -132,10 +154,9 @@ export default function DoctorDashboard() {
                     checkedPatients.map((row) => (
                       <tr
                         key={row.visit_id}
-                        className={`cursor-pointer border-t border-slate-100 ${
-                          selectedVisitId === row.visit_id ? "bg-emerald-50/70" : ""
+                        className={`border-t border-slate-100 ${
+                          expandedVisitId === row.visit_id ? "bg-emerald-50/70" : ""
                         }`}
-                        onClick={() => setSelectedVisitId(row.visit_id)}
                       >
                         <td className="px-4 py-4">
                           <div className="font-bold text-slate-800">{row.patient_name}</div>
@@ -144,25 +165,50 @@ export default function DoctorDashboard() {
                           </div>
                         </td>
                         <td className="px-4 py-4 text-slate-600">#{row.clinic_number ?? "-"}</td>
-                        <td className="px-4 py-4 text-slate-600">{row.checked_at}</td>
+                        <td className="px-4 py-4 text-slate-600">{row.seen_at || row.checked_at}</td>
+                        <td className="px-4 py-4 text-slate-600">{row.current_status}</td>
                         <td className="px-4 py-4 text-slate-600">{row.history_count}</td>
                         <td className="px-4 py-4">
-                          <button
-                            type="button"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              openPatientDetails(row);
-                            }}
-                            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700"
-                          >
-                            Open Patient
-                          </button>
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                void toggleVisitHistory(row.visit_id);
+                              }}
+                              className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700"
+                            >
+                              {expandedVisitId === row.visit_id ? "Collapse" : "Journey"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => openPatientDetails(row)}
+                              className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700"
+                            >
+                              Open
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                void editVisit(row);
+                              }}
+                              className="rounded-xl border border-sky-200 bg-sky-50 px-3 py-2 text-xs font-bold text-sky-700"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => softDeleteVisit(row)}
+                              className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-bold text-rose-700"
+                            >
+                              Delete
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={5} className="px-4 py-10 text-center text-slate-400">
+                      <td colSpan={6} className="px-4 py-10 text-center text-slate-400">
                         No checked patients found for this date range.
                       </td>
                     </tr>
@@ -177,7 +223,7 @@ export default function DoctorDashboard() {
           <div className="mb-4">
             <h3 className="text-xl font-black text-slate-800">Visit Status History</h3>
             <p className="text-sm text-slate-500">
-              Timeline for the selected checked patient.
+              Compact, visit-wise patient journeys. Use ← / → keys to switch pages.
             </p>
           </div>
 
@@ -185,45 +231,120 @@ export default function DoctorDashboard() {
             <p className="text-sm text-slate-400">Loading status history...</p>
           )}
 
-          {!loadingHistory && !visitHistory && (
+          {!loadingHistory && checkedPatients.length === 0 && (
             <p className="text-sm text-slate-400">
               Select a checked patient to inspect visit status history.
             </p>
           )}
 
-          {visitHistory && (
-            <div className="space-y-4">
-              <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50/80 px-4 py-4">
-                <div className="text-sm font-bold text-slate-800">
-                  {visitHistory.visit.patient_name}
-                </div>
-                <div className="text-xs text-slate-500 mt-1">
-                  Visit #{visitHistory.visit.clinic_number ?? "-"} • {visitHistory.visit.visit_type} • {visitHistory.visit.visit_timestamp}
-                </div>
-              </div>
-
-              {visitHistory.history.length > 0 ? (
-                <div className="space-y-3">
-                  {visitHistory.history.map((entry) => (
-                    <div
-                      key={entry.visit_status_id}
-                      className="rounded-[1.25rem] border border-slate-200 bg-white px-4 py-3"
+          {checkedPatients.length > 0 && (
+            <div className="space-y-3">
+              {paginatedVisitGroups.map((visitRow) => {
+                const isExpanded = expandedVisitId === visitRow.visit_id;
+                return (
+                  <div
+                    key={visitRow.visit_id}
+                    className={`rounded-[1.1rem] border px-3 py-3 ${getVisitAccent(visitRow.visit_id)}`}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        void toggleVisitHistory(visitRow.visit_id);
+                      }}
+                      className="w-full text-left"
                     >
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="text-sm font-black text-slate-800">
-                          {entry.status}
-                        </span>
-                        <span className="text-xs text-slate-400">{entry.updated_at}</span>
+                      <div className="flex items-center justify-between gap-2">
+                        <div>
+                          <div className="text-sm font-black text-slate-800">
+                            {visitRow.patient_name}
+                          </div>
+                          <div className="mt-1 text-xs text-slate-500">
+                            Visit #{visitRow.clinic_number ?? visitRow.visit_id} • {visitRow.visit_type} • {visitRow.seen_at}
+                          </div>
+                        </div>
+                        <div className="rounded-full border border-slate-200 bg-white px-2 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-slate-600">
+                          {isExpanded ? "Hide" : "Expand"}
+                        </div>
                       </div>
-                      <div className="mt-1 text-xs text-slate-500">
-                        Doctor: {entry.updated_by_doctor ?? "-"} • Staff: {entry.updated_by_staff ?? "-"}
+                    </button>
+
+                    {isExpanded && expandedVisitHistory && (
+                      <div className="mt-3 space-y-2">
+                        <div className="rounded-xl border border-white/80 bg-white/80 px-3 py-2 text-xs text-slate-600">
+                          Last checked by: {expandedVisitHistory.visit.last_checked_by_doctor_name ?? "-"}
+                        </div>
+
+                        {paginatedHistoryEntries.length > 0 ? (
+                          <div className="space-y-2">
+                            {paginatedHistoryEntries.map((entry) => (
+                              <div
+                                key={entry.visit_status_id}
+                                className="rounded-xl border border-white/80 bg-white px-3 py-2"
+                              >
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="text-sm font-black text-slate-800">{entry.status}</span>
+                                  <span className="text-[11px] text-slate-500">{entry.updated_at}</span>
+                                </div>
+                                <div className="mt-1 text-[11px] text-slate-500">
+                                  Doctor: {entry.updated_by_doctor_name ?? "-"} • Staff: {entry.updated_by_staff_name ?? "-"}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="rounded-xl border border-dashed border-slate-300 bg-white/80 px-3 py-3 text-xs text-slate-500">
+                            No status history found for this visit.
+                          </div>
+                        )}
+
+                        <div className="flex items-center justify-between pt-1">
+                          <button
+                            type="button"
+                            onClick={() => setExpandedVisitHistoryPage(expandedVisitHistoryPage - 1)}
+                            disabled={expandedVisitHistoryPage <= 1}
+                            className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-600 disabled:opacity-40"
+                          >
+                            ← Prev
+                          </button>
+                          <span className="text-[11px] font-bold text-slate-500">
+                            History page {expandedVisitHistoryPage} / {totalHistoryPages}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setExpandedVisitHistoryPage(expandedVisitHistoryPage + 1)}
+                            disabled={expandedVisitHistoryPage >= totalHistoryPages}
+                            className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-600 disabled:opacity-40"
+                          >
+                            Next →
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="rounded-[1.5rem] border border-dashed border-slate-300 bg-white/60 px-4 py-6 text-sm text-slate-400">
-                  No recorded status history yet for this visit. Current visit status exists, but history rows only appear once doctor/staff transitions are logged.
+                    )}
+                  </div>
+                );
+              })}
+
+              {totalVisitPages > 1 && (
+                <div className="flex items-center justify-between pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setVisitGroupPage((current) => Math.max(1, current - 1))}
+                    disabled={visitGroupPage <= 1}
+                    className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-600 disabled:opacity-40"
+                  >
+                    ← Visits
+                  </button>
+                  <span className="text-[11px] font-bold text-slate-500">
+                    Visit page {visitGroupPage} / {totalVisitPages}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setVisitGroupPage((current) => Math.min(totalVisitPages, current + 1))}
+                    disabled={visitGroupPage >= totalVisitPages}
+                    className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-600 disabled:opacity-40"
+                  >
+                    Visits →
+                  </button>
                 </div>
               )}
             </div>

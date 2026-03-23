@@ -1,6 +1,11 @@
 
 import { query } from "@/database/db";
 import { publishQueueInvalidation } from "@/src/lib/server/queueEvents";
+import {
+   ACTIVE_ENCOUNTER_BLOCKING_VISIT_STATUSES,
+   assertVisitStatusTransition,
+   parseVisitStatus,
+} from "@/src/lib/server/visitLifecycle";
 import { NextRequest, NextResponse } from "next/server";
 
 
@@ -10,6 +15,20 @@ export async function PATCH(req: NextRequest) {
    try {
       if (!res.visit_id) {
          return NextResponse.json({ error: "visit_id is required" }, { status: 400 });
+      }
+      if (res.status != null) {
+         const requestedStatus = parseVisitStatus(String(res.status));
+         if (!requestedStatus) {
+            return NextResponse.json({ error: "Invalid visit status" }, { status: 400 });
+         }
+         const currentVisit = await query(
+            "select status from visit where visit_id = $1 and is_deleted = false limit 1",
+            [res.visit_id]
+         );
+         if (currentVisit.rows.length === 0) {
+            return NextResponse.json({ error: "visit not found" }, { status: 404 });
+         }
+         assertVisitStatusTransition(String(currentVisit.rows[0].status ?? ""), requestedStatus, "visit");
       }
       const v_res = await query(
          "update visit set doctor_id = $2, visit_type = $3, clinic_number = $4, status = $5, reason = $6 where visit_id = $1 and is_deleted = false returning *",
@@ -32,8 +51,8 @@ export async function POST(req: NextRequest) {
    console.log(res);
    try {
       const checkRes = await query(
-         "SELECT visit_id FROM visit WHERE patient_id = $1 AND (visit_timestamp > current_date AND visit_timestamp < current_date + interval '1 day') AND status NOT IN ('completed', 'discharged') AND is_deleted = false LIMIT 1",
-         [res.patient_id]
+         "SELECT visit_id FROM visit WHERE patient_id = $1 AND (visit_timestamp > current_date AND visit_timestamp < current_date + interval '1 day') AND status = any($2::text[]) AND is_deleted = false LIMIT 1",
+         [res.patient_id, ACTIVE_ENCOUNTER_BLOCKING_VISIT_STATUSES]
       );
 
       if (checkRes.rows.length > 0) {

@@ -3,19 +3,21 @@ import { getAuthenticatedDoctor } from "@/src/lib/server/doctor";
 import { publishQueueInvalidation } from "@/src/lib/server/queueEvents";
 import { transitionDoctorVisitStatus } from "@/src/lib/server/doctorWorkspace";
 import { NextRequest, NextResponse } from "next/server";
+import { parseVisitStatus } from "@/src/lib/server/visitLifecycle";
 
-const allowedStatuses = new Set(["seen_by_doctor"]);
+const DOCTOR_ALLOWED_TARGET_STATUSES = new Set(["seen_by_doctor", "waiting", "discharged"]);
 
 function getDoctorRouteErrorStatus(message: string) {
+  const normalized = message.toLowerCase();
   if (message === "Not authenticated") {
     return 401;
   }
 
-  if (message.includes("not found")) {
+  if (normalized.includes("not found")) {
     return 404;
   }
 
-  if (message.includes("only waiting visits") || message.includes("no longer actionable")) {
+  if (normalized.includes("invalid doctor status transition") || normalized.includes("no longer actionable")) {
     return 409;
   }
 
@@ -33,8 +35,8 @@ export async function POST(
     const { visitId } = await params;
     const body = await req.json();
     const status = String(body.status ?? "");
-
-    if (!allowedStatuses.has(status)) {
+    const parsedStatus = parseVisitStatus(status);
+    if (!parsedStatus || !DOCTOR_ALLOWED_TARGET_STATUSES.has(parsedStatus)) {
       return NextResponse.json({ error: "Invalid visit status" }, { status: 400 });
     }
 
@@ -43,6 +45,7 @@ export async function POST(
     const result = await transitionDoctorVisitStatus(client, {
       visitId: Number(visitId),
       doctorId: doctor.doctor_id,
+      nextStatus: parsedStatus,
     });
 
     await client.query("COMMIT");

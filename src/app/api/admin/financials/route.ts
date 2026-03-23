@@ -1,10 +1,12 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/database/db";
+import { AuthError, requireAdminOrSuperAdmin } from "@/src/lib/server/auth";
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
+    await requireAdminOrSuperAdmin(request);
     const { searchParams } = new URL(request.url);
-    const period = searchParams.get("period") || "30"; // days
+    const period = Number(searchParams.get("period") || "30"); // days
 
     // 1. Total Revenue (Summarized by Status)
     const revenueByStatus = await query(`
@@ -12,7 +14,7 @@ export async function GET(request: Request) {
         payment_status,
         SUM(total_amount) as total
       FROM bill
-      WHERE created_at >= NOW() - INTERVAL '$1 days'
+      WHERE created_at >= NOW() - ($1::int * INTERVAL '1 day')
       GROUP BY payment_status
     `, [period]);
 
@@ -28,7 +30,7 @@ export async function GET(request: Request) {
         END as category,
         SUM(amount) as total
       FROM bill_item
-      WHERE created_at >= NOW() - INTERVAL '$1 days'
+      WHERE created_at >= NOW() - ($1::int * INTERVAL '1 day')
       GROUP BY category
     `, [period]);
 
@@ -37,7 +39,7 @@ export async function GET(request: Request) {
       SELECT 
         COALESCE(SUM(total_amount), 0) as total
       FROM medicine_purchase
-      WHERE purchase_date >= NOW() - INTERVAL '$1 days'
+      WHERE purchase_date >= NOW() - ($1::int * INTERVAL '1 day')
     `, [period]);
 
     // 4. Daily Trend for the last 7 days
@@ -60,6 +62,9 @@ export async function GET(request: Request) {
       trend: trend.rows
     });
   } catch (error: any) {
+    if (error instanceof AuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     console.error("Financials API Error:", error);
     return NextResponse.json({ error: "Failed to fetch financial data" }, { status: 500 });
   }

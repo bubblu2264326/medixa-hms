@@ -125,13 +125,13 @@ function DoctorWorkspace({
         <SessionControls />
       </header>
 
-      <main
-        className="flex flex-1 gap-4 overflow-hidden p-4 transition-all duration-300 xl:p-5"
-      >
+      <main className="flex flex-1 gap-4 overflow-hidden p-4 xl:p-5">
         <aside
-          className={`flex h-full min-w-0 transition-all duration-300 ${
-            isQueueCollapsed ? "w-[76px]" : "w-[320px] xl:w-[348px]"
-          }`}
+          className={`flex h-full min-h-0 min-w-0 items-stretch ${
+            isQueueCollapsed
+              ? "w-[44px] rounded-[1.25rem] border border-slate-200/80 bg-white shadow-[0_16px_40px_rgba(15,23,42,0.08)]"
+              : "w-[320px] xl:w-[348px]"
+          } overflow-hidden transition-[width,background-color,border-color,box-shadow,border-radius] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]`}
         >
           {queue}
         </aside>

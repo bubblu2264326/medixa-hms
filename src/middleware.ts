@@ -33,7 +33,20 @@ export async function middleware(req: NextRequest) {
             url.pathname = "/";
             return NextResponse.redirect(url);
         }
-        if (url.pathname.startsWith("/admin") && role !== "Admin") {
+        if (
+            url.pathname.startsWith("/admin") &&
+            role !== "Admin" &&
+            role !== "Super Admin"
+        ) {
+            url.pathname = "/";
+            return NextResponse.redirect(url);
+        }
+        if (
+            url.pathname.startsWith("/cashier") &&
+            role !== "Cashier" &&
+            role !== "Admin" &&
+            role !== "Super Admin"
+        ) {
             url.pathname = "/";
             return NextResponse.redirect(url);
         }
@@ -48,4 +61,4 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
 }
 
-export const config = { matcher: ["/doctor/:path*", "/lab/:path*", "/pharmacy/:path*", "/receptionist/:path*", "/admin/:path*"], };
+export const config = { matcher: ["/doctor/:path*", "/lab/:path*", "/pharmacy/:path*", "/receptionist/:path*", "/admin/:path*", "/cashier/:path*"], };

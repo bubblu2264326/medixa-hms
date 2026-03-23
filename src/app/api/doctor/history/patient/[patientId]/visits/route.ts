@@ -6,8 +6,10 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ patientId: string }> }
 ) {
+  const HISTORY_LIMIT = 120;
+
   try {
-    const doctor = await getAuthenticatedDoctor(req);
+    await getAuthenticatedDoctor(req);
     const { patientId } = await params;
 
     const visitsResult = await query(
@@ -28,11 +30,11 @@ export async function GET(
         join patient p on p.patient_id = v.patient_id
         join doctor d on d.doctor_id = v.doctor_id
         where v.patient_id = $1
-          and v.doctor_id = $2
           and v.is_deleted = false
         order by v.visit_timestamp desc, v.visit_id desc
+        limit $2
       `,
-      [Number(patientId), doctor.doctor_id]
+      [Number(patientId), HISTORY_LIMIT]
     );
 
     return NextResponse.json(visitsResult.rows, { status: 200 });

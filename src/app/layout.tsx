@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { PatientContextProvider } from "@/contexts/PatientIdContext";
 import { SidebarProvider } from "@/contexts/SidebarContext";
-import { Toaster } from "react-hot-toast";
+import AppToaster from "../components/AppToaster";
 // import { Geist, Geist_Mono } from "next/font/google";
 // import { Edu_NSW_ACT_Cursive } from "next/font/google";
 // import { Dancing_Script } from "next/font/google";
@@ -100,9 +100,7 @@ export default function RootLayout({
 
 
 
-
-
-            <Toaster position="top-right" />
+            <AppToaster />
             {children}
           </PatientContextProvider>
         </SidebarProvider>

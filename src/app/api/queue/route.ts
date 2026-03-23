@@ -30,10 +30,25 @@ export async function GET() {
           d.doctor_name,
           d.doctor_id,
           v.visit_type,
-          v.status
+          v.status,
+          bl.bill_id,
+          bl.payment_status,
+          bl.due_amount
         from visit v
         join doctor d on v.doctor_id = d.doctor_id
         join patient p on v.patient_id = p.patient_id
+        left join lateral (
+          select
+            b.bill_id,
+            b.payment_status,
+            greatest(coalesce(b.total_amount, 0) - coalesce(sum(cpt.amount), 0), 0) as due_amount
+          from bill b
+          left join cashier_payment_txn cpt on cpt.bill_id = b.bill_id
+          where b.visit_id = v.visit_id
+          group by b.bill_id, b.payment_status, b.total_amount
+          order by b.bill_id desc
+          limit 1
+        ) bl on true
         where v.visit_timestamp >= current_date
           and v.visit_timestamp < current_date + interval '1 day'
           and v.is_deleted = false

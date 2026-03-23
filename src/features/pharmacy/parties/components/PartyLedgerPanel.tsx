@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { PartyDetail, LedgerEntry } from '../types';
 import { getPartyLedger } from '../api';
 import { RecordPaymentDialog } from './RecordPaymentDialog';
@@ -33,7 +33,7 @@ export function PartyLedgerPanel({ party, onClose }: PartyLedgerPanelProps) {
   const [loading, setLoading] = useState(true);
   const [showPayment, setShowPayment] = useState(false);
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const data = await getPartyLedger(party.party_id);
@@ -43,9 +43,9 @@ export function PartyLedgerPanel({ party, onClose }: PartyLedgerPanelProps) {
     } finally {
       setLoading(false);
     }
-  }
+  }, [party.party_id]);
 
-  useEffect(() => { load(); }, [party.party_id]);
+  useEffect(() => { void load(); }, [load]);
 
   // Compute running balance
   let runningBalance = 0;

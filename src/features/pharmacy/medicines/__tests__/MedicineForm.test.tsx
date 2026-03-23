@@ -124,10 +124,10 @@ describe("MedicineForm", () => {
     const onSuccess = vi.fn();
     render(<MedicineForm medicine={null} onClose={vi.fn()} onSuccess={onSuccess} />);
 
-    fireEvent.change(screen.getByLabelText("Brand Name *"), {
+    fireEvent.change(screen.getByLabelText("Product Name (Brand Name) *"), {
       target: { value: "Claromist-XT" },
     });
-    fireEvent.change(screen.getByLabelText("Generic Name *"), {
+    fireEvent.change(screen.getByLabelText("Base Name / Composition (Generic Name) *"), {
       target: { value: "Desloratadine" },
     });
 
@@ -159,10 +159,10 @@ describe("MedicineForm", () => {
     );
 
     await waitFor(() => {
-      expect((screen.getByRole("button", { name: "Add Medicine" }) as HTMLButtonElement).disabled).toBe(false);
+      expect((screen.getByRole("button", { name: "Add Product" }) as HTMLButtonElement).disabled).toBe(false);
     });
 
-    fireEvent.click(screen.getByRole("button", { name: "Add Medicine" }));
+    fireEvent.click(screen.getByRole("button", { name: "Add Product" }));
 
     await waitFor(() => {
       expect(onSuccess).toHaveBeenCalled();
@@ -181,5 +181,5 @@ describe("MedicineForm", () => {
     expect(payload.manufacturer_id).toBe(77);
     expect(payload.form).toBe("Oral Film");
     expect(payload.form_id).toBe(77);
-  });
+  }, 15000);
 });

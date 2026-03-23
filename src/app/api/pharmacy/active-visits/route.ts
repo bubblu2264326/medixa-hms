@@ -22,7 +22,14 @@ export async function GET(request: NextRequest) {
           v.status,
           v.doctor_id,
           d.doctor_name,
-          v.visit_timestamp
+          v.visit_timestamp,
+          exists (
+            select 1
+            from prescription p
+            join prescription_medicines pm on pm.prescription_id = p.prescription_id
+            where p.visit_id = v.visit_id
+              and coalesce(pm.dispensed_quantity, 0) < coalesce(pm.prescribed_quantity, 0)
+          ) as has_pending_prescription
         from visit v
         join doctor d on d.doctor_id = v.doctor_id
         where v.patient_id = $1

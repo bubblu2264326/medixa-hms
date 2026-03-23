@@ -22,9 +22,19 @@ export async function GET(
           v.visit_type,
           v.status,
           v.reason,
-          to_char(v.visit_timestamp, 'YYYY-MM-DD HH24:MI') as visit_timestamp
+          to_char(v.visit_timestamp, 'YYYY-MM-DD HH24:MI') as visit_timestamp,
+          lcd.doctor_name as last_checked_by_doctor_name
         from visit v
         join patient p on p.patient_id = v.patient_id
+        left join lateral (
+          select d.doctor_name
+          from visit_status_history vsh
+          join doctor d on d.doctor_id = vsh.updated_by_doctor
+          where vsh.visit_id = v.visit_id
+            and vsh.status = 'seen_by_doctor'
+          order by vsh.updated_at desc, vsh.visit_status_id desc
+          limit 1
+        ) lcd on true
         where v.visit_id = $1
           and v.doctor_id = $2
           and v.is_deleted = false
@@ -40,14 +50,18 @@ export async function GET(
     const historyResult = await query(
       `
         select
-          visit_status_id,
-          status,
-          updated_by_doctor,
-          updated_by_staff,
-          to_char(updated_at, 'YYYY-MM-DD HH24:MI') as updated_at
-        from visit_status_history
-        where visit_id = $1
-        order by updated_at asc, visit_status_id asc
+          vsh.visit_status_id,
+          vsh.status,
+          vsh.updated_by_doctor,
+          vsh.updated_by_staff,
+          d.doctor_name as updated_by_doctor_name,
+          s.name as updated_by_staff_name,
+          to_char(vsh.updated_at, 'YYYY-MM-DD HH24:MI') as updated_at
+        from visit_status_history vsh
+        left join doctor d on d.doctor_id = vsh.updated_by_doctor
+        left join staff s on s.staff_id = vsh.updated_by_staff
+        where vsh.visit_id = $1
+        order by vsh.updated_at asc, vsh.visit_status_id asc
       `,
       [Number(visitId)]
     );

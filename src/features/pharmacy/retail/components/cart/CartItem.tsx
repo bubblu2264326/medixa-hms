@@ -11,6 +11,9 @@ interface CartItemProps {
   onEdit: () => void;
   prescriptionMode?: boolean;
   onResolveUnavailable?: (item: CartItemType) => void;
+  returnMode?: boolean;
+  isIncluded?: boolean;
+  onToggleInclude?: () => void;
 }
 
 export const CartItem: React.FC<CartItemProps> = ({
@@ -21,6 +24,9 @@ export const CartItem: React.FC<CartItemProps> = ({
   onEdit,
   prescriptionMode = false,
   onResolveUnavailable,
+  returnMode = false,
+  isIncluded = true,
+  onToggleInclude,
 }) => {
   const isPrescriptionItem = prescriptionMode && Boolean(item.prescriptionMedicineId);
   const isUnavailablePrescription =
@@ -28,6 +34,7 @@ export const CartItem: React.FC<CartItemProps> = ({
     (item.availabilityStatus === "out_of_stock" || item.availabilityStatus === "insufficient_stock") &&
     item.fulfillmentMode !== "override";
   const isOverrideItem = item.fulfillmentMode === "override";
+  const isExcludedByReturn = returnMode && !isIncluded;
 
   return (
     <div
@@ -35,15 +42,36 @@ export const CartItem: React.FC<CartItemProps> = ({
       className={`group grid grid-cols-[3.5fr_1.2fr_0.8fr_0.8fr_1fr_1fr_1fr_1.2fr_1.5fr] gap-4 px-6 py-5 
                   border-b border-slate-100/50 cursor-pointer transition-all duration-300
                   items-center relative overflow-hidden
-                  ${isSelected ? "bg-indigo-50/50 shadow-[inset_4px_0_0_#6366f1]" : "hover:bg-slate-50/50"}`}
+                  ${isSelected ? "bg-indigo-50/50 shadow-[inset_4px_0_0_#6366f1]" : "hover:bg-slate-50/50"}
+                  ${isExcludedByReturn ? "opacity-60 grayscale-[0.1]" : ""}`}
     >
       {/* Product Column */}
       <div className="flex flex-col gap-0.5 min-w-0">
         <div className="flex items-center gap-2">
+          {returnMode ? (
+            <button
+              type="button"
+              aria-label={isIncluded ? "Exclude item from return" : "Include item in return"}
+              className={`mr-1 inline-flex h-5 w-5 items-center justify-center rounded-md border transition ${isIncluded
+                ? "border-indigo-400 bg-indigo-50 text-indigo-700"
+                : "border-slate-300 bg-white text-slate-400 hover:border-slate-400"}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleInclude?.();
+              }}
+            >
+              {isIncluded ? "✓" : ""}
+            </button>
+          ) : null}
           <span className="font-black text-slate-800 text-[14px] tracking-tight truncate">{item.medicine.brand_name}</span>
           {isPrescriptionItem && (
             <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.18em] text-emerald-700">
               Rx
+            </span>
+          )}
+          {isExcludedByReturn && (
+            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.18em] text-slate-600">
+              Excluded
             </span>
           )}
           {isUnavailablePrescription && (
@@ -92,7 +120,7 @@ export const CartItem: React.FC<CartItemProps> = ({
       </div>
 
       <div className="flex flex-col items-center justify-center">
-        <span className={`text-[18px] font-black tracking-tighter italic ${item.quantity === 0 ? 'text-slate-200' : 'text-slate-900'}`}>
+        <span className={`text-[18px] font-black tracking-tighter ${item.quantity === 0 ? 'text-slate-200' : 'text-slate-900'}`}>
           {item.quantity}
         </span>
       </div>
@@ -148,6 +176,9 @@ export const CartItem: React.FC<CartItemProps> = ({
           disabled={isUnavailablePrescription}
           onClick={(e) => {
             e.stopPropagation();
+            if (isExcludedByReturn) {
+              onToggleInclude?.();
+            }
             onEdit();
           }}
         >

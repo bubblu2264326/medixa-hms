@@ -134,6 +134,31 @@ export async function POST(request: NextRequest) {
       `Return processed for ${transaction.ref_sale_id ? 'sale #' + saleId : 'standalone return'} with ${transaction.items.length} items.`
     ]);
 
+    if (transaction.holdId) {
+      await client.query('SAVEPOINT held_tx_status_update');
+      try {
+        await client.query(
+          `
+            UPDATE pos_held_transaction
+            SET status = 'retrieved'
+            WHERE hold_id = $1
+              AND staff_id = $2
+              AND status = 'held'
+          `,
+          [transaction.holdId, staffId]
+        );
+        await client.query('RELEASE SAVEPOINT held_tx_status_update');
+      } catch (holdUpdateError) {
+        await client.query('ROLLBACK TO SAVEPOINT held_tx_status_update');
+        await client.query('RELEASE SAVEPOINT held_tx_status_update');
+        console.warn('Failed to mark held return transaction as retrieved', {
+          holdId: transaction.holdId,
+          staffId,
+          error: holdUpdateError,
+        });
+      }
+    }
+
     // Commit transaction
     await client.query('COMMIT');
 

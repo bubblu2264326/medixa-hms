@@ -1,8 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/database/db';
 import { getCurrentStaffId } from '@/src/lib/utils';
+import { getAuthenticatedUser } from '@/src/lib/server/auth';
 
 export async function GET(request: NextRequest) {
+    try {
+        const user = await getAuthenticatedUser(request);
+        if (user.role === 'Pharmacist') {
+            return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
+        }
+    } catch {
+        return NextResponse.json({ success: false, error: 'Not authenticated' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const partyId = searchParams.get('party_id');
 
@@ -88,6 +98,15 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+    try {
+        const user = await getAuthenticatedUser(request);
+        if (user.role === 'Pharmacist') {
+            return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
+        }
+    } catch {
+        return NextResponse.json({ success: false, error: 'Not authenticated' }, { status: 401 });
+    }
+
     try {
         const body = await request.json();
         const { party_id, amount, payment_method, reference_note } = body;

@@ -16,6 +16,8 @@ import {
 } from "../api";
 import { Doctor, Patient } from "../types";
 
+const ACTIVE_RECEPTION_VISIT_STATUSES = new Set(["waiting", "dispensing"]);
+
 export function usePatientForm() {
   const { patientId, selectedVisitId, setPatientId, setPatientVisit, setSelectedVisitId } = usePatient();
   const syncedPatientIdRef = useRef<string | null>(null);
@@ -55,7 +57,9 @@ export function usePatientForm() {
     if (!id) return;
     try {
       const data = await fetchPatientVisit(id);
-      if (data && data.clinic_number) {
+      const normalizedStatus = String(data?.status ?? "").toLowerCase();
+      const isActiveVisit = ACTIVE_RECEPTION_VISIT_STATUSES.has(normalizedStatus);
+      if (data && data.clinic_number && isActiveVisit) {
         setVisitReason(data.reason);
         setDoctor(data.doctor_id);
         setVisitType(data.visit_type || "OPD");
@@ -123,11 +127,7 @@ export function usePatientForm() {
         }
 
         toast.success("Patient Found");
-        if (hasExplicitVisitSelectionForPatient) {
-          setIsExistingVisit(true);
-        } else {
-          await getPatientVisitInfo(sid);
-        }
+        await getPatientVisitInfo(sid);
       } else {
         syncedPatientIdRef.current = null;
         toast.error("Patient not found");
@@ -174,7 +174,7 @@ export function usePatientForm() {
 
   async function addToQueue(idOverride?: string) {
     const targetId = idOverride || patientId;
-    if (!targetId || !visitReason || !doctor || !visitType) {
+    if (!targetId || !visitReason?.trim() || !doctor || !visitType) {
       toast.error(targetId ? "Incomplete form" : "Please select a patient");
       return;
     }
@@ -214,6 +214,22 @@ export function usePatientForm() {
         toast.error("Select the exact visit before updating");
         return;
       }
+      if (!patientId) {
+        toast.error("Please select a patient first");
+        return;
+      }
+      if (!doctor) {
+        toast.error("Please assign a doctor");
+        return;
+      }
+      if (!visitReason?.trim()) {
+        toast.error("Please enter chief complaint");
+        return;
+      }
+      if (!visitType) {
+        toast.error("Select visit type");
+        return;
+      }
       const res = await updateVisitInfo({
         visit_id: selectedVisitId,
         clinic_number: clinicNo,
@@ -224,7 +240,7 @@ export function usePatientForm() {
       });
       if (res.ok) {
         toast.success(`Visit #${selectedVisitId} updated`);
-        if (patientId) await getPatientVisitInfo(patientId);
+        await getPatientVisitInfo(patientId);
       } else {
         toast.error(`Update failed`);
       }

@@ -1,6 +1,14 @@
 import { query } from "@/database/db";
 import { NextRequest, NextResponse } from "next/server";
 
+function getSubUnitsPerUnit(value: unknown) {
+  return Math.max(1, Number(value ?? 1));
+}
+
+function toTotalSubUnits(quantity: unknown, subQuantity: unknown, subUnitsPerUnit: number) {
+  return (Number(quantity ?? 0) * subUnitsPerUnit) + Number(subQuantity ?? 0);
+}
+
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
@@ -43,6 +51,19 @@ export async function GET(request: NextRequest) {
 
     const prescriptionResult = await query(
       `
+        with selected_prescription as (
+          select p.prescription_id
+          from prescription p
+          where p.visit_id = $1
+            and exists (
+              select 1
+              from prescription_medicines pmx
+              where pmx.prescription_id = p.prescription_id
+                and coalesce(pmx.dispensed_quantity, 0) < coalesce(pmx.prescribed_quantity, 0)
+            )
+          order by p.prescription_id desc
+          limit 1
+        )
         select
           p.prescription_id,
           p.visit_id,
@@ -88,6 +109,7 @@ export async function GET(request: NextRequest) {
           order by vp.expiry_date asc nulls last, vp.batch_id asc
           limit 1
         ) pos on true
+        join selected_prescription sp on sp.prescription_id = p.prescription_id
         where p.visit_id = $1
           and coalesce(pm.dispensed_quantity, 0) < coalesce(pm.prescribed_quantity, 0)
         order by pm.prescription_medicine_id asc
@@ -103,64 +125,76 @@ export async function GET(request: NextRequest) {
     }
 
     const rows = prescriptionResult.rows;
-    const availableItems = rows
-      .filter((row) => row.batch_id)
-      .map((row) => ({
-        prescriptionMedicineId: row.prescription_medicine_id,
-        prescribedQuantity: Number(row.prescribed_quantity ?? 0),
-        alreadyDispensedQuantity: Number(row.dispensed_quantity ?? 0),
-        frequency: row.frequency,
-        duration: row.duration,
-        instructions: row.instructions,
-        availableQuantity: Number(row.total_stock_quantity ?? row.batch_stock_quantity ?? 0),
-        availabilityStatus: Number(row.total_stock_quantity ?? row.batch_stock_quantity ?? 0) <= 5 ? "low_stock" : "available",
-        availabilityNote:
-          Number(row.total_stock_quantity ?? row.batch_stock_quantity ?? 0) <= 5
-            ? `Only ${Number(row.total_stock_quantity ?? row.batch_stock_quantity ?? 0)} unit(s) currently available`
-            : null,
-        medicine: {
-          id: row.pos_medicine_id ?? row.medicine_id,
-          medicine_id: row.medicine_id,
-          generic_name: row.generic_name,
-          brand_name: row.brand_name,
-          category: row.category,
-          dosage_value: Number(row.dosage_value ?? 0),
-          dosage_unit: row.dosage_unit,
-          form: row.form,
-          price: Number(row.batch_sale_price ?? row.price ?? 0),
-          stock_quantity: Number(row.total_stock_quantity ?? row.batch_stock_quantity ?? 0),
-          stock_sub_quantity: Number(row.total_stock_sub_quantity ?? row.batch_stock_sub_quantity ?? 0),
-          sub_unit: row.sub_unit,
-          sub_units_per_unit: Number(row.sub_units_per_unit ?? 1),
-          sub_unit_price: Number(row.batch_sale_sub_unit_price ?? 0),
-          allow_sub_unit_sale: Boolean(row.allow_sub_unit_sale),
-          batch_id: row.batch_id ? Number(row.batch_id) : undefined,
-          batch_number: row.batch_number,
-          expiry_date: row.expiry_date,
-          batch_stock_quantity: Number(row.batch_stock_quantity ?? 0),
-          batch_stock_sub_quantity: Number(row.batch_stock_sub_quantity ?? 0),
-          batch_sale_price: Number(row.batch_sale_price ?? row.price ?? 0),
-          batch_sale_sub_unit_price: Number(row.batch_sale_sub_unit_price ?? 0),
-          total_stock_quantity: Number(row.total_stock_quantity ?? 0),
-          total_stock_sub_quantity: Number(row.total_stock_sub_quantity ?? 0),
-        },
-      }));
+    const availableItems: Array<Record<string, unknown>> = [];
+    const unavailableItems: Array<Record<string, unknown>> = [];
 
-    const unavailableItems = rows
-      .filter((row) => !row.batch_id)
-      .map((row) => ({
+    for (const row of rows) {
+      const subUnitsPerUnit = getSubUnitsPerUnit(row.sub_units_per_unit);
+      const prescribedQuantity = Number(row.prescribed_quantity ?? 0);
+      const alreadyDispensedQuantity = Number(row.dispensed_quantity ?? 0);
+      const pendingQuantity = Math.max(0, prescribedQuantity - alreadyDispensedQuantity);
+
+      const totalAvailableQty = Number(row.total_stock_quantity ?? row.batch_stock_quantity ?? 0);
+      const totalAvailableSubQty = Number(row.total_stock_sub_quantity ?? row.batch_stock_sub_quantity ?? 0);
+      const totalAvailableSubUnits = toTotalSubUnits(totalAvailableQty, totalAvailableSubQty, subUnitsPerUnit);
+      const requiredSubUnits = toTotalSubUnits(pendingQuantity, 0, subUnitsPerUnit);
+      const hasSufficientStock = requiredSubUnits > 0 && totalAvailableSubUnits >= requiredSubUnits;
+
+      const commonFields = {
         prescriptionMedicineId: Number(row.prescription_medicine_id),
-        prescribedQuantity: Number(row.prescribed_quantity ?? 0),
-        alreadyDispensedQuantity: Number(row.dispensed_quantity ?? 0),
+        prescribedQuantity: pendingQuantity,
+        alreadyDispensedQuantity,
         frequency: row.frequency,
         duration: row.duration,
         instructions: row.instructions,
-        availableQuantity: Number(row.total_stock_quantity ?? 0),
-        availabilityStatus:
-          Number(row.total_stock_quantity ?? 0) > 0 ? "insufficient_stock" : "out_of_stock",
+      };
+
+      if (hasSufficientStock) {
+        availableItems.push({
+          ...commonFields,
+          availableQuantity: totalAvailableQty,
+          availabilityStatus: totalAvailableQty <= 5 ? "low_stock" : "available",
+          availabilityNote:
+            totalAvailableQty <= 5
+              ? `Only ${totalAvailableQty} unit(s) currently available`
+              : null,
+          medicine: {
+            id: row.pos_medicine_id ?? row.medicine_id,
+            medicine_id: row.medicine_id,
+            generic_name: row.generic_name,
+            brand_name: row.brand_name,
+            category: row.category,
+            dosage_value: Number(row.dosage_value ?? 0),
+            dosage_unit: row.dosage_unit,
+            form: row.form,
+            price: Number(row.batch_sale_price ?? row.price ?? 0),
+            stock_quantity: totalAvailableQty,
+            stock_sub_quantity: totalAvailableSubQty,
+            sub_unit: row.sub_unit,
+            sub_units_per_unit: subUnitsPerUnit,
+            sub_unit_price: Number(row.batch_sale_sub_unit_price ?? 0),
+            allow_sub_unit_sale: Boolean(row.allow_sub_unit_sale),
+            batch_id: row.batch_id ? Number(row.batch_id) : undefined,
+            batch_number: row.batch_number,
+            expiry_date: row.expiry_date,
+            batch_stock_quantity: Number(row.batch_stock_quantity ?? 0),
+            batch_stock_sub_quantity: Number(row.batch_stock_sub_quantity ?? 0),
+            batch_sale_price: Number(row.batch_sale_price ?? row.price ?? 0),
+            batch_sale_sub_unit_price: Number(row.batch_sale_sub_unit_price ?? 0),
+            total_stock_quantity: Number(row.total_stock_quantity ?? 0),
+            total_stock_sub_quantity: Number(row.total_stock_sub_quantity ?? 0),
+          },
+        });
+        continue;
+      }
+
+      unavailableItems.push({
+        ...commonFields,
+        availableQuantity: totalAvailableQty,
+        availabilityStatus: totalAvailableSubUnits > 0 ? "insufficient_stock" : "out_of_stock",
         availabilityNote:
-          Number(row.total_stock_quantity ?? 0) > 0
-            ? `Only ${Number(row.total_stock_quantity ?? 0)} unit(s) are available right now`
+          totalAvailableSubUnits > 0
+            ? `Only ${totalAvailableQty} unit(s) are available right now against required ${pendingQuantity} unit(s)`
             : "No stocked batch is currently available in pharmacy",
         medicine: {
           id: row.medicine_id,
@@ -175,13 +209,14 @@ export async function GET(request: NextRequest) {
           stock_quantity: Number(row.total_stock_quantity ?? 0),
           stock_sub_quantity: Number(row.total_stock_sub_quantity ?? 0),
           sub_unit: row.sub_unit,
-          sub_units_per_unit: Number(row.sub_units_per_unit ?? 1),
+          sub_units_per_unit: subUnitsPerUnit,
           sub_unit_price: Number(row.batch_sale_sub_unit_price ?? 0),
           allow_sub_unit_sale: Boolean(row.allow_sub_unit_sale),
           total_stock_quantity: Number(row.total_stock_quantity ?? 0),
           total_stock_sub_quantity: Number(row.total_stock_sub_quantity ?? 0),
         },
-      }));
+      });
+    }
 
     return NextResponse.json({
       success: true,

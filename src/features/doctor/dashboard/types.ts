@@ -13,9 +13,10 @@ export type CheckedPatientRow = {
   gender: string | null;
   clinic_number: number | null;
   visit_type: string;
-  status: string;
+  current_status: string;
   reason: string | null;
   visit_timestamp: string;
+  seen_at: string;
   checked_at: string;
   history_count: number;
 };
@@ -31,6 +32,7 @@ export type HistoryVisit = {
   status: string;
   reason: string | null;
   visit_timestamp: string;
+  last_checked_by_doctor_name?: string | null;
 };
 
 export type VisitHistoryEntry = {
@@ -38,6 +40,8 @@ export type VisitHistoryEntry = {
   status: string;
   updated_by_doctor: number | null;
   updated_by_staff: number | null;
+  updated_by_doctor_name?: string | null;
+  updated_by_staff_name?: string | null;
   updated_at: string;
 };
 

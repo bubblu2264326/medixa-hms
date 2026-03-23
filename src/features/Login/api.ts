@@ -30,8 +30,9 @@ export async function loginUser(userCode: string, password: string): Promise<Log
 
 export async function logoutUser(){
   try {
-     const res=await fetch("api/logout",{
-      method:"POST"
+     const res=await fetch("/api/logout",{
+      method:"POST",
+      credentials: "include",
      });
      const data=await res.json();
      if (!res.ok) throw new Error(data.message || "LogOut failed");
