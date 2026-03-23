@@ -207,7 +207,7 @@ export const getHeldTransactions = async (): Promise<ApiResponse<Transaction[]>>
 /**
  * Soft-delete a held transaction
  */
-export const deleteHeldTransaction = async (holdId: string): Promise<ApiResponse> => {
+export const deleteHeldTransaction = async (holdId: string): Promise<ApiResponse<null>> => {
   try {
     const response = await fetch(`${API_BASE_URL}/transactions/hold?holdId=${encodeURIComponent(holdId)}`, {
       method: 'DELETE',

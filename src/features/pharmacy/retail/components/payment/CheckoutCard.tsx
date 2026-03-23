@@ -131,6 +131,14 @@ export const CheckoutCard = React.forwardRef<CheckoutCardHandle, CheckoutCardPro
         setIsProcessing(true);
         try {
             const normalizedCustomerName = transactionMeta?.customerName?.trim();
+            const normalizedCustomer = normalizedCustomerName
+                ? {
+                    id: transactionMeta?.customerId
+                        ? String(transactionMeta.customerId)
+                        : "walk-in",
+                    name: normalizedCustomerName,
+                }
+                : undefined;
             const effectivePayment = mode === 'SALE' && settlementMode === 'append_to_bill'
                 ? {
                     ...payment,
@@ -151,7 +159,7 @@ export const CheckoutCard = React.forwardRef<CheckoutCardHandle, CheckoutCardPro
                 prescriptionId: transactionMeta?.prescriptionId ?? null,
                 patientId: transactionMeta?.patientId ?? null,
                 customerId: transactionMeta?.customerId,
-                customer: normalizedCustomerName ? { name: normalizedCustomerName } : undefined,
+                customer: normalizedCustomer,
                 holdId: transactionMeta?.holdId ?? null,
                 ref_sale_id: transactionMeta?.refSaleId ? Number(transactionMeta.refSaleId) : undefined,
                 settlementMode: mode === 'SALE' ? settlementMode : undefined,
@@ -218,6 +226,14 @@ export const CheckoutCard = React.forwardRef<CheckoutCardHandle, CheckoutCardPro
         setIsProcessing(true);
         try {
             const normalizedCustomerName = transactionMeta?.customerName?.trim();
+            const normalizedCustomer = normalizedCustomerName
+                ? {
+                    id: transactionMeta?.customerId
+                        ? String(transactionMeta.customerId)
+                        : "walk-in",
+                    name: normalizedCustomerName,
+                }
+                : undefined;
             const transaction = {
                 reference: generateReference(),
                 items: cart,
@@ -230,7 +246,7 @@ export const CheckoutCard = React.forwardRef<CheckoutCardHandle, CheckoutCardPro
                 prescriptionId: transactionMeta?.prescriptionId ?? null,
                 patientId: transactionMeta?.patientId ?? null,
                 customerId: transactionMeta?.customerId,
-                customer: normalizedCustomerName ? { name: normalizedCustomerName } : undefined,
+                customer: normalizedCustomer,
             };
 
             const response = await holdTransaction(transaction);
