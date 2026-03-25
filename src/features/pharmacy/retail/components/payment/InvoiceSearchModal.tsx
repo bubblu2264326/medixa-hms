@@ -5,6 +5,8 @@ import { Transaction } from '../../types';
 import { formatCurrency } from '../../utils';
 import { Loader2, X, Search, FileText, User, Calendar, ShoppingBag, ArrowRight } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { formatDateTimeInTimezone } from '@/src/lib/timezone/client';
+import { useSystemTimezone } from '@/src/lib/timezone/useSystemTimezone';
 
 interface InvoiceSearchModalProps {
   onClose: () => void;
@@ -12,6 +14,7 @@ interface InvoiceSearchModalProps {
 }
 
 export const InvoiceSearchModal: React.FC<InvoiceSearchModalProps> = ({ onClose, onSelect }) => {
+  const systemTimezone = useSystemTimezone();
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -179,7 +182,7 @@ export const InvoiceSearchModal: React.FC<InvoiceSearchModalProps> = ({ onClose,
                           </div>
                           <div className="flex items-center gap-1.5 text-slate-600">
                             <Calendar size={14} className="text-slate-400" />
-                            <span>{new Date(tx.timestamp).toLocaleString()}</span>
+                            <span>{formatDateTimeInTimezone(tx.timestamp, systemTimezone)}</span>
                           </div>
                           <div className="flex items-center gap-1.5 text-emerald-600 font-bold">
                             <ShoppingBag size={14} />

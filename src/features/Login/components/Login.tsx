@@ -1,6 +1,7 @@
 // app/login/components/Login.tsx
 "use client";
 import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   Sparkles, Target, Star, Sun, Rocket, ThumbsUp, Trophy,
   Flame, Lightbulb, Smile, Mountain, Crown, Heart, Medal,
@@ -10,6 +11,8 @@ import { Quote } from "../types";
 import { useLogin } from "../hooks/useLogin";
 
 const USER_CODE_REGEX = /^[A-Z]{3}\d{3}$/;
+const RECENT_LOGIN_CODES_KEY = "hms_recent_login_codes";
+const REDIRECTING_KEY = "hms_forced_logout_redirecting";
 
 const motivationalQuotes: Quote[] = [
   { text: "Dream big. Work hard. Stay humble.", icon: Star },
@@ -50,6 +53,7 @@ function FieldMessage({
 }
 
 export function Login() {
+  const searchParams = useSearchParams();
   const {
     userCode, name, designation, password, showPassword,
     isLoading, isFetchingInfo, lookupError, authError, setUserCode,
@@ -57,6 +61,7 @@ export function Login() {
   } = useLogin();
 
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
+  const [recentCodes, setRecentCodes] = useState<string[]>([]);
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [touched, setTouched] = useState<{ userCode: boolean; password: boolean }>({
     userCode: false,
@@ -67,6 +72,19 @@ export function Login() {
       setCurrentQuoteIndex((prev) => (prev + 1) % motivationalQuotes.length);
     }, 4000);
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem(RECENT_LOGIN_CODES_KEY);
+      const parsed = raw ? (JSON.parse(raw) as string[]) : [];
+      if (Array.isArray(parsed)) {
+        setRecentCodes(parsed.filter((code) => USER_CODE_REGEX.test(code)));
+      }
+    } catch {
+      setRecentCodes([]);
+    }
   }, []);
 
   const userCodeRef = useRef<HTMLInputElement>(null);
@@ -84,6 +102,11 @@ export function Login() {
   }, [authError]);
 
   const trimmedUserCode = userCode.trim();
+  const suggestedCodes = recentCodes
+    .filter((code) =>
+      trimmedUserCode ? code.startsWith(trimmedUserCode.toUpperCase()) : true
+    )
+    .slice(0, 4);
   const profileVerified =
     Boolean(name) &&
     Boolean(designation) &&
@@ -156,6 +179,13 @@ export function Login() {
           : "Enter your staff code (e.g., DOC001).";
 
   const passwordHint = passwordError ? passwordError : "Use your account password.";
+  const forceLogoutNotice = searchParams.get("reason") === "forced_logout";
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.sessionStorage.removeItem(REDIRECTING_KEY);
+  }, []);
+
   return (
     <div className="flex min-h-screen w-full bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 items-center justify-center p-4">
       <div className="flex w-full max-w-5xl min-h-[640px] lg:h-[640px] shadow-2xl rounded-3xl overflow-hidden">
@@ -176,6 +206,13 @@ export function Login() {
 
           <h2 className="font-bold text-2xl text-gray-800 mb-1">Welcome Back!</h2>
           <p className="text-sm text-gray-500 mb-3">Sign in to access your dashboard</p>
+          {forceLogoutNotice ? (
+            <div className="mb-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2">
+              <p className="text-xs font-semibold text-amber-700">
+                You were signed out by an administrator. Please sign in again.
+              </p>
+            </div>
+          ) : null}
 
           {/* Input fields */}
           <div className="flex flex-col gap-3 flex-1">
@@ -196,6 +233,7 @@ export function Login() {
                   ref={userCodeRef}
                   type="text"
                   value={userCode}
+                  list="login-userCode-suggestions"
                   onChange={(e) => setUserCode(e.target.value.toUpperCase())}
                   onBlur={() => setTouched((prev) => ({ ...prev, userCode: true }))}
                   onKeyDown={(e) => {
@@ -205,7 +243,7 @@ export function Login() {
                     }
                   }}
                   placeholder="e.g., DOC001"
-                  autoComplete="off"
+                  autoComplete="username"
                   aria-invalid={Boolean(userCodeError)}
                   aria-describedby="login-userCode-help"
                   className={`w-full h-11 px-4 pl-11 pr-11 text-gray-700 text-sm bg-gray-50 border rounded-xl outline-none transition-colors focus:ring-2 ${userCodeError
@@ -232,6 +270,35 @@ export function Login() {
               >
                 {userCodeHint}
               </FieldMessage>
+              {suggestedCodes.length ? (
+                <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                  {suggestedCodes.map((code) => (
+                    <button
+                      key={code}
+                      type="button"
+                      onClick={() => {
+                        setUserCode(code);
+                        setTouched((prev) => ({ ...prev, userCode: true }));
+                      }}
+                      className="px-2 py-1 rounded-lg text-[10px] font-semibold border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                    >
+                      {code}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (typeof window !== "undefined") {
+                        window.localStorage.removeItem(RECENT_LOGIN_CODES_KEY);
+                      }
+                      setRecentCodes([]);
+                    }}
+                    className="px-2 py-1 rounded-lg text-[10px] font-semibold border border-gray-200 bg-white text-gray-500 hover:bg-gray-100"
+                  >
+                    Clear recent
+                  </button>
+                </div>
+              ) : null}
             </div>
 
             <div>
@@ -329,6 +396,11 @@ export function Login() {
                 isFetchingInfo ? "Verifying..." : "Sign In"
               )}
             </button>
+            <datalist id="login-userCode-suggestions">
+              {recentCodes.map((code) => (
+                <option key={code} value={code} />
+              ))}
+            </datalist>
           </div>
 
           <div className="mt-auto pt-10">

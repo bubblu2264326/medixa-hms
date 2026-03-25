@@ -4,6 +4,8 @@ import { usePatient } from "@/contexts/PatientIdContext";
 import { History, Search, X } from "lucide-react";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { getVisitColor, groupHistoryByVisit } from "@/src/features/doctor/history-utils";
+import { formatDateTimeInTimezone } from "@/src/lib/timezone/client";
+import { useSystemTimezone } from "@/src/lib/timezone/useSystemTimezone";
 
 import { usePreviousLabOrders } from "../hooks/usePreviousLabOrders";
 
@@ -18,6 +20,7 @@ function toTimestamp(input?: string) {
 export default function PreviousLabOrders() {
   const { patientId } = usePatient();
   const { previousData, loading } = usePreviousLabOrders();
+  const systemTimezone = useSystemTimezone();
   const [searchQuery, setSearchQuery] = useState("");
   const [doctorFilter, setDoctorFilter] = useState("all");
   const [visitFilter, setVisitFilter] = useState("all");
@@ -120,9 +123,7 @@ export default function PreviousLabOrders() {
 
   const formatDate = (value?: string) => {
     if (!value) return "-";
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return value;
-    return date.toLocaleString();
+    return formatDateTimeInTimezone(value, systemTimezone);
   };
 
   const openFullHistory = () => {

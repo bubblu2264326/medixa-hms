@@ -1,193 +1,259 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { 
-  Settings, 
-  Globe, 
-  Bell, 
-  Lock, 
-  Database, 
-  Cloud, 
-  Smartphone,
-  Check,
-  Save,
-  RotateCcw,
-  ShieldCheck,
-  Zap,
-  Layout,
-  HardDrive
-} from "lucide-react";
+
+import React, { useEffect, useMemo, useState } from "react";
+import { Clock3, Save, Settings2, TimerReset, TimerOff, Timer, Globe2 } from "lucide-react";
 import { Card } from "@/src/components/ui/Card";
 import { Button } from "@/src/components/ui/Button";
+import {
+  DEFAULT_TIMEZONE,
+  formatTimeInTimezone,
+  getSupportedTimezones,
+  isValidIanaTimezone,
+} from "@/src/lib/timezone/client";
+
+type AttendancePolicy = {
+  grace_minutes: number;
+  half_day_minutes: number;
+  overtime_minutes: number;
+  early_leave_minutes: number;
+};
+
+const DEFAULT_POLICY: AttendancePolicy = {
+  grace_minutes: 15,
+  half_day_minutes: 240,
+  overtime_minutes: 30,
+  early_leave_minutes: 30,
+};
 
 export default function SettingsPage() {
-  const [settings, setSettings] = useState<any[]>([]);
+  const [policy, setPolicy] = useState<AttendancePolicy>(DEFAULT_POLICY);
+  const [initialPolicy, setInitialPolicy] = useState<AttendancePolicy>(DEFAULT_POLICY);
+  const [systemTimezone, setSystemTimezone] = useState<string>(DEFAULT_TIMEZONE);
+  const [initialTimezone, setInitialTimezone] = useState<string>(DEFAULT_TIMEZONE);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [savedAt, setSavedAt] = useState<string | null>(null);
+
+  const dirty = useMemo(
+    () => JSON.stringify(policy) !== JSON.stringify(initialPolicy) || systemTimezone !== initialTimezone,
+    [initialPolicy, initialTimezone, policy, systemTimezone]
+  );
+  const timezones = useMemo(() => getSupportedTimezones(), []);
+
+  async function fetchSettings() {
+    setLoading(true);
+    setError(null);
+    try {
+      const [policyRes, settingsRes] = await Promise.all([
+        fetch("/api/admin/settings/attendance-policy"),
+        fetch("/api/admin/settings"),
+      ]);
+      const policyData = await policyRes.json();
+      const settingsData = await settingsRes.json();
+
+      if (!policyRes.ok) {
+        throw new Error(policyData?.error || "Failed to load attendance policy");
+      }
+      if (!settingsRes.ok) {
+        throw new Error(settingsData?.error || "Failed to load system settings");
+      }
+
+      const nextPolicy: AttendancePolicy = {
+        grace_minutes: Number(policyData?.policy?.grace_minutes ?? DEFAULT_POLICY.grace_minutes),
+        half_day_minutes: Number(policyData?.policy?.half_day_minutes ?? DEFAULT_POLICY.half_day_minutes),
+        overtime_minutes: Number(policyData?.policy?.overtime_minutes ?? DEFAULT_POLICY.overtime_minutes),
+        early_leave_minutes: Number(policyData?.policy?.early_leave_minutes ?? DEFAULT_POLICY.early_leave_minutes),
+      };
+
+      const timezoneSetting = Array.isArray(settingsData)
+        ? settingsData.find((item) => item?.setting_key === "system_timezone")?.setting_value
+        : null;
+      const nextTimezone =
+        typeof timezoneSetting === "string" && isValidIanaTimezone(timezoneSetting)
+          ? timezoneSetting
+          : DEFAULT_TIMEZONE;
+
+      setPolicy(nextPolicy);
+      setInitialPolicy(nextPolicy);
+      setSystemTimezone(nextTimezone);
+      setInitialTimezone(nextTimezone);
+    } catch (e: any) {
+      setError(String(e?.message || "Unable to load settings"));
+    } finally {
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {
     fetchSettings();
   }, []);
 
-  const fetchSettings = () => {
-    setLoading(true);
-    fetch("/api/admin/settings")
-      .then(res => res.json())
-      .then(data => {
-        setSettings(data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error(err);
-        setLoading(false);
-      });
-  };
+  async function saveAll() {
+    if (!isValidIanaTimezone(systemTimezone)) {
+      setError("Please select a valid IANA timezone (e.g. Asia/Karachi).");
+      return;
+    }
 
-  const handleUpdateValue = (key: string, value: any) => {
-    const updated = settings.map(s => 
-      s.setting_key === key ? { ...s, setting_value: value } : s
-    );
-    setSettings(updated);
-  };
-
-  const saveAll = async () => {
     setSaving(true);
+    setError(null);
     try {
-      const formatted = settings.map(s => ({ key: s.setting_key, value: s.setting_value }));
-      const res = await fetch("/api/admin/settings", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ settings: formatted, staff_id: 1 }) // Assuming staff_id 1 for now
-      });
-      if (res.ok) {
-        alert("Settings successfully updated");
+      const [policyRes, timezoneRes] = await Promise.all([
+        fetch("/api/admin/settings/attendance-policy", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(policy),
+        }),
+        fetch("/api/admin/settings", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            settings: [{ key: "system_timezone", value: systemTimezone }],
+          }),
+        }),
+      ]);
+
+      const policyData = await policyRes.json();
+      const timezoneData = await timezoneRes.json();
+
+      if (!policyRes.ok) {
+        throw new Error(policyData?.error || "Failed to save attendance policy");
       }
-    } catch (err) {
-      console.error(err);
+      if (!timezoneRes.ok) {
+        throw new Error(timezoneData?.error || "Failed to save system timezone");
+      }
+
+      setInitialPolicy(policy);
+      setInitialTimezone(systemTimezone);
+      setSavedAt(formatTimeInTimezone(new Date(), systemTimezone));
+    } catch (e: any) {
+      setError(String(e?.message || "Unable to save settings"));
     } finally {
       setSaving(false);
     }
-  };
+  }
 
-  const sections = [
-    { id: 'general', label: 'Hospital Identity', icon: Globe, color: 'text-blue-500' },
-    { id: 'security', label: 'Auth & Security', icon: Lock, color: 'text-indigo-500' },
-    { id: 'notifications', label: 'Communication Hub', icon: Bell, color: 'text-amber-500' },
-    { id: 'system', label: 'System Architecture', icon: Database, color: 'text-emerald-500' },
-  ];
+  const numberField = (
+    label: string,
+    icon: React.ReactNode,
+    value: number,
+    onChange: (next: number) => void,
+    helper: string
+  ) => (
+    <div className="space-y-2">
+      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{label}</label>
+      <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3">
+        <span className="text-emerald-700">{icon}</span>
+        <input
+          type="number"
+          min={0}
+          value={value}
+          onChange={(e) => onChange(Number(e.target.value || 0))}
+          className="w-full bg-transparent text-sm font-semibold text-slate-700 focus:outline-none"
+        />
+        <span className="text-xs font-semibold text-slate-400">min</span>
+      </div>
+      <p className="text-xs text-slate-400">{helper}</p>
+    </div>
+  );
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-700">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="space-y-6">
+      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-black text-slate-800 tracking-tight uppercase">System Configuration</h1>
-          <p className="text-slate-500 text-sm font-semibold mt-1">Global environment variables and behavioral overrides</p>
+          <h1 className="text-2xl font-black text-slate-800 uppercase tracking-tight">System Settings</h1>
+          <p className="text-sm text-slate-500">Global timezone and attendance policy controls for whole HMS.</p>
         </div>
-        <div className="flex gap-3">
-           <Button variant="outline" className="rounded-2xl border-slate-200" onClick={fetchSettings}>
-               <RotateCcw className="w-4 h-4 mr-2" />
-               Revert Changes
-           </Button>
-           <Button 
-                onClick={saveAll}
-                disabled={saving}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl px-8 shadow-xl shadow-emerald-100 font-bold text-xs uppercase tracking-wider h-12"
-           >
-               {saving ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
-               Store Configuration
-           </Button>
+        <div className="flex items-center gap-3">
+          <Button variant="outline" className="rounded-2xl" onClick={fetchSettings} disabled={loading || saving}>
+            <Settings2 className="mr-2 h-4 w-4" />
+            Reload
+          </Button>
+          <Button
+            className="rounded-2xl bg-emerald-700 text-white hover:bg-emerald-800 disabled:opacity-60"
+            onClick={saveAll}
+            disabled={loading || saving}
+          >
+            <Save className="mr-2 h-4 w-4" />
+            {saving ? "Saving..." : "Save Settings"}
+          </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-         {/* Navigation */}
-         <div className="space-y-2">
-            {sections.map(sec => (
-               <button key={sec.id} className={`w-full flex items-center gap-4 px-6 py-4 rounded-[1.5rem] transition-all text-left ${
-                  sec.id === 'general' ? 'bg-white shadow-lg shadow-slate-200/50 text-slate-800 font-black' : 'hover:bg-slate-50 text-slate-400 font-bold'
-               }`}>
-                  <sec.icon className={`w-5 h-5 ${sec.id === 'general' ? sec.color : 'text-slate-200'}`} />
-                  <span className="text-xs uppercase tracking-wider">{sec.label}</span>
-               </button>
-            ))}
-            <div className="pt-8 px-6">
-                <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-4">Integrations</p>
-                <div className="space-y-4">
-                   <div className="flex items-center gap-3 grayscale opacity-40">
-                      <Zap className="w-4 h-4 text-amber-500" />
-                      <span className="text-[10px] font-black uppercase text-slate-400">Fingerprint SDK</span>
-                   </div>
-                   <div className="flex items-center gap-3">
-                      <Smartphone className="w-4 h-4 text-indigo-400" />
-                      <span className="text-[10px] font-black uppercase text-slate-400">WhatsApp API</span>
-                   </div>
-                   <div className="flex items-center gap-3 grayscale opacity-40">
-                      <Cloud className="w-4 h-4 text-blue-400" />
-                      <span className="text-[10px] font-black uppercase text-slate-400">AWS S3 Assets</span>
-                   </div>
-                </div>
-            </div>
-         </div>
+      {error ? (
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">{error}</div>
+      ) : null}
 
-         {/* Settings Grid */}
-         <div className="lg:col-span-3 space-y-8">
-            <Card className="p-8 rounded-[2.5rem] border-none shadow-xl shadow-slate-200/50 bg-white">
-                <div className="space-y-12">
-                   {loading ? (
-                       <div className="py-20 flex flex-col items-center gap-4">
-                            <div className="w-10 h-10 border-4 border-slate-100 border-t-emerald-600 rounded-full animate-spin" />
-                            <p className="text-[10px] font-black text-slate-400 tracking-widest uppercase">Fetching encrypted store...</p>
-                       </div>
-                   ) : (
-                       settings.map((s, idx) => (
-                          <div key={idx} className="group relative">
-                             <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 pb-12 border-b border-slate-50 last:border-none last:pb-0">
-                                <div className="max-w-md">
-                                   <div className="flex items-center gap-2 mb-2">
-                                      {idx % 3 === 0 ? <Layout className="w-3.5 h-3.5 text-blue-500" /> : <HardDrive className="w-3.5 h-3.5 text-slate-300 group-hover:text-indigo-400" />}
-                                      <h3 className="text-sm font-black uppercase tracking-tight text-slate-800">{s.setting_key.replace(/_/g, ' ')}</h3>
-                                   </div>
-                                   <p className="text-xs text-slate-400 font-medium leading-relaxed">System-wide behavioral flag for {s.setting_key}. This control affects all connected hospital branches and API consumers.</p>
-                                </div>
-                                <div className="w-full md:w-64">
-                                   {typeof s.setting_value === 'boolean' ? (
-                                      <button 
-                                         onClick={() => handleUpdateValue(s.setting_key, !s.setting_value)}
-                                         className={`w-full h-12 rounded-2xl flex items-center justify-between px-6 transition-all ${
-                                            s.setting_value ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-slate-50 text-slate-400 border border-slate-100'
-                                         }`}
-                                      >
-                                         <span className="text-[10px] font-black uppercase tracking-widest">{s.setting_value ? 'Active' : 'Disabled'}</span>
-                                         <div className={`w-6 h-6 rounded-full flex items-center justify-center transition-all ${s.setting_value ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-400'}`}>
-                                            {s.setting_value ? <Check className="w-3.5 h-3.5" /> : <ShieldCheck className="w-3.5 h-3.5" />}
-                                         </div>
-                                      </button>
-                                   ) : (
-                                      <input 
-                                         type="text" 
-                                         value={s.setting_value}
-                                         onChange={(e) => handleUpdateValue(s.setting_key, e.target.value)}
-                                         className="w-full h-12 bg-slate-50 border border-slate-100 rounded-2xl px-6 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/10 placeholder:text-slate-300 font-mono"
-                                         placeholder="Enter value..."
-                                      />
-                                   )}
-                                </div>
-                             </div>
-                          </div>
-                       ))
-                   )}
-                </div>
-            </Card>
-
-            <div className="p-8 rounded-[2rem] bg-indigo-50/50 border border-indigo-100/50 flex items-start gap-4">
-               <ShieldCheck className="w-6 h-6 text-indigo-600 shrink-0 mt-1" />
-               <div>
-                  <h4 className="text-xs font-black text-indigo-900 uppercase tracking-tight">Security Protocol Active</h4>
-                  <p className="text-[11px] text-indigo-600/70 mt-1 leading-relaxed font-medium">All configuration changes are cryptographically hashed and stored in the system audit timeline. Modifying these values may require a system warm-restart on high-concurrency environments.</p>
-               </div>
+      <Card className="rounded-[2rem] border border-slate-100 bg-slate-50/60 p-6 shadow-sm space-y-6">
+        {loading ? (
+          <div className="py-16 text-center text-sm font-semibold text-slate-400">Loading settings...</div>
+        ) : (
+          <>
+            <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 px-4 py-3 text-sm font-semibold text-emerald-800">
+              Scope: <span className="font-black">Global clinic</span>
             </div>
-         </div>
-      </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">System Timezone</label>
+              <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3">
+                <Globe2 className="h-4 w-4 text-emerald-700" />
+                <input
+                  list="system-timezone-options"
+                  value={systemTimezone}
+                  onChange={(e) => setSystemTimezone(e.target.value.trim())}
+                  placeholder="Search timezone e.g. Asia/Karachi"
+                  className="w-full bg-transparent text-sm font-semibold text-slate-700 focus:outline-none"
+                />
+              </div>
+              <datalist id="system-timezone-options">
+                {timezones.map((tz) => (
+                  <option key={tz} value={tz} />
+                ))}
+              </datalist>
+              <p className="text-xs text-slate-400">All business-day boundaries and date-time displays follow this timezone.</p>
+            </div>
+
+            <div>
+              <h2 className="text-sm font-black uppercase tracking-widest text-slate-500 mb-4">Attendance Policy</h2>
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                {numberField(
+                  "Grace Minutes",
+                  <Clock3 className="h-4 w-4" />,
+                  policy.grace_minutes,
+                  (next) => setPolicy((prev) => ({ ...prev, grace_minutes: next })),
+                  "Minutes after shift start before late status begins."
+                )}
+                {numberField(
+                  "Half Day Minutes",
+                  <TimerReset className="h-4 w-4" />,
+                  policy.half_day_minutes,
+                  (next) => setPolicy((prev) => ({ ...prev, half_day_minutes: next })),
+                  "If worked minutes fall below this threshold, mark as half day."
+                )}
+                {numberField(
+                  "Overtime Minutes",
+                  <Timer className="h-4 w-4" />,
+                  policy.overtime_minutes,
+                  (next) => setPolicy((prev) => ({ ...prev, overtime_minutes: next })),
+                  "Minimum overtime minutes required to mark overtime."
+                )}
+                {numberField(
+                  "Early Leave Minutes",
+                  <TimerOff className="h-4 w-4" />,
+                  policy.early_leave_minutes,
+                  (next) => setPolicy((prev) => ({ ...prev, early_leave_minutes: next })),
+                  "Minimum early exit minutes required to mark early leave."
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 text-xs font-semibold text-slate-500">
+              <span>Supabase system settings are the single source of truth.</span>
+              <span>{savedAt ? `Last saved at ${savedAt}` : dirty ? "Unsaved changes" : "No changes"}</span>
+            </div>
+          </>
+        )}
+      </Card>
     </div>
   );
 }

@@ -5,10 +5,17 @@ import { UserData, LoginResponse } from "./types";
 export async function fetchUserData(userCode: string): Promise<UserData | null> {
   try {
     const res = await fetch(`/api/login/${userCode}`);
-    if (!res.ok) return null;
+    if (!res.ok) {
+      const payload = await res.json().catch(() => ({} as any));
+      const message = typeof payload?.error === "string" ? payload.error : "Lookup failed";
+      if (res.status >= 500) {
+        throw new Error(message);
+      }
+      return null;
+    }
     return res.json();
-  } catch {
-    return null;
+  } catch (error: any) {
+    throw new Error(error?.message || "Unable to verify user code right now");
   }
 }
 

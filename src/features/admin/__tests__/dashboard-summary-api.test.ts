@@ -31,6 +31,7 @@ import { AuthError } from "@/src/lib/server/auth";
 type QueryRouterOptions = {
   viewAvailable?: boolean;
   revenue?: string;
+  previousRevenue30d?: string;
   dailyPatients?: string;
   activeStaff?: string;
   totalStaff?: string;
@@ -42,6 +43,7 @@ type QueryRouterOptions = {
 function installQueryRouter({
   viewAvailable = true,
   revenue = "0",
+  previousRevenue30d = "0",
   dailyPatients = "0",
   activeStaff = "0",
   totalStaff = "0",
@@ -59,8 +61,8 @@ function installQueryRouter({
       return { rows: [{ "?column?": 1 }] };
     }
 
-    if (text.includes("SELECT COALESCE(SUM(amount), 0) AS revenue_30d")) {
-      return { rows: [{ revenue_30d: revenue }] };
+    if (text.includes("revenue_30d")) {
+      return { rows: [{ revenue_30d: revenue, revenue_prev_30d: previousRevenue30d }] };
     }
 
     if (text.includes("WITH patient_visits AS") && text.includes("staff_summary AS")) {
@@ -127,6 +129,7 @@ describe("admin dashboard summary API", () => {
 
     installQueryRouter({
       revenue: "12345",
+      previousRevenue30d: "5000",
       dailyPatients: "9",
       activeStaff: "3",
       totalStaff: "5",
@@ -149,6 +152,8 @@ describe("admin dashboard summary API", () => {
     expect(response.status).toBe(200);
     expect(body.metrics).toEqual({
       revenue: 12345,
+      previousRevenue30d: 5000,
+      revenueChangePct30d: 146.9,
       dailyPatients: 9,
       activeStaff: 3,
       totalStaff: 5,
@@ -229,7 +234,8 @@ describe("admin dashboard summary API", () => {
 
     const sql = queryMock.mock.calls.map((call) => String(call[0])).join("\n");
     expect(sql).toContain("admin_cash_collected_ledger_v1");
-    expect(sql).toContain("SELECT COALESCE(SUM(amount), 0) AS revenue_30d");
+    expect(sql).toContain("AS revenue_30d");
+    expect(sql).toContain("AS revenue_prev_30d");
     expect(sql).toContain("FROM ledger");
   });
 
@@ -280,6 +286,8 @@ describe("admin dashboard summary API", () => {
     expect(response.status).toBe(200);
     expect(body.metrics).toEqual({
       revenue: 0,
+      previousRevenue30d: 0,
+      revenueChangePct30d: 0,
       dailyPatients: 0,
       activeStaff: 0,
       totalStaff: 0,

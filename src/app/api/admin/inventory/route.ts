@@ -2,10 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/database/db";
 import { AuthError, requireAdminOrSuperAdmin } from "@/src/lib/server/auth";
 import { getAdminInventorySummary } from "@/src/lib/server/adminInventory";
+import { getCurrentDateInTimezone, getSystemTimezone } from "@/src/lib/server/systemTimezone";
 
 export async function GET(req: NextRequest) {
   try {
     await requireAdminOrSuperAdmin(req);
+    const timeZone = await getSystemTimezone();
+    const localDate = getCurrentDateInTimezone(timeZone);
     const [inventorySummary, lowStock, expiringSoon, categories] = await Promise.all([
       getAdminInventorySummary(),
       query(`
@@ -39,15 +42,15 @@ export async function GET(req: NextRequest) {
           )::bigint AS stock_sub_units
         FROM medicine_batch mb
         JOIN medicine m ON m.medicine_id = mb.medicine_id
-        WHERE mb.expiry_date <= CURRENT_DATE + INTERVAL '90 days'
-          AND mb.expiry_date >= CURRENT_DATE
+        WHERE mb.expiry_date <= $1::date + INTERVAL '90 days'
+          AND mb.expiry_date >= $1::date
           AND (
             COALESCE(mb.stock_quantity, 0) > 0 OR
             COALESCE(mb.stock_sub_quantity, 0) > 0
           )
         ORDER BY mb.expiry_date ASC
         LIMIT 10
-      `),
+      `, [localDate]),
       query(`
         SELECT
           c.name AS category,

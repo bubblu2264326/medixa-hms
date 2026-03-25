@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { 
   Activity, 
   Clock, 
@@ -13,30 +13,97 @@ import {
 } from "lucide-react";
 import { Card } from "@/src/components/ui/Card";
 import { Button } from "@/src/components/ui/Button";
+import toast from "react-hot-toast";
+import { formatDateTimeInTimezone } from "@/src/lib/timezone/client";
+import { useSystemTimezone } from "@/src/lib/timezone/useSystemTimezone";
 
 export default function AuditLogsPage() {
+  const systemTimezone = useSystemTimezone();
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [historyMode, setHistoryMode] = useState(false);
+  const knownLogIdsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
-    fetchLogs(historyMode ? 500 : 50);
+    void fetchLogs(historyMode ? 500 : 50, { showLoader: true, showToast: false });
   }, [historyMode]);
 
-  const fetchLogs = (limit = 50) => {
-    setLoading(true);
-    fetch(`/api/admin/audit-logs?limit=${limit}`)
-      .then(res => res.json())
-      .then(data => {
-        setLogs(Array.isArray(data) ? data : []);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error(err);
-        setLoading(false);
-      });
+  const fetchLogs = async (
+    limit = 50,
+    options?: { showLoader?: boolean; showToast?: boolean }
+  ) => {
+    const showLoader = options?.showLoader ?? false;
+    const showToast = options?.showToast ?? false;
+
+    if (showLoader) setLoading(true);
+    try {
+      const res = await fetch(`/api/admin/audit-logs?limit=${limit}`);
+      const data = await res.json();
+      if (!res.ok || !Array.isArray(data)) return;
+
+      const incoming = data as any[];
+      let newCount = 0;
+      for (const row of incoming) {
+        const rowId = String(row?.log_id ?? "");
+        if (rowId && !knownLogIdsRef.current.has(rowId)) {
+          newCount++;
+        }
+      }
+
+      setLogs(incoming);
+      knownLogIdsRef.current = new Set(
+        incoming.map((row) => String(row?.log_id ?? "")).filter(Boolean)
+      );
+
+      if (showToast && newCount > 0) {
+        toast.success(newCount === 1 ? "New audit event" : `${newCount} new audit events`, {
+          id: "audit-page-live-update",
+        });
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      if (showLoader) setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    if (typeof EventSource === "undefined") return;
+
+    let disposed = false;
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+    let source: EventSource | null = null;
+
+    const connect = () => {
+      if (disposed) return;
+
+      source = new EventSource("/api/admin/audit-logs/stream");
+      source.addEventListener("invalidate", () => {
+        void fetchLogs(historyMode ? 500 : 50, { showLoader: false, showToast: true });
+      });
+
+      source.onerror = () => {
+        source?.close();
+        source = null;
+        if (!disposed) {
+          reconnectTimer = setTimeout(connect, 5000);
+        }
+      };
+    };
+
+    connect();
+    const interval = setInterval(() => {
+      void fetchLogs(historyMode ? 500 : 50, { showLoader: false, showToast: false });
+    }, 60000);
+
+    return () => {
+      disposed = true;
+      clearInterval(interval);
+      if (reconnectTimer) clearTimeout(reconnectTimer);
+      source?.close();
+    };
+  }, [historyMode]);
 
   const getActionColor = (action: string) => {
     const act = action.toLowerCase();
@@ -146,7 +213,7 @@ export default function AuditLogsPage() {
                                </div>
                                <div className="flex items-center gap-1.5 text-slate-400">
                                   <Clock className="w-3 h-3" />
-                                  <span className="text-[10px] font-bold font-mono tracking-tight">{new Date(log.created_at).toLocaleString()}</span>
+                                  <span className="text-[10px] font-bold font-mono tracking-tight">{formatDateTimeInTimezone(log.created_at, systemTimezone)}</span>
                                </div>
                             </div>
 

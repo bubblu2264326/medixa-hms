@@ -1,144 +1,390 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { 
-  Users, 
-  Search, 
-  Calendar, 
-  Clock, 
-  MapPin, 
-  CheckCircle2, 
-  XCircle, 
-  MoreVertical,
-  Edit2,
-  Filter
-} from "lucide-react";
+
+import React, { useEffect, useMemo, useState } from "react";
+import { Calendar, Search } from "lucide-react";
 import { Button } from "@/src/components/ui/Button";
 import { Card } from "@/src/components/ui/Card";
+import { formatTimeInTimezone, getTimezoneNowDateInput } from "@/src/lib/timezone/client";
+import { useSystemTimezone } from "@/src/lib/timezone/useSystemTimezone";
+
+type AttendanceRecord = {
+    attendance_id: string;
+    staff_id: number;
+    staff_name: string;
+    user_code: string;
+    status: string;
+    date: string;
+    check_in_time: string | null;
+    check_out_time: string | null;
+    derived_status: string;
+    is_unscheduled: boolean;
+    late_minutes: number;
+    overtime_minutes: number;
+    early_leave_minutes: number;
+    attendance_message?: string;
+    account_type?: "staff" | "doctor";
+};
+
+type AttendanceSummary = {
+    total_staff: number;
+    present_today: number;
+    absent: number;
+    late_or_half_day: number;
+    unscheduled: number;
+};
+
+type StaffMember = {
+    staff_id: number;
+    name: string;
+    user_code: string;
+    account_type: "staff" | "doctor";
+};
+
+const EMPTY_SUMMARY: AttendanceSummary = {
+    total_staff: 0,
+    present_today: 0,
+    absent: 0,
+    late_or_half_day: 0,
+    unscheduled: 0,
+};
+
+function formatTime(value: string | null, timeZone: string) {
+    if (!value) return "--:--";
+    return formatTimeInTimezone(value, timeZone);
+}
+
+function statusStyle(status: string) {
+    switch (status) {
+        case "on_time":
+            return "bg-emerald-100 text-emerald-800";
+        case "late":
+            return "bg-amber-100 text-amber-800";
+        case "half_day":
+            return "bg-orange-100 text-orange-800";
+        case "early_leave":
+            return "bg-yellow-100 text-yellow-800";
+        case "overtime":
+            return "bg-blue-100 text-blue-800";
+        case "unscheduled":
+            return "bg-slate-200 text-slate-700";
+        case "absent":
+            return "bg-rose-100 text-rose-700";
+        case "leave":
+            return "bg-violet-100 text-violet-700";
+        default:
+            return "bg-slate-200 text-slate-700";
+    }
+}
 
 export default function AttendancePage() {
-    const [attendanceData, setAttendanceData] = useState<any[]>([]);
+    const systemTimezone = useSystemTimezone();
+    const today = getTimezoneNowDateInput(systemTimezone);
+    const [selectedDate, setSelectedDate] = useState(today);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
-    const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-
-    const [showManualModal, setShowManualModal] = useState(false);
-    const [manualEntry, setManualEntry] = useState({
+    const [records, setRecords] = useState<AttendanceRecord[]>([]);
+    const [summary, setSummary] = useState<AttendanceSummary>(EMPTY_SUMMARY);
+    const [staff, setStaff] = useState<StaffMember[]>([]);
+    const [showModal, setShowModal] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+    const [preview, setPreview] = useState<any | null>(null);
+    const [previewLoading, setPreviewLoading] = useState(false);
+    const [manual, setManual] = useState({
         staff_id: "",
-        date: new Date().toISOString().split('T')[0],
+        account_type: "staff" as "staff" | "doctor",
+        date: today,
         status: "Present",
         check_in_time: "",
-        check_out_time: ""
+        check_out_time: "",
+        reason: "",
     });
 
-    useEffect(() => {
-        fetchAttendance();
-    }, [selectedDate]);
-
-    const fetchAttendance = async () => {
+    async function fetchAttendance(date: string) {
         setLoading(true);
         try {
-            const res = await fetch(`/api/admin/attendance?date=${selectedDate}`);
+            const res = await fetch(`/api/admin/attendance?date=${date}`);
             const data = await res.json();
-            setAttendanceData(data);
-        } catch (err) {
-            console.error("Fetch Error:", err);
+            const nextRecords = Array.isArray(data) ? data : Array.isArray(data?.records) ? data.records : [];
+            const nextSummary = data?.summary ?? EMPTY_SUMMARY;
+            setRecords(nextRecords);
+            setSummary(nextSummary);
+        } catch (error) {
+            console.error("Failed to load attendance", error);
+            setRecords([]);
+            setSummary(EMPTY_SUMMARY);
         } finally {
             setLoading(false);
         }
-    };
+    }
 
-    const handleManualSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    async function fetchStaff() {
+        try {
+            const res = await fetch("/api/admin/staff");
+            const data = await res.json();
+            if (!Array.isArray(data)) return;
+            const normalized: StaffMember[] = data.map((row: any): StaffMember => ({
+                staff_id: Number(row.staff_id),
+                name: String(row.name ?? ""),
+                user_code: String(row.user_code ?? ""),
+                account_type: String(row.account_type ?? "staff") === "doctor" ? "doctor" : "staff",
+            }));
+            setStaff(normalized);
+        } catch (error) {
+            console.error("Failed to load staff list", error);
+        }
+    }
+
+    useEffect(() => {
+        fetchAttendance(selectedDate);
+    }, [selectedDate]);
+
+    useEffect(() => {
+        fetchStaff();
+    }, []);
+
+    const filteredRecords = useMemo(() => {
+        const query = searchQuery.trim().toLowerCase();
+        if (!query) return records;
+        return records.filter((row) => {
+            return row.staff_name?.toLowerCase().includes(query) || row.user_code?.toLowerCase().includes(query);
+        });
+    }, [records, searchQuery]);
+
+    useEffect(() => {
+        if (!showModal || !manual.staff_id || !manual.date) {
+            setPreview(null);
+            return;
+        }
+        let active = true;
+        const handle = setTimeout(async () => {
+            setPreviewLoading(true);
+            try {
+                const res = await fetch("/api/admin/attendance/manual", {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(manual),
+                });
+                const data = await res.json();
+                if (!active) return;
+                setPreview(res.ok ? data.preview : null);
+            } catch (error) {
+                if (active) setPreview(null);
+                console.error("Preview failed", error);
+            } finally {
+                if (active) setPreviewLoading(false);
+            }
+        }, 250);
+        return () => {
+            active = false;
+            clearTimeout(handle);
+        };
+    }, [manual, showModal]);
+
+    async function handleManualSubmit(event: React.FormEvent) {
+        event.preventDefault();
+        setSubmitting(true);
         try {
             const res = await fetch("/api/admin/attendance/manual", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(manualEntry)
+                body: JSON.stringify(manual),
             });
-            if (res.ok) {
-                setShowManualModal(false);
-                fetchAttendance();
-            } else {
-                alert("Failed to save attendance");
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data?.error || "Failed to save attendance");
             }
-        } catch (err) {
-            console.error("Manual Entry Error:", err);
+            setShowModal(false);
+            setManual({
+                staff_id: "",
+                account_type: "staff",
+                date: selectedDate,
+                status: "Present",
+                check_in_time: "",
+                check_out_time: "",
+                reason: "",
+            });
+            setPreview(null);
+            await fetchAttendance(selectedDate);
+        } catch (error: any) {
+            alert(error?.message || "Failed to save attendance");
+        } finally {
+            setSubmitting(false);
         }
-    };
-
-    const stats = [
-        { label: "Total Staff", value: "24", icon: Users, color: "text-blue-600", bg: "bg-blue-50" },
-        { label: "Present Today", value: attendanceData.filter(a => a.status === 'Present').length || 0, icon: CheckCircle2, color: "text-emerald-600", bg: "bg-emerald-50" },
-        { label: "Absent", value: "2", icon: XCircle, color: "text-rose-600", bg: "bg-rose-50" },
-        { label: "Late / Half Day", value: "1", icon: Clock, color: "text-amber-600", bg: "bg-amber-50" },
-    ];
-
-    const filteredData = attendanceData.filter(item => 
-        item.staff_name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        item.user_code?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    }
 
     return (
-        <div className="space-y-8">
-            {/* Page Title */}
-            <div className="flex items-center justify-between">
+        <div className="space-y-6">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div>
-                    <h1 className="text-2xl font-black text-slate-800 tracking-tight uppercase">Attendance & Time Tracking</h1>
-                    <p className="text-slate-500 text-sm font-semibold mt-1">Monitor staff presence and daily working hours</p>
+                    <h1 className="text-2xl font-black uppercase tracking-tight text-slate-800">Attendance & Time Tracking</h1>
+                    <p className="text-sm font-semibold text-slate-500">Roster-aware attendance with policy-based outcomes.</p>
                 </div>
-                <div className="flex gap-3">
-                    <Button variant="outline" className="rounded-2xl border-slate-200">
-                        <Filter className="w-4 h-4 mr-2" />
-                        Filters
-                    </Button>
-                    <Button 
-                        onClick={() => setShowManualModal(true)}
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl px-6 shadow-lg shadow-emerald-100"
-                    >
-                        Manual Entry Override
-                    </Button>
+                <Button
+                    onClick={() => {
+                        setManual((prev) => ({ ...prev, date: selectedDate }));
+                        setShowModal(true);
+                    }}
+                    className="rounded-2xl bg-emerald-700 text-white hover:bg-emerald-800"
+                >
+                    Manual Entry Override
+                </Button>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
+                <Card className="rounded-2xl border p-4">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Staff</p>
+                    <p className="mt-1 text-2xl font-black text-slate-800">{summary.total_staff}</p>
+                </Card>
+                <Card className="rounded-2xl border p-4">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Present Today</p>
+                    <p className="mt-1 text-2xl font-black text-emerald-700">{summary.present_today}</p>
+                </Card>
+                <Card className="rounded-2xl border p-4">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Absent</p>
+                    <p className="mt-1 text-2xl font-black text-rose-700">{summary.absent}</p>
+                </Card>
+                <Card className="rounded-2xl border p-4">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Late / Half Day</p>
+                    <p className="mt-1 text-2xl font-black text-amber-700">{summary.late_or_half_day}</p>
+                </Card>
+                <Card className="rounded-2xl border p-4">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Unscheduled</p>
+                    <p className="mt-1 text-2xl font-black text-slate-700">{summary.unscheduled}</p>
+                </Card>
+            </div>
+
+            <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white">
+                <div className="flex flex-col gap-3 border-b border-slate-100 p-4 md:flex-row md:items-center md:justify-between">
+                    <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 md:w-96">
+                        <Search className="h-4 w-4 text-slate-400" />
+                        <input
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Search by name or code"
+                            className="w-full bg-transparent text-sm font-medium text-slate-700 focus:outline-none"
+                        />
+                    </div>
+                    <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2">
+                        <Calendar className="h-4 w-4 text-emerald-700" />
+                        <input
+                            type="date"
+                            value={selectedDate}
+                            onChange={(e) => setSelectedDate(e.target.value)}
+                            className="bg-transparent text-sm font-semibold text-slate-700 focus:outline-none"
+                        />
+                    </div>
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full">
+                        <thead>
+                            <tr className="bg-slate-50">
+                                <th className="px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Staff</th>
+                                <th className="px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Derived Status</th>
+                                <th className="px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Check In</th>
+                                <th className="px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Check Out</th>
+                                <th className="px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Minutes</th>
+                                <th className="px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Note</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {loading ? (
+                                <tr>
+                                    <td colSpan={6} className="px-4 py-14 text-center text-sm font-semibold text-slate-400">
+                                        Loading attendance records...
+                                    </td>
+                                </tr>
+                            ) : filteredRecords.length === 0 ? (
+                                <tr>
+                                    <td colSpan={6} className="px-4 py-14 text-center text-sm font-semibold text-slate-400">
+                                        No attendance records found for this date.
+                                    </td>
+                                </tr>
+                            ) : (
+                                filteredRecords.map((record) => (
+                                    <tr key={record.attendance_id} className="border-t border-slate-100">
+                                        <td className="px-4 py-4">
+                                            <div className="font-semibold text-slate-800">{record.staff_name}</div>
+                                            <div className="text-xs font-semibold text-slate-400">{record.user_code}</div>
+                                        </td>
+                                        <td className="px-4 py-4">
+                                            <span
+                                                className={`inline-flex rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wider ${statusStyle(
+                                                    String(record.derived_status || "")
+                                                )}`}
+                                            >
+                                                {String(record.derived_status || record.status).replace("_", " ")}
+                                            </span>
+                                        </td>
+                                        <td className="px-4 py-4 text-sm font-semibold text-slate-700">{formatTime(record.check_in_time, systemTimezone)}</td>
+                                        <td className="px-4 py-4 text-sm font-semibold text-slate-700">{formatTime(record.check_out_time, systemTimezone)}</td>
+                                        <td className="px-4 py-4 text-xs font-semibold text-slate-500">
+                                            <div>Late: {record.late_minutes ?? 0}</div>
+                                            <div>Early: {record.early_leave_minutes ?? 0}</div>
+                                            <div>OT: {record.overtime_minutes ?? 0}</div>
+                                        </td>
+                                        <td className="px-4 py-4 text-xs font-medium text-slate-500">
+                                            {record.attendance_message || (record.is_unscheduled ? "Unscheduled shift day." : "-")}
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
-            {/* Manual Entry Modal */}
-            {showManualModal && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
-                        <div className="p-8 border-b border-slate-50 flex items-center justify-between">
-                            <h2 className="text-xl font-black text-slate-800 uppercase tracking-tight">Manual Attendance Entry</h2>
-                            <button onClick={() => setShowManualModal(false)} className="text-slate-400 hover:text-slate-600 transition-all p-2 bg-slate-50 rounded-xl">
-                                <XCircle className="w-5 h-5" />
+            {showModal ? (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4">
+                    <div className="w-full max-w-2xl rounded-[2rem] bg-white p-6 shadow-2xl">
+                        <div className="mb-4 flex items-center justify-between">
+                            <h2 className="text-lg font-black uppercase tracking-tight text-slate-800">Manual Attendance Override</h2>
+                            <button className="text-sm font-semibold text-slate-500" onClick={() => setShowModal(false)}>
+                                Close
                             </button>
                         </div>
-                        <form onSubmit={handleManualSubmit} className="p-8 space-y-6">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Staff Member ID</label>
-                                <input 
-                                    type="text" 
-                                    placeholder="Enter Staff ID (e.g., 1)" 
-                                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
-                                    value={manualEntry.staff_id}
-                                    onChange={(e) => setManualEntry({...manualEntry, staff_id: e.target.value})}
-                                    required
-                                />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Date</label>
-                                    <input 
-                                        type="date" 
-                                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
-                                        value={manualEntry.date}
-                                        onChange={(e) => setManualEntry({...manualEntry, date: e.target.value})}
+                        <form className="space-y-4" onSubmit={handleManualSubmit}>
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Employee</label>
+                                    <select
+                                        value={manual.staff_id}
+                                        onChange={(e) => {
+                                            const selected = staff.find((person) => String(person.staff_id) === e.target.value);
+                                            setManual((prev) => ({
+                                                ...prev,
+                                                staff_id: e.target.value,
+                                                account_type: selected?.account_type ?? "staff",
+                                            }));
+                                        }}
+                                        className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium"
+                                        required
+                                    >
+                                        <option value="">Select staff</option>
+                                        {staff.map((person) => (
+                                            <option key={person.staff_id} value={String(person.staff_id)}>
+                                                {person.name} ({person.user_code}) - {person.account_type}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Date</label>
+                                    <input
+                                        type="date"
+                                        value={manual.date}
+                                        onChange={(e) => setManual((prev) => ({ ...prev, date: e.target.value }))}
+                                        className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium"
                                         required
                                     />
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Status</label>
-                                    <select 
-                                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
-                                        value={manualEntry.status}
-                                        onChange={(e) => setManualEntry({...manualEntry, status: e.target.value})}
+                            </div>
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Status</label>
+                                    <select
+                                        value={manual.status}
+                                        onChange={(e) => setManual((prev) => ({ ...prev, status: e.target.value }))}
+                                        className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium"
                                     >
                                         <option value="Present">Present</option>
                                         <option value="Absent">Absent</option>
@@ -146,171 +392,65 @@ export default function AttendancePage() {
                                         <option value="Leave">Leave</option>
                                     </select>
                                 </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Check In</label>
-                                    <input 
-                                        type="time" 
-                                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
-                                        value={manualEntry.check_in_time}
-                                        onChange={(e) => setManualEntry({...manualEntry, check_in_time: e.target.value})}
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Check In</label>
+                                    <input
+                                        type="time"
+                                        value={manual.check_in_time}
+                                        onChange={(e) => setManual((prev) => ({ ...prev, check_in_time: e.target.value }))}
+                                        className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium"
                                     />
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Check Out</label>
-                                    <input 
-                                        type="time" 
-                                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
-                                        value={manualEntry.check_out_time}
-                                        onChange={(e) => setManualEntry({...manualEntry, check_out_time: e.target.value})}
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Check Out</label>
+                                    <input
+                                        type="time"
+                                        value={manual.check_out_time}
+                                        onChange={(e) => setManual((prev) => ({ ...prev, check_out_time: e.target.value }))}
+                                        className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium"
                                     />
                                 </div>
                             </div>
-                            <Button type="submit" className="w-full bg-slate-900 hover:bg-black text-white py-4 rounded-2xl shadow-xl mt-4 font-black uppercase tracking-widest text-[11px]">
-                                Save Record
-                            </Button>
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Reason (audit)</label>
+                                <input
+                                    type="text"
+                                    value={manual.reason}
+                                    onChange={(e) => setManual((prev) => ({ ...prev, reason: e.target.value }))}
+                                    placeholder="Correction reason"
+                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium"
+                                />
+                            </div>
+                            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
+                                <div className="mb-1 font-black uppercase tracking-wider text-slate-500">Computed Outcome Preview</div>
+                                {previewLoading ? (
+                                    <span>Calculating...</span>
+                                ) : preview ? (
+                                    <div className="space-y-1">
+                                        <div>Status: <strong>{String(preview.derived_status || "").replace("_", " ")}</strong></div>
+                                        <div>Late: {preview.late_minutes ?? 0} min, Early Leave: {preview.early_leave_minutes ?? 0} min, Overtime: {preview.overtime_minutes ?? 0} min</div>
+                                        <div>{preview.message}</div>
+                                    </div>
+                                ) : (
+                                    <span>Select employee/date to preview policy outcome.</span>
+                                )}
+                            </div>
+                            <div className="flex justify-end gap-2">
+                                <Button type="button" variant="outline" className="rounded-xl" onClick={() => setShowModal(false)}>
+                                    Cancel
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    disabled={submitting}
+                                    className="rounded-xl bg-emerald-700 text-white hover:bg-emerald-800"
+                                >
+                                    {submitting ? "Saving..." : "Save Override"}
+                                </Button>
+                            </div>
                         </form>
                     </div>
                 </div>
-            )}
-
-            {/* Quick Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {stats.map((stat, idx) => (
-                    <Card key={idx} className="p-6 border-none shadow-sm bg-white rounded-[2rem] flex items-center gap-5">
-                        <div className={`w-14 h-14 ${stat.bg} rounded-2xl flex items-center justify-center shrink-0`}>
-                            <stat.icon className={`w-7 h-7 ${stat.color}`} />
-                        </div>
-                        <div>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
-                            <p className="text-2xl font-black text-slate-800 mt-0.5">{stat.value}</p>
-                        </div>
-                    </Card>
-                ))}
-            </div>
-
-            {/* Main Table Section */}
-            <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden min-h-[500px]">
-                <div className="p-6 border-b border-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div className="flex items-center gap-4 bg-slate-50 border border-slate-100 px-4 py-2.5 rounded-2xl w-full md:w-96">
-                        <Search className="w-4 h-4 text-slate-400" />
-                        <input 
-                            type="text" 
-                            placeholder="Search staff by name or code..." 
-                            className="bg-transparent border-none focus:outline-none text-sm w-full placeholder:text-slate-400"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-2 bg-slate-50 border border-slate-100 px-4 py-2.5 rounded-2xl">
-                             <Calendar className="w-4 h-4 text-emerald-600" />
-                             <input 
-                                type="date" 
-                                className="bg-transparent border-none focus:outline-none text-xs font-black text-slate-600 uppercase"
-                                value={selectedDate}
-                                onChange={(e) => setSelectedDate(e.target.value)}
-                             />
-                        </div>
-                    </div>
-                </div>
-
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="bg-slate-50/50">
-                                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">Staff Info</th>
-                                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">Status</th>
-                                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">Check In</th>
-                                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">Check Out</th>
-                                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-50">
-                            {loading ? (
-                                <tr>
-                                    <td colSpan={5} className="px-8 py-20 text-center">
-                                        <div className="flex flex-col items-center gap-3">
-                                            <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
-                                            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Fetching daily logs...</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ) : filteredData.length === 0 ? (
-                                <tr>
-                                    <td colSpan={5} className="px-8 py-20 text-center">
-                                        <div className="flex flex-col items-center gap-3 opacity-40">
-                                            <Calendar className="w-12 h-12 text-slate-300" />
-                                            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">No attendance records found for this date</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ) : filteredData.map((record) => (
-                                <tr key={record.attendance_id} className="hover:bg-slate-50/50 transition-colors group">
-                                    <td className="px-8 py-6">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-xl flex items-center justify-center font-black text-emerald-700 text-xs shadow-sm">
-                                                {record.staff_name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
-                                            </div>
-                                            <div>
-                                                <p className="font-bold text-slate-800 text-sm leading-none">{record.staff_name}</p>
-                                                <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-wider">{record.user_code}</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-8 py-6">
-                                        <span className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider border ${
-                                            record.status === 'Present' 
-                                                ? 'bg-emerald-50 text-emerald-700 border-emerald-100' 
-                                                : 'bg-rose-50 text-rose-700 border-rose-100'
-                                        }`}>
-                                            {record.status}
-                                        </span>
-                                    </td>
-                                    <td className="px-8 py-6">
-                                        <div className="flex items-center gap-2 text-slate-600">
-                                            <Clock className="w-3.5 h-3.5 text-slate-300" />
-                                            <span className="text-xs font-bold font-mono tracking-tight">
-                                                {record.check_in_time ? new Date(record.check_in_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
-                                            </span>
-                                        </div>
-                                    </td>
-                                    <td className="px-8 py-6">
-                                        <div className="flex items-center gap-2 text-slate-600">
-                                            <Clock className="w-3.5 h-3.5 text-slate-300" />
-                                            <span className="text-xs font-bold font-mono tracking-tight">
-                                                {record.check_out_time ? new Date(record.check_out_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
-                                            </span>
-                                        </div>
-                                    </td>
-                                    <td className="px-8 py-6 text-right">
-                                        <button className="p-2 text-slate-400 hover:text-emerald-700 hover:bg-emerald-50 rounded-xl transition-all">
-                                            <Edit2 className="w-4 h-4" />
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            
-            <style jsx global>{`
-                .custom-scrollbar::-webkit-scrollbar {
-                    width: 6px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-track {
-                    background: transparent;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background: #e2e8f0;
-                    border-radius: 10px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                    background: #cbd5e1;
-                }
-            `}</style>
+            ) : null}
         </div>
     );
 }

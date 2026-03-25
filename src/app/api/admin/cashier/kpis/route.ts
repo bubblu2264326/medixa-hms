@@ -1,30 +1,41 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/database/db";
 import { AuthError, requireAdminOrSuperAdmin } from "@/src/lib/server/auth";
+import {
+  getCurrentDateInTimezone,
+  getSystemTimezone,
+  getUtcDayRangeForTimezone,
+  getUtcRollingDayRangeForTimezone,
+} from "@/src/lib/server/systemTimezone";
 
 export async function GET(req: NextRequest) {
   try {
     await requireAdminOrSuperAdmin(req);
+    const timeZone = await getSystemTimezone();
+    const todayRange = getUtcDayRangeForTimezone({ timeZone });
+    const last30Range = getUtcRollingDayRangeForTimezone({ timeZone, days: 30 });
+    const todayLocalDate = getCurrentDateInTimezone(timeZone);
 
-    const [todayCollections, outstanding, cashierWise, reversals, shifts, agingTrend] = await Promise.all([
+    const [todayCollections, outstanding, cashierWise, reversals, shifts, agingTrend, last30Summary] = await Promise.all([
       query(
         `
-          SELECT COALESCE(SUM(amount), 0) AS total
-          FROM cashier_payment_txn
-          WHERE txn_type = 'payment'
-            AND created_at::date = CURRENT_DATE
-        `
+          SELECT COALESCE(SUM(ps.total_amount), 0) AS total
+          FROM pharmacy_sale ps
+          WHERE ps.sale_timestamp >= $1::timestamptz
+            AND ps.sale_timestamp < $2::timestamptz
+            AND ps.settlement_channel = 'pharmacy'
+            AND ps.settlement_status = 'settled'
+            AND ps.status IN ('Completed', 'Returned')
+        `,
+        [todayRange.startUtcIso, todayRange.endUtcIso]
       ),
       query(
         `
-          SELECT
-            COALESCE(SUM(GREATEST(COALESCE(b.total_amount, 0) - COALESCE(p.paid_amount, 0), 0)), 0) AS outstanding_due
-          FROM bill b
-          LEFT JOIN (
-            SELECT bill_id, COALESCE(SUM(amount), 0) AS paid_amount
-            FROM cashier_payment_txn
-            GROUP BY bill_id
-          ) p ON p.bill_id = b.bill_id
+          SELECT COALESCE(SUM(GREATEST(COALESCE(ps.due_amount, 0), 0)), 0) AS outstanding_due
+          FROM pharmacy_sale ps
+          WHERE ps.settlement_channel = 'pharmacy'
+            AND ps.settlement_status = 'settled'
+            AND ps.status IN ('Completed', 'Returned')
         `
       ),
       query(
@@ -32,66 +43,91 @@ export async function GET(req: NextRequest) {
           SELECT
             s.staff_id,
             s.name AS cashier_name,
-            COALESCE(SUM(cpt.amount), 0) AS total
-          FROM cashier_payment_txn cpt
-          LEFT JOIN staff s ON s.staff_id = cpt.received_by
-          WHERE cpt.txn_type = 'payment'
-            AND cpt.created_at::date = CURRENT_DATE
+            COALESCE(SUM(ps.total_amount), 0) AS total
+          FROM pharmacy_sale ps
+          LEFT JOIN staff s ON s.staff_id = ps.handled_by
+          WHERE ps.sale_timestamp >= $1::timestamptz
+            AND ps.sale_timestamp < $2::timestamptz
+            AND ps.settlement_channel = 'pharmacy'
+            AND ps.settlement_status = 'settled'
+            AND ps.status IN ('Completed', 'Returned')
           GROUP BY s.staff_id, s.name
           ORDER BY total DESC
-        `
+        `,
+        [todayRange.startUtcIso, todayRange.endUtcIso]
       ),
       query(
         `
           SELECT
             COUNT(*)::int AS reversal_count,
-            COALESCE(SUM(ABS(amount)), 0) AS reversal_amount
-          FROM cashier_payment_txn
-          WHERE txn_type = 'reversal'
-            AND created_at::date = CURRENT_DATE
-        `
+            COALESCE(SUM(total_amount), 0) AS reversal_amount
+          FROM pharmacy_sale
+          WHERE sale_timestamp >= $1::timestamptz
+            AND sale_timestamp < $2::timestamptz
+            AND settlement_channel = 'pharmacy'
+            AND settlement_status = 'settled'
+            AND status = 'Returned'
+        `,
+        [todayRange.startUtcIso, todayRange.endUtcIso]
       ),
       query(
         `
           SELECT
-            COUNT(*) FILTER (WHERE status = 'open')::int AS open_shifts,
-            COALESCE(SUM(variance) FILTER (WHERE status = 'closed' AND closed_at::date = CURRENT_DATE), 0) AS today_variance
+            0::int AS open_shifts,
+            0::numeric AS today_variance
           FROM cashier_shift
         `
       ),
       query(
         `
           WITH days AS (
-            SELECT generate_series(CURRENT_DATE - INTERVAL '6 days', CURRENT_DATE, INTERVAL '1 day')::date AS day
+            SELECT generate_series($1::date - INTERVAL '6 days', $1::date, INTERVAL '1 day')::date AS day
           )
           SELECT
             d.day,
             COALESCE(
               SUM(
                 GREATEST(
-                  COALESCE(b.total_amount, 0) - COALESCE(p.paid_amount, 0),
+                  COALESCE(ps.due_amount, 0),
                   0
                 )
               ),
               0
             ) AS outstanding_due
           FROM days d
-          CROSS JOIN bill b
-          LEFT JOIN LATERAL (
-            SELECT COALESCE(SUM(cpt.amount), 0) AS paid_amount
-            FROM cashier_payment_txn cpt
-            WHERE cpt.bill_id = b.bill_id
-              AND cpt.created_at::date <= d.day
-          ) p ON true
+          LEFT JOIN pharmacy_sale ps
+            ON (ps.sale_timestamp AT TIME ZONE $2)::date <= d.day
+           AND ps.settlement_channel = 'pharmacy'
+           AND ps.settlement_status = 'settled'
+           AND ps.status IN ('Completed', 'Returned')
           GROUP BY d.day
           ORDER BY d.day ASC
+        `,
+        [todayLocalDate, timeZone]
+      ),
+      query(
         `
+          SELECT
+            COUNT(*)::int AS txn_count,
+            COALESCE(SUM(total_amount), 0) AS collections,
+            COALESCE(SUM(GREATEST(COALESCE(due_amount, 0), 0)), 0) AS outstanding
+          FROM pharmacy_sale
+          WHERE sale_timestamp >= $1::timestamptz
+            AND sale_timestamp < $2::timestamptz
+            AND settlement_channel = 'pharmacy'
+            AND settlement_status = 'settled'
+            AND status IN ('Completed', 'Returned')
+        `,
+        [last30Range.startUtcIso, last30Range.endUtcIso]
       ),
     ]);
 
     return NextResponse.json({
       todayCollections: Number(todayCollections.rows[0]?.total ?? 0),
       outstandingDue: Number(outstanding.rows[0]?.outstanding_due ?? 0),
+      last30Collections: Number(last30Summary.rows[0]?.collections ?? 0),
+      last30Outstanding: Number(last30Summary.rows[0]?.outstanding ?? 0),
+      last30TxnCount: Number(last30Summary.rows[0]?.txn_count ?? 0),
       reversalsToday: {
         count: Number(reversals.rows[0]?.reversal_count ?? 0),
         amount: Number(reversals.rows[0]?.reversal_amount ?? 0),

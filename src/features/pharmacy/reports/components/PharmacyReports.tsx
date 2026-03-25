@@ -14,6 +14,8 @@ import {
 import { Card } from "@/src/components/ui/Card";
 import { Button } from "@/src/components/ui/Button";
 import { MedicineBatchSummary } from "./MedicineBatchSummary";
+import { formatDateInTimezone } from "@/src/lib/timezone/client";
+import { useSystemTimezone } from "@/src/lib/timezone/useSystemTimezone";
 
 interface ExpiringItem {
   brand_name: string;
@@ -34,6 +36,7 @@ interface DeadStockItem {
 }
 
 export function PharmacyReports() {
+  const systemTimezone = useSystemTimezone();
   const [data, setData] = useState<{
     expiringSoon: ExpiringItem[];
     deadStock: DeadStockItem[];
@@ -224,7 +227,7 @@ export function PharmacyReports() {
                             </div>
                             <div className={`text-xs mt-1.5 font-bold flex items-center gap-1.5 ${isCritical ? "text-red-500" : "text-amber-600"}`}>
                               <Calendar size={12} />
-                              Exp: {expiryDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                              Exp: {formatDateInTimezone(expiryDate, systemTimezone)}
                               <span className="text-[10px] uppercase">({daysLeft} days left)</span>
                             </div>
                           </td>
@@ -250,7 +253,7 @@ export function PharmacyReports() {
                         <td className="px-6 py-4">
                           {item.last_sale_date ? (
                             <div className="text-xs text-slate-500 font-medium">
-                              Last sold: {new Date(item.last_sale_date).toLocaleDateString()}
+                              Last sold: {formatDateInTimezone(item.last_sale_date, systemTimezone)}
                             </div>
                           ) : (
                             <div className="text-xs text-red-400 font-bold uppercase tracking-tight">Never Sold</div>

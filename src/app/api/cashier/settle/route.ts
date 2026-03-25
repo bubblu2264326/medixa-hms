@@ -3,6 +3,7 @@ import pool from "@/database/db";
 import { AuthError } from "@/src/lib/server/auth";
 import { deriveBillPaymentStatus, requireCashierOrAdmin } from "@/src/lib/server/cashier";
 import { logAuditEvent } from "@/src/lib/server/audit";
+import { getReceiptDateStamp, getSystemTimezone } from "@/src/lib/server/systemTimezone";
 
 type SettlePayload = {
   billId?: number;
@@ -33,6 +34,7 @@ export async function POST(req: NextRequest) {
   const client = await pool.connect();
   try {
     const user = await requireCashierOrAdmin(req);
+    const systemTimezone = await getSystemTimezone();
     const idempotencyKey = getIdempotencyKey(req);
     if (!idempotencyKey) {
       return NextResponse.json(
@@ -157,7 +159,8 @@ export async function POST(req: NextRequest) {
       ]
     );
     const paymentTxnId = Number(paymentTxnResult.rows[0].cashier_payment_txn_id);
-    const receiptNo = `CPT-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${paymentTxnId}`;
+    const receiptDate = getReceiptDateStamp(new Date(), systemTimezone);
+    const receiptNo = `CPT-${receiptDate}-${paymentTxnId}`;
     await client.query(
       `
         UPDATE cashier_payment_txn

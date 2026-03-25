@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import pool from "@/database/db";
 import { AuthError } from "@/src/lib/server/auth";
 import { deriveBillPaymentStatus, requireCashierOrAdmin } from "@/src/lib/server/cashier";
+import { getReceiptDateStamp, getSystemTimezone } from "@/src/lib/server/systemTimezone";
 
 async function resolveStaffId(userCode: string, client: any) {
   const result = await client.query("select staff_id from staff where user_code = $1 limit 1", [userCode]);
@@ -15,6 +16,7 @@ export async function PATCH(
   const client = await pool.connect();
   try {
     const user = await requireCashierOrAdmin(req);
+    const systemTimezone = await getSystemTimezone();
     const staffId = await resolveStaffId(user.user_code, client);
     if (!staffId) {
       return NextResponse.json({ error: "Unable to resolve cashier staff id" }, { status: 403 });
@@ -126,7 +128,8 @@ export async function PATCH(
       [billId, visitId, amount, paymentType, paymentReference, notes, staffId]
     );
     const paymentTxnId = Number(paymentTxnResult.rows[0].cashier_payment_txn_id);
-    const receiptNo = `CPT-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${paymentTxnId}`;
+    const receiptDate = getReceiptDateStamp(new Date(), systemTimezone);
+    const receiptNo = `CPT-${receiptDate}-${paymentTxnId}`;
     await client.query(
       `UPDATE cashier_payment_txn SET receipt_no = $2 WHERE cashier_payment_txn_id = $1`,
       [paymentTxnId, receiptNo]
@@ -252,4 +255,3 @@ export async function PATCH(
     client.release();
   }
 }
-

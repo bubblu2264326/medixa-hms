@@ -4,10 +4,12 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { 
   Activity, ArrowDownLeft, ArrowUpRight, ShoppingCart, 
-  RotateCcw, Search, Filter, Eye, MoreVertical, 
+  RotateCcw, Search, Eye, 
   FileText, Calendar, Box, User, Pencil
 } from 'lucide-react';
 import { Button } from '@/src/components/ui/Button';
+import { formatDateInTimezone, formatDateTimeInTimezone } from '@/src/lib/timezone/client';
+import { useSystemTimezone } from '@/src/lib/timezone/useSystemTimezone';
 
 type Transaction = {
   txn_id: number;
@@ -45,6 +47,7 @@ export function TransactionsView() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const systemTimezone = useSystemTimezone();
 
   const [data, setData] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
@@ -149,8 +152,6 @@ export function TransactionsView() {
             <tbody className="divide-y divide-slate-50/50">
               {filtered.map((txn) => {
                 const config = TYPE_CONFIG[txn.txn_type] || DEFAULT_CONFIG;
-                const dateObj = new Date(txn.created_at);
-                
                 return (
                   <tr key={txn.txn_id} className="group hover:bg-slate-50/50 transition-all duration-300">
                     <td className="px-6 py-5">
@@ -165,7 +166,7 @@ export function TransactionsView() {
                         <div className="flex items-center gap-2 text-slate-400 ml-1">
                           <Calendar size={12} />
                           <span className="text-[11px] font-bold">
-                            {dateObj.toLocaleDateString('en-PK', { day: '2-digit', month: 'short' })} • {dateObj.toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                            {formatDateInTimezone(txn.created_at, systemTimezone, { day: '2-digit', month: 'short' })} • {formatDateTimeInTimezone(txn.created_at, systemTimezone, { day: undefined, month: undefined, year: undefined })}
                           </span>
                         </div>
                       </div>
@@ -210,7 +211,7 @@ export function TransactionsView() {
                       <div className="flex flex-col gap-1">
                         <span className="text-xs font-black text-slate-600 tracking-tight">#{txn.batch_number}</span>
                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                          Exp: {new Date(txn.expiry_date).toLocaleDateString()}
+                          Exp: {formatDateInTimezone(txn.expiry_date, systemTimezone)}
                         </span>
                       </div>
                     </td>

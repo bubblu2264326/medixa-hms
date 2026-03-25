@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import pool from "@/database/db";
 import { AuthError } from "@/src/lib/server/auth";
 import { deriveBillPaymentStatus, requireCashierAdminOnlyForReversal } from "@/src/lib/server/cashier";
+import { getReceiptDateStamp, getSystemTimezone } from "@/src/lib/server/systemTimezone";
 
 type CorrectPayload = {
   cashierPaymentTxnId?: number;
@@ -22,6 +23,7 @@ export async function POST(req: NextRequest) {
   const client = await pool.connect();
   try {
     const user = await requireCashierAdminOnlyForReversal(req);
+    const systemTimezone = await getSystemTimezone();
     const body = (await req.json()) as CorrectPayload;
 
     const targetTxnId = Number(body.cashierPaymentTxnId ?? 0);
@@ -121,7 +123,8 @@ export async function POST(req: NextRequest) {
       ]
     );
     const reversalTxnId = Number(reversalTxnResult.rows[0].cashier_payment_txn_id);
-    const reversalReceiptNo = `CRV-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${reversalTxnId}`;
+    const receiptDate = getReceiptDateStamp(new Date(), systemTimezone);
+    const reversalReceiptNo = `CRV-${receiptDate}-${reversalTxnId}`;
     await client.query(
       `UPDATE cashier_payment_txn SET receipt_no = $2 WHERE cashier_payment_txn_id = $1`,
       [reversalTxnId, reversalReceiptNo]
@@ -215,7 +218,7 @@ export async function POST(req: NextRequest) {
       [billId, visitId, replacementAmount, replacementPaymentType, replacementReference, replacementNotes, staffId]
     );
     const newPaymentTxnId = Number(newPaymentTxnResult.rows[0].cashier_payment_txn_id);
-    const newReceiptNo = `CPT-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${newPaymentTxnId}`;
+    const newReceiptNo = `CPT-${receiptDate}-${newPaymentTxnId}`;
     await client.query(
       `UPDATE cashier_payment_txn SET receipt_no = $2 WHERE cashier_payment_txn_id = $1`,
       [newPaymentTxnId, newReceiptNo]
@@ -346,4 +349,3 @@ export async function POST(req: NextRequest) {
     client.release();
   }
 }
-

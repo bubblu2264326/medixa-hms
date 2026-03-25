@@ -22,8 +22,11 @@ import { getAllMedicines, getAllPartiesName, getMedicinePriceHistory, getPurchas
 import { Medicine, Party, PurchaseFormMetadata, PurchaseItem, PurchaseInvoice } from "../types";
 import { PurchaseMedicineSearch } from "./PurchaseMedicineSearch";
 import toast from 'react-hot-toast';
+import { formatDateInTimezone } from "@/src/lib/timezone/client";
+import { useSystemTimezone } from "@/src/lib/timezone/useSystemTimezone";
 
 export default function MedicinePurchaseForm() {
+    const systemTimezone = useSystemTimezone();
     const searchParams = useSearchParams();
     const router = useRouter();
     const pathname = usePathname();
@@ -645,7 +648,7 @@ export default function MedicinePurchaseForm() {
                             <div className="flex flex-col gap-1">
                                 <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Nearest Expiry</span>
                                 <span className={`text-sm font-black ${new Date(medStats.nearest_expiry) < new Date() ? 'text-rose-500' : 'text-amber-600'}`}>
-                                    {medStats.nearest_expiry ? new Date(medStats.nearest_expiry).toLocaleDateString() : 'N/A'}
+                                    {medStats.nearest_expiry ? formatDateInTimezone(medStats.nearest_expiry, systemTimezone) : 'N/A'}
                                 </span>
                             </div>
                         </div>

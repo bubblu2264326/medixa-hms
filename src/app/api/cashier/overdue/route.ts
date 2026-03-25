@@ -2,10 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/database/db";
 import { AuthError } from "@/src/lib/server/auth";
 import { requireCashierOrAdmin } from "@/src/lib/server/cashier";
+import { getCurrentDateInTimezone, getSystemTimezone } from "@/src/lib/server/systemTimezone";
 
 export async function GET(req: NextRequest) {
   try {
     await requireCashierOrAdmin(req);
+    const timeZone = await getSystemTimezone();
+    const localDate = getCurrentDateInTimezone(timeZone);
     const { searchParams } = new URL(req.url);
     const bucket = searchParams.get("bucket");
     const patient = searchParams.get("patient");
@@ -25,7 +28,7 @@ export async function GET(req: NextRequest) {
             b.created_at,
             COALESCE(SUM(cpt.amount), 0) AS paid_amount,
             GREATEST(COALESCE(b.total_amount, 0) - COALESCE(SUM(cpt.amount), 0), 0) AS due_amount,
-            GREATEST((CURRENT_DATE - b.created_at::date), 0)::int AS overdue_days
+            GREATEST(($4::date - (b.created_at AT TIME ZONE $5)::date), 0)::int AS overdue_days
           FROM bill b
           JOIN patient p ON p.patient_id = b.patient_id
           LEFT JOIN visit v ON v.visit_id = b.visit_id
@@ -56,7 +59,7 @@ export async function GET(req: NextRequest) {
         ORDER BY risk_score DESC, due_amount DESC, overdue_days DESC
         LIMIT $3
       `,
-      [patient || null, bucket || null, limit]
+      [patient || null, bucket || null, limit, localDate, timeZone]
     );
 
     return NextResponse.json({
@@ -88,4 +91,3 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Failed to load overdue queue" }, { status: 500 });
   }
 }
-

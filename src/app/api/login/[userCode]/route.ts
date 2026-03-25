@@ -11,17 +11,20 @@ export async function GET(req:NextRequest,{params}:{params:Promise<{userCode:str
     res=await client.query("select doctor_name as name,'Doctor' as role from doctor where user_code = $1 ",[code]);
    }
     else{
-    res=await client.query("select name ,role from staff where user_code = $1 ",[code]);
+    res=await client.query("select name, role, employment_status from staff where user_code = $1 ",[code]);
    }
    
    if(res!.rows.length === 0){
-      throw new Error("No user Found");
+      return NextResponse.json({ error: "User code not found" }, { status: 404 });
+   }
+   if (res!.rows[0]?.employment_status && String(res.rows[0].employment_status).toLowerCase() !== "active") {
+      return NextResponse.json({ error: "Account is not active" }, { status: 403 });
    }
    return NextResponse.json(res!.rows[0],{status:200})
   }
   catch(err){
-   console.error(err);
-   return NextResponse.json({error:err},{status:500});
+   console.error("login lookup error", err);
+   return NextResponse.json({ error: "Unable to verify user code right now" }, { status: 500 });
   }
   finally{
    client.release();

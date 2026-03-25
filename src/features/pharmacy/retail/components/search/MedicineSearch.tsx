@@ -2,6 +2,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Medicine } from "../../types";
 import { formatStockQuantity, getMedicineAvailability } from "../../stock";
+import { formatDateInTimezone } from "@/src/lib/timezone/client";
+import { useSystemTimezone } from "@/src/lib/timezone/useSystemTimezone";
 
 interface MedicineSearchProps {
   query: string;
@@ -24,6 +26,7 @@ export const MedicineSearch: React.FC<MedicineSearchProps> = ({
   inputRef,
   onKeyDown,
 }) => {
+  const systemTimezone = useSystemTimezone();
   const [showResults, setShowResults] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const resultsRef = useRef<HTMLDivElement>(null);
@@ -236,7 +239,7 @@ export const MedicineSearch: React.FC<MedicineSearchProps> = ({
                   <div className="flex flex-col">
                     <span className={`text-[9px] font-black uppercase tracking-widest leading-none mb-1 ${index === focusedIndex ? 'text-indigo-200' : 'text-slate-400'}`}>Exp</span>
                     <span className={`text-xs font-black ${index === focusedIndex ? 'text-white' : (medicine.expiry_date && new Date(medicine.expiry_date) < new Date() ? 'text-rose-500' : 'text-slate-600')}`}>
-                      {medicine.expiry_date ? new Date(medicine.expiry_date).toLocaleDateString('en-GB', { month: 'short', year: '2-digit' }) : 'N/A'}
+                      {medicine.expiry_date ? formatDateInTimezone(medicine.expiry_date, systemTimezone, { month: 'short', year: '2-digit' }) : 'N/A'}
                     </span>
                   </div>
                 </div>

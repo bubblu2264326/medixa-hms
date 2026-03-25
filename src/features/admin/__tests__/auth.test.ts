@@ -1,11 +1,17 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { jwtVerifyMock } = vi.hoisted(() => ({
   jwtVerifyMock: vi.fn(),
 }));
+const { queryMock } = vi.hoisted(() => ({
+  queryMock: vi.fn(),
+}));
 
 vi.mock("jose", () => ({
   jwtVerify: jwtVerifyMock,
+}));
+vi.mock("@/database/db", () => ({
+  query: queryMock,
 }));
 
 import { AuthError, getAuthenticatedUser, requireAdminOrSuperAdmin } from "@/src/lib/server/auth";
@@ -21,6 +27,13 @@ const buildRequest = (token?: string) =>
   }) as any;
 
 describe("admin auth helpers", () => {
+  beforeEach(() => {
+    queryMock.mockReset();
+    queryMock.mockResolvedValue({
+      rows: [{ session_version: 1, employment_status: "active", revoked_at: null }],
+    });
+  });
+
   it("rejects missing token with 401", async () => {
     await expect(getAuthenticatedUser(buildRequest())).rejects.toMatchObject<AuthError>({
       status: 401,

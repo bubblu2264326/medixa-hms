@@ -2,6 +2,18 @@ import { jwtVerify } from "jose";
 import { NextRequest, NextResponse } from "next/server";
 const JWT_Secret = new TextEncoder().encode(process.env.secret_key || "hms_super_secure_2026_clinic_key");
 
+const normalizeRole = (raw: unknown) => {
+    const role = String(raw ?? "").trim().toLowerCase();
+    if (role === "super admin" || role === "super_admin") return "super_admin";
+    if (role === "admin") return "admin";
+    if (role === "doctor") return "doctor";
+    if (role === "lab_technician" || role === "lab technician" || role === "technician") return "lab_technician";
+    if (role === "receptionist" || role === "front_desk" || role === "front desk") return "receptionist";
+    if (role === "pharmacist") return "pharmacist";
+    if (role === "cashier") return "cashier";
+    return role;
+};
+
 export async function middleware(req: NextRequest) {
     //get token from request
     const token = req.cookies.get("token")?.value;
@@ -15,40 +27,44 @@ export async function middleware(req: NextRequest) {
     }
     try {
         const { payload } = await jwtVerify(token, JWT_Secret);
-        const role = payload.role;
+        const role = normalizeRole(payload.role);
 
-        if (url.pathname.startsWith("/doctor") && role != "Doctor") {
+        if (url.pathname.startsWith("/doctor") && role !== "doctor") {
             url.pathname = '/';
             return NextResponse.redirect(url);
         }
-        if (url.pathname.startsWith("/lab") && role !== "Lab_Technician") {
+        if (url.pathname.startsWith("/lab") && role !== "lab_technician") {
             url.pathname = "/";
             return NextResponse.redirect(url);
         }
-        if (url.pathname.startsWith("/receptionist") && role !== "Receptionist") {
+        if (url.pathname.startsWith("/receptionist") && role !== "receptionist") {
             url.pathname = "/";
             return NextResponse.redirect(url);
         }
-        if (url.pathname.startsWith("/pharmacy") && role !== "Pharmacist") {
+        if (url.pathname.startsWith("/pharmacy") && role !== "pharmacist") {
             url.pathname = "/";
             return NextResponse.redirect(url);
         }
         if (
             url.pathname.startsWith("/admin") &&
-            role !== "Admin" &&
-            role !== "Super Admin"
+            role !== "admin" &&
+            role !== "super_admin"
         ) {
             url.pathname = "/";
             return NextResponse.redirect(url);
         }
         if (
             url.pathname.startsWith("/cashier") &&
-            role !== "Cashier" &&
-            role !== "Admin" &&
-            role !== "Super Admin"
+            role !== "cashier" &&
+            role !== "admin" &&
+            role !== "super_admin"
         ) {
             url.pathname = "/";
             return NextResponse.redirect(url);
+        }
+        if (url.pathname.startsWith("/employee")) {
+            // Any authenticated and active account can access employee self-service APIs/pages.
+            return NextResponse.next();
         }
     }
     catch (err) {
@@ -61,4 +77,4 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
 }
 
-export const config = { matcher: ["/doctor/:path*", "/lab/:path*", "/pharmacy/:path*", "/receptionist/:path*", "/admin/:path*", "/cashier/:path*"], };
+export const config = { matcher: ["/doctor/:path*", "/lab/:path*", "/pharmacy/:path*", "/receptionist/:path*", "/admin/:path*", "/cashier/:path*", "/employee/:path*"], };

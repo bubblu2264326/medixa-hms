@@ -1,4 +1,5 @@
 import type { ReceiptPayload } from './types';
+import { DEFAULT_TIMEZONE, formatDateTimeInTimezone, isValidIanaTimezone } from "@/src/lib/timezone/client";
 
 declare global {
   interface Window {
@@ -107,10 +108,12 @@ export async function qzPrintRaw(printerName: string, data: string[]) {
 
 export function buildEscPosTestTicket() {
   let out = '';
+  const browserTz = typeof Intl !== "undefined" ? Intl.DateTimeFormat().resolvedOptions().timeZone : DEFAULT_TIMEZONE;
+  const tz = isValidIanaTimezone(browserTz) ? browserTz : DEFAULT_TIMEZONE;
   out += escposInit();
   out += escposCenter(true) + escposBold(true) + 'TEST PRINT' + escposBold(false) + escposNewlines(1);
   out += escposCenter(false);
-  out += `Time: ${new Date().toLocaleString()}` + escposNewlines(1);
+  out += `Time: ${formatDateTimeInTimezone(new Date(), tz)}` + escposNewlines(1);
   out += 'If you can read this, QZ Tray printing works.' + escposNewlines(2);
   out += escposCut();
   return out;
@@ -125,7 +128,9 @@ export function buildEscPosReceipt(payload: ReceiptPayload) {
   const phone = config.clinic_phone || '';
   const saleId = transaction.sale_id;
   const ref = transaction.payment_reference || `SALE-${saleId}`;
-  const ts = transaction.sale_timestamp ? new Date(transaction.sale_timestamp).toLocaleString() : '';
+  const payloadTz = String(config?.system_timezone ?? "").trim();
+  const tz = isValidIanaTimezone(payloadTz) ? payloadTz : DEFAULT_TIMEZONE;
+  const ts = transaction.sale_timestamp ? formatDateTimeInTimezone(transaction.sale_timestamp, tz) : '';
   const staffName = (transaction as any).staff_name || '';
   const patientName = (transaction as any).patient_name || '';
 

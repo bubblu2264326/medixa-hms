@@ -1,8 +1,11 @@
 "use client";
 import { useLabOrders } from "../hooks/useLaborders";
 import { GroupedPatientOrders, OrderItem } from "../types";
+import { formatDateInTimezone, getDateInputInTimezone } from "@/src/lib/timezone/client";
+import { useSystemTimezone } from "@/src/lib/timezone/useSystemTimezone";
 
 export default function LabOrders() {
+  const systemTimezone = useSystemTimezone();
   const {
     orders,
     loading,
@@ -26,13 +29,13 @@ export default function LabOrders() {
         <input
           type="date"
           className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          value={startDate.toISOString().split("T")[0]}
+          value={getDateInputInTimezone(startDate, systemTimezone)}
           onChange={(e) => setStartDate(new Date(e.target.value))}
         />
         <input
           type="date"
           className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          value={endDate.toISOString().split("T")[0]}
+          value={getDateInputInTimezone(endDate, systemTimezone)}
           onChange={(e) => setEndDate(new Date(e.target.value))}
         />
       </div>
@@ -127,7 +130,7 @@ export default function LabOrders() {
                           <div className="flex items-start gap-4">
                             <span className="font-semibold text-gray-700 min-w-[140px]">Order Date:</span>
                             <span className="text-gray-800">
-                              {new Date(test.order_date).toLocaleDateString("en-US", {
+                              {formatDateInTimezone(test.order_date, systemTimezone, {
                                 day: "numeric",
                                 month: "short",
                                 year: "numeric"

@@ -1,197 +1,464 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { 
-  DollarSign, 
-  TrendingUp, 
-  TrendingDown, 
-  ArrowUpRight, 
-  ArrowDownRight,
-  PieChart as PieIcon,
-  ShoppingBag,
-  Activity,
-  CreditCard,
-  FileText
-} from "lucide-react";
+
+import React, { Suspense, useEffect, useMemo, useState } from "react";
 import { Card } from "@/src/components/ui/Card";
 import { Button } from "@/src/components/ui/Button";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { getTimezoneNowDateInput } from "@/src/lib/timezone/client";
+import { useSystemTimezone } from "@/src/lib/timezone/useSystemTimezone";
 
-export default function FinancialsPage() {
-  const [data, setData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+type FinanceSummary = {
+  gross_revenue?: number;
+  payroll_expense?: number;
+  operational_expense?: number;
+  capex?: number;
+  total_expense?: number;
+  net_operating_profit?: number;
+  expenses?: number;
+};
+
+type ExpenseRow = {
+  expense_id: number;
+  expense_date: string;
+  category: string;
+  amount: number | string;
+  vendor_name?: string | null;
+};
+
+type AssetRow = {
+  asset_purchase_id: number;
+  purchase_date: string;
+  asset_name: string;
+  asset_category: string;
+  amount: number | string;
+};
+
+type ExpenseCategory = {
+  code: string;
+  label: string;
+};
+type FinanceScope = "combined" | "non_pharmacy";
+
+function FinancialsPageContent() {
+  const systemTimezone = useSystemTimezone();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const today = useMemo(() => getTimezoneNowDateInput(systemTimezone), [systemTimezone]);
+
+  const [summary, setSummary] = useState<FinanceSummary>({});
+  const [expenses, setExpenses] = useState<ExpenseRow[]>([]);
+  const [assets, setAssets] = useState<AssetRow[]>([]);
+  const [categories, setCategories] = useState<ExpenseCategory[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [scope, setScope] = useState<FinanceScope>("combined");
+
+  const [expenseForm, setExpenseForm] = useState({
+    expense_date: today,
+    category: "",
+    amount: 0,
+    vendor_name: "",
+    notes: "",
+  });
+
+  const [assetForm, setAssetForm] = useState({
+    purchase_date: today,
+    asset_name: "",
+    asset_category: "",
+    amount: 0,
+    vendor_name: "",
+    notes: "",
+  });
 
   useEffect(() => {
-    fetch("/api/admin/financials")
-      .then(res => res.json())
-      .then(d => {
-        setData(d);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error(err);
-        setLoading(false);
-      });
-  }, []);
+    setExpenseForm((prev) => ({ ...prev, expense_date: today }));
+    setAssetForm((prev) => ({ ...prev, purchase_date: today }));
+  }, [today]);
 
-  if (loading) return (
-    <div className="flex items-center justify-center h-96">
-      <div className="w-12 h-12 border-4 border-slate-200 border-t-slate-900 rounded-full animate-spin" />
-    </div>
+  const cards = useMemo(
+    () => [
+      { label: "Gross Revenue", value: Number(summary.gross_revenue ?? 0), tone: "text-emerald-700" },
+      { label: "Payroll Cost", value: Number(summary.payroll_expense ?? 0), tone: "text-slate-700" },
+      { label: "Operational Expense", value: Number(summary.operational_expense ?? 0), tone: "text-slate-700" },
+      { label: "Capex", value: Number(summary.capex ?? 0), tone: "text-slate-700" },
+      { label: "Total Expense", value: Number(summary.total_expense ?? summary.expenses ?? 0), tone: "text-rose-700" },
+      { label: "Net Operating Profit", value: Number(summary.net_operating_profit ?? 0), tone: "text-indigo-700" },
+    ],
+    [summary]
   );
 
-  const totalPaid = data?.revenue?.find((r: any) => r.payment_status === 'Paid')?.total || 0;
-  const totalPending = data?.revenue?.filter((r: any) => r.payment_status !== 'Paid')
-                          .reduce((acc: number, r: any) => acc + Number(r.total), 0) || 0;
+  const loadData = async (activeScope: FinanceScope = scope) => {
+    setLoading(true);
+    setError("");
+    try {
+      const [summaryRes, expensesRes, assetsRes, mastersRes] = await Promise.all([
+        fetch(`/api/admin/financials?scope=${activeScope}`, { credentials: "include" }),
+        fetch("/api/admin/finance/expenses", { credentials: "include" }),
+        fetch("/api/admin/finance/assets", { credentials: "include" }),
+        fetch("/api/admin/finance/masters", { credentials: "include" }),
+      ]);
+
+      const summaryData = await summaryRes.json();
+      const expensesData = await expensesRes.json();
+      const assetsData = await assetsRes.json();
+      const mastersData = await mastersRes.json();
+
+      if (!summaryRes.ok) throw new Error(summaryData?.error || "Failed to load financial summary");
+      if (!expensesRes.ok) throw new Error(expensesData?.error || "Failed to load expense entries");
+      if (!assetsRes.ok) throw new Error(assetsData?.error || "Failed to load asset purchases");
+      if (!mastersRes.ok) throw new Error(mastersData?.error || "Failed to load finance categories");
+
+      setSummary(summaryData ?? {});
+      setExpenses(Array.isArray(expensesData) ? expensesData : []);
+      setAssets(Array.isArray(assetsData) ? assetsData : []);
+      setCategories(Array.isArray(mastersData?.expense_categories) ? mastersData.expense_categories : []);
+    } catch (e: any) {
+      setError(e?.message || "Failed to load financial dashboard");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const urlScope = searchParams.get("scope");
+    if (!urlScope) {
+      setScopeInUrl("combined");
+      return;
+    }
+    const normalizedScope: FinanceScope = urlScope === "non_pharmacy" ? "non_pharmacy" : "combined";
+    setScope(normalizedScope);
+    loadData(normalizedScope);
+  }, [searchParams]);
+
+  const setScopeInUrl = (nextScope: FinanceScope) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("scope", nextScope);
+    router.replace(`${pathname}?${params.toString()}`);
+  };
+
+  const handleModeChange = (mode: "pharmacy" | FinanceScope) => {
+    if (mode === "pharmacy") {
+      router.push("/admin/cashier");
+      return;
+    }
+    if (mode === scope) return;
+    setScopeInUrl(mode);
+  };
+
+  const createExpense = async () => {
+    if (!expenseForm.expense_date || !expenseForm.category || Number(expenseForm.amount) <= 0) {
+      setError("Expense date, category and a positive amount are required.");
+      return;
+    }
+    setSaving(true);
+    setError("");
+    try {
+      const res = await fetch("/api/admin/finance/expenses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          ...expenseForm,
+          amount: Number(expenseForm.amount),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Failed to save expense");
+      setExpenseForm({ expense_date: today, category: "", amount: 0, vendor_name: "", notes: "" });
+      await loadData();
+    } catch (e: any) {
+      setError(e?.message || "Failed to save expense");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const createAsset = async () => {
+    if (
+      !assetForm.purchase_date ||
+      !assetForm.asset_name.trim() ||
+      !assetForm.asset_category.trim() ||
+      Number(assetForm.amount) <= 0
+    ) {
+      setError("Purchase date, asset name, asset category and a positive amount are required.");
+      return;
+    }
+    setSaving(true);
+    setError("");
+    try {
+      const res = await fetch("/api/admin/finance/assets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          ...assetForm,
+          amount: Number(assetForm.amount),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Failed to save asset purchase");
+      setAssetForm({ purchase_date: today, asset_name: "", asset_category: "", amount: 0, vendor_name: "", notes: "" });
+      await loadData();
+    } catch (e: any) {
+      setError(e?.message || "Failed to save asset purchase");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="space-y-6 py-4">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-black text-slate-800 tracking-tight uppercase">Financial Analytics</h1>
-          <p className="text-slate-500 text-sm font-semibold mt-1">Real-time revenue & expenditure auditing</p>
+          <h1 className="text-2xl font-black text-slate-800 uppercase tracking-tight">System Financials</h1>
+          <p className="text-sm text-slate-500 font-semibold mt-1">
+            Consolidated revenue, payroll, operating expenses, and asset purchases.
+          </p>
         </div>
-        <div className="flex gap-3">
-          <Button variant="outline" className="rounded-2xl border-slate-200 font-bold text-xs uppercase tracking-wider h-12">
-            Download PDF
-          </Button>
-          <Button className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl px-6 shadow-xl font-bold text-xs uppercase tracking-wider h-12">
-            Refresh Data
-          </Button>
-        </div>
+        <Button
+          onClick={() => loadData(scope)}
+          disabled={loading}
+          className="h-10 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-black uppercase tracking-widest px-4"
+        >
+          {loading ? "Refreshing..." : "Refresh"}
+        </Button>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="p-8 rounded-[2.5rem] border-none shadow-xl shadow-emerald-50 bg-emerald-500 text-white">
-           <div className="flex justify-between items-start">
-              <div>
-                 <p className="text-[10px] font-black uppercase tracking-widest opacity-80 mb-2">Total Net Revenue</p>
-                 <h3 className="text-4xl font-black tracking-tight">PKR {Number(totalPaid).toLocaleString()}</h3>
-                 <div className="flex items-center gap-2 mt-4 text-[11px] font-bold bg-white/20 w-fit px-3 py-1 rounded-full">
-                    <ArrowUpRight className="w-3 h-3" />
-                    +14.2% Growth
-                 </div>
-              </div>
-              <div className="p-4 bg-white/20 rounded-2xl">
-                 <DollarSign className="w-6 h-6" />
-              </div>
-           </div>
+      <Card className="rounded-2xl border border-slate-100 p-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            onClick={() => handleModeChange("pharmacy")}
+            className="h-9 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-[11px] font-black uppercase tracking-widest px-4"
+          >
+            Pharmacy Financials
+          </Button>
+          <Button
+            onClick={() => handleModeChange("combined")}
+            className={`h-9 rounded-xl text-[11px] font-black uppercase tracking-widest px-4 ${
+              scope === "combined"
+                ? "bg-emerald-700 hover:bg-emerald-800 text-white"
+                : "bg-emerald-600 hover:bg-emerald-700 text-white"
+            }`}
+          >
+            Combined
+          </Button>
+          <Button
+            onClick={() => handleModeChange("non_pharmacy")}
+            className={`h-9 rounded-xl text-[11px] font-black uppercase tracking-widest px-4 ${
+              scope === "non_pharmacy"
+                ? "bg-emerald-700 hover:bg-emerald-800 text-white"
+                : "bg-emerald-600 hover:bg-emerald-700 text-white"
+            }`}
+          >
+            Non-Pharmacy
+          </Button>
+        </div>
+      </Card>
+
+      {error ? (
+        <Card className="border border-red-100 bg-red-50 p-4 rounded-2xl">
+          <p className="text-sm font-semibold text-red-700">{error}</p>
+        </Card>
+      ) : null}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        {cards.map((card) => (
+          <Card key={card.label} className="rounded-2xl border border-slate-100 p-4">
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{card.label}</p>
+            <p className={`text-2xl font-black mt-2 ${card.tone}`}>PKR {card.value.toLocaleString()}</p>
+          </Card>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+        <Card className="rounded-3xl border border-slate-100 p-5 space-y-3">
+          <h2 className="text-sm font-black uppercase tracking-widest text-slate-500">Add Operational Expense</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <input
+              type="date"
+              value={expenseForm.expense_date}
+              onChange={(e) => setExpenseForm((p) => ({ ...p, expense_date: e.target.value }))}
+              className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+            />
+            <select
+              value={expenseForm.category}
+              onChange={(e) => setExpenseForm((p) => ({ ...p, category: e.target.value }))}
+              className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+            >
+              <option value="">Category</option>
+              {categories.map((cat) => (
+                <option key={cat.code} value={cat.code}>
+                  {cat.label}
+                </option>
+              ))}
+            </select>
+            <input
+              type="number"
+              min={0}
+              value={expenseForm.amount}
+              onChange={(e) => setExpenseForm((p) => ({ ...p, amount: Number(e.target.value || 0) }))}
+              className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+              placeholder="Amount"
+            />
+            <input
+              value={expenseForm.vendor_name}
+              onChange={(e) => setExpenseForm((p) => ({ ...p, vendor_name: e.target.value }))}
+              className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+              placeholder="Vendor (optional)"
+            />
+          </div>
+          <textarea
+            value={expenseForm.notes}
+            onChange={(e) => setExpenseForm((p) => ({ ...p, notes: e.target.value }))}
+            className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm min-h-[80px]"
+            placeholder="Notes (optional)"
+          />
+          <Button
+            onClick={createExpense}
+            disabled={saving || !expenseForm.category || !expenseForm.expense_date || Number(expenseForm.amount) <= 0}
+            className="h-10 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-black uppercase tracking-widest px-4"
+          >
+            Add Expense
+          </Button>
         </Card>
 
-        <Card className="p-8 rounded-[2.5rem] border-none shadow-xl shadow-slate-100 bg-white">
-           <div className="flex justify-between items-start">
-              <div>
-                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Operating Expenses</p>
-                 <h3 className="text-4xl font-black tracking-tight text-slate-800">PKR {Number(data?.expenses).toLocaleString()}</h3>
-                 <div className="flex items-center gap-2 mt-4 text-[11px] font-bold text-rose-500 bg-rose-50 w-fit px-3 py-1 rounded-full">
-                    <ArrowDownRight className="w-3 h-3" />
-                    Increased 8%
-                 </div>
-              </div>
-              <div className="p-4 bg-slate-50 text-slate-600 rounded-2xl border border-slate-100">
-                 <TrendingDown className="w-6 h-6" />
-              </div>
-           </div>
-        </Card>
-
-        <Card className="p-8 rounded-[2.5rem] border-none shadow-xl shadow-amber-50 bg-white border border-amber-100">
-           <div className="flex justify-between items-start">
-              <div>
-                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Arrears / Pending</p>
-                 <h3 className="text-4xl font-black tracking-tight text-slate-800">PKR {Number(totalPending).toLocaleString()}</h3>
-                 <div className="flex items-center gap-2 mt-4 text-[11px] font-bold text-amber-600 bg-amber-50 w-fit px-3 py-1 rounded-full">
-                    <Activity className="w-3 h-3" />
-                    12 Unpaid Bills
-                 </div>
-              </div>
-              <div className="p-4 bg-amber-50 text-amber-600 rounded-2xl">
-                 <CreditCard className="w-6 h-6" />
-              </div>
-           </div>
+        <Card className="rounded-3xl border border-slate-100 p-5 space-y-3">
+          <h2 className="text-sm font-black uppercase tracking-widest text-slate-500">Add Asset Purchase (Capex)</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <input
+              type="date"
+              value={assetForm.purchase_date}
+              onChange={(e) => setAssetForm((p) => ({ ...p, purchase_date: e.target.value }))}
+              className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+            />
+            <input
+              value={assetForm.asset_category}
+              onChange={(e) => setAssetForm((p) => ({ ...p, asset_category: e.target.value }))}
+              className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+              placeholder="Asset category (e.g. machine)"
+            />
+            <input
+              value={assetForm.asset_name}
+              onChange={(e) => setAssetForm((p) => ({ ...p, asset_name: e.target.value }))}
+              className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+              placeholder="Asset name"
+            />
+            <input
+              type="number"
+              min={0}
+              value={assetForm.amount}
+              onChange={(e) => setAssetForm((p) => ({ ...p, amount: Number(e.target.value || 0) }))}
+              className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+              placeholder="Amount"
+            />
+            <input
+              value={assetForm.vendor_name}
+              onChange={(e) => setAssetForm((p) => ({ ...p, vendor_name: e.target.value }))}
+              className="h-10 rounded-xl border border-slate-200 px-3 text-sm md:col-span-2"
+              placeholder="Vendor (optional)"
+            />
+          </div>
+          <textarea
+            value={assetForm.notes}
+            onChange={(e) => setAssetForm((p) => ({ ...p, notes: e.target.value }))}
+            className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm min-h-[80px]"
+            placeholder="Notes (optional)"
+          />
+          <Button
+            onClick={createAsset}
+            disabled={
+              saving ||
+              !assetForm.asset_name ||
+              !assetForm.asset_category ||
+              !assetForm.purchase_date ||
+              Number(assetForm.amount) <= 0
+            }
+            className="h-10 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-black uppercase tracking-widest px-4"
+          >
+            Add Asset Purchase
+          </Button>
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Weekly Trend */}
-        <Card className="p-8 rounded-[2.5rem] border-none shadow-2xl shadow-slate-200/50 bg-white">
-          <div className="flex items-center justify-between mb-10">
-             <div>
-                <h3 className="text-xl font-black text-slate-800 uppercase tracking-tight">Revenue Pulse</h3>
-                <p className="text-xs font-bold text-slate-400 mt-1">Growth tracking over 7 days</p>
-             </div>
-             <div className="flex gap-2">
-                <div className="flex items-center gap-1.5">
-                   <div className="w-2 h-2 bg-emerald-500 rounded-full" />
-                   <span className="text-[10px] font-black text-slate-500 uppercase tracking-tighter">Paid</span>
-                </div>
-             </div>
-          </div>
-          
-          <div className="h-64 flex items-end justify-between gap-6 px-4">
-             {data?.trend?.map((t: any, i: number) => (
-               <div key={i} className="flex-1 flex flex-col items-center gap-4 group">
-                 <div className="relative w-full h-full flex items-end">
-                    <div className="w-full bg-slate-50 rounded-2xl absolute bottom-0 h-full" style={{ height: '100%' }} />
-                    <div 
-                        className="w-full bg-emerald-500 rounded-2xl relative transition-all duration-1000 ease-out group-hover:bg-emerald-600 shadow-lg shadow-emerald-100" 
-                        style={{ height: `${(Number(t.total) / Math.max(...data.trend.map((tr: any) => Number(tr.total)))) * 100}%` }}
-                    >
-                       <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[9px] font-black px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                          {Number(t.total).toLocaleString()}
-                       </div>
-                    </div>
-                 </div>
-                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.day}</span>
-               </div>
-             ))}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+        <Card className="rounded-3xl border border-slate-100 p-5">
+          <h2 className="text-sm font-black uppercase tracking-widest text-slate-500 mb-3">Recent Expenses</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left min-w-[560px]">
+              <thead>
+                <tr className="bg-slate-50/70">
+                  <th className="px-2 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Date</th>
+                  <th className="px-2 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Category</th>
+                  <th className="px-2 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Vendor</th>
+                  <th className="px-2 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {expenses.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-2 py-4 text-sm font-semibold text-slate-500">
+                      No expense entries yet.
+                    </td>
+                  </tr>
+                ) : (
+                  expenses.slice(0, 15).map((row) => (
+                    <tr key={row.expense_id} className="border-t border-slate-100">
+                      <td className="px-2 py-2 text-xs font-semibold text-slate-700">{row.expense_date}</td>
+                      <td className="px-2 py-2 text-xs font-semibold text-slate-700">{row.category}</td>
+                      <td className="px-2 py-2 text-xs font-semibold text-slate-700">{row.vendor_name || "-"}</td>
+                      <td className="px-2 py-2 text-xs font-black text-slate-800">PKR {Number(row.amount).toLocaleString()}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
         </Card>
 
-        {/* Breakdown */}
-        <Card className="p-8 rounded-[2.5rem] border-none shadow-2xl shadow-slate-200/50 bg-white">
-           <h3 className="text-xl font-black text-slate-800 uppercase tracking-tight mb-8">Departmental Share</h3>
-           <div className="space-y-8">
-              {data?.breakdown?.map((item: any, i: number) => {
-                const colors = ['bg-indigo-500', 'bg-violet-500', 'bg-blue-500', 'bg-slate-400'];
-                const total = data.breakdown.reduce((acc: number, curr: any) => acc + Number(curr.total), 0);
-                const percent = (Number(item.total) / total) * 100;
-
-                return (
-                  <div key={i} className="space-y-3">
-                    <div className="flex justify-between items-end">
-                       <div className="flex items-center gap-3">
-                          <div className={`w-3 h-3 rounded-full ${colors[i % colors.length]}`} />
-                          <span className="text-sm font-black text-slate-700">{item.category}</span>
-                       </div>
-                       <div className="text-right">
-                          <p className="text-sm font-black text-slate-800">PKR {Number(item.total).toLocaleString()}</p>
-                          <p className="text-[10px] font-bold text-slate-400">{percent.toFixed(1)}% weight</p>
-                       </div>
-                    </div>
-                    <div className="h-3 w-full bg-slate-50 rounded-full overflow-hidden">
-                       <div 
-                          className={`h-full rounded-full ${colors[i % colors.length]}`} 
-                          style={{ width: `${percent}%` }}
-                       />
-                    </div>
-                  </div>
-                );
-              })}
-           </div>
-
-           <div className="mt-10 p-5 bg-slate-50 rounded-3xl border border-dashed border-slate-200">
-              <div className="flex items-center gap-4">
-                 <div className="p-3 bg-white rounded-2xl shadow-sm">
-                    <PieIcon className="w-5 h-5 text-indigo-600" />
-                 </div>
-                 <div>
-                    <h5 className="text-[11px] font-black text-slate-800 uppercase tracking-widest">Growth Forecast</h5>
-                    <p className="text-[10px] font-bold text-slate-500 mt-0.5">Predicted +5.8% increase in Lab revenue next month based on patient intake.</p>
-                 </div>
-              </div>
-           </div>
+        <Card className="rounded-3xl border border-slate-100 p-5">
+          <h2 className="text-sm font-black uppercase tracking-widest text-slate-500 mb-3">Recent Asset Purchases</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left min-w-[560px]">
+              <thead>
+                <tr className="bg-slate-50/70">
+                  <th className="px-2 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Date</th>
+                  <th className="px-2 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Category</th>
+                  <th className="px-2 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Asset</th>
+                  <th className="px-2 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {assets.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-2 py-4 text-sm font-semibold text-slate-500">
+                      No asset purchases yet.
+                    </td>
+                  </tr>
+                ) : (
+                  assets.slice(0, 15).map((row) => (
+                    <tr key={row.asset_purchase_id} className="border-t border-slate-100">
+                      <td className="px-2 py-2 text-xs font-semibold text-slate-700">{row.purchase_date}</td>
+                      <td className="px-2 py-2 text-xs font-semibold text-slate-700">{row.asset_category}</td>
+                      <td className="px-2 py-2 text-xs font-semibold text-slate-700">{row.asset_name}</td>
+                      <td className="px-2 py-2 text-xs font-black text-slate-800">PKR {Number(row.amount).toLocaleString()}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function FinancialsPage() {
+  return (
+    <Suspense fallback={<div className="py-6 text-sm font-semibold text-slate-500">Loading financials...</div>}>
+      <FinancialsPageContent />
+    </Suspense>
   );
 }

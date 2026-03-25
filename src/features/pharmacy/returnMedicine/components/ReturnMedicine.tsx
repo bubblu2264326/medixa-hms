@@ -1,7 +1,10 @@
 "use client";
 import { useReturnMedicine } from "../hooks/useReturnMedicine";
+import { formatDateInTimezone } from "@/src/lib/timezone/client";
+import { useSystemTimezone } from "@/src/lib/timezone/useSystemTimezone";
 
 export default function ReturnMedicine() {
+  const systemTimezone = useSystemTimezone();
   const {
     pId,
     setpId,
@@ -91,7 +94,7 @@ export default function ReturnMedicine() {
                         onChange={() => handleCheckboxChange(i)}
                       />
                     </td>
-                    <td className="border px-2 py-1">{new Date(d.order_date).toLocaleDateString()}</td>
+                    <td className="border px-2 py-1">{formatDateInTimezone(d.order_date, systemTimezone)}</td>
                     <td className="border px-2 py-1">{d.brand_name}</td>
                     <td className="border px-2 py-1">{d.generic_name}</td>
                     <td className="border px-2 py-1">{d.dosage_value} {d.dosage_unit}</td>

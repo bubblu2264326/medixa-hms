@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/database/db';
 import { ApiResponse, Medicine } from '@/src/lib/types';
+import { getCurrentDateInTimezone, getSystemTimezone } from '@/src/lib/server/systemTimezone';
 
 const SEARCH_SOURCE = `
   WITH active_batch_totals AS (
@@ -12,7 +13,7 @@ const SEARCH_SOURCE = `
       ) AS total_sub_units
     FROM medicine_batch mb
     JOIN medicine m ON m.medicine_id = mb.medicine_id
-    WHERE mb.expiry_date > CURRENT_DATE OR mb.expiry_date IS NULL
+    WHERE mb.expiry_date > $1::date OR mb.expiry_date IS NULL
     GROUP BY mb.medicine_id
   ),
   fefo_batch AS (
@@ -24,7 +25,7 @@ const SEARCH_SOURCE = `
       mb.sale_price,
       mb.sale_sub_unit_price
     FROM medicine_batch mb
-    WHERE mb.expiry_date > CURRENT_DATE OR mb.expiry_date IS NULL
+    WHERE mb.expiry_date > $1::date OR mb.expiry_date IS NULL
     ORDER BY mb.medicine_id, mb.expiry_date ASC NULLS LAST, mb.batch_id ASC
   )
   SELECT
@@ -73,6 +74,8 @@ const SEARCH_SOURCE = `
 
 export async function GET(request: NextRequest) {
   try {
+    const timeZone = await getSystemTimezone();
+    const localDate = getCurrentDateInTimezone(timeZone);
     const searchParams = request.nextUrl.searchParams;
     const searchQuery = searchParams.get('query');
     const searchType = searchParams.get('type') || 'name';
@@ -96,10 +99,10 @@ export async function GET(request: NextRequest) {
           SELECT * FROM (
             ${SEARCH_SOURCE}
           ) AS medicine_search
-          WHERE barcode = $1
+          WHERE barcode = $2
           LIMIT 10
         `;
-        params = [searchQuery];
+        params = [localDate, searchQuery];
         break;
 
       case 'sku':
@@ -107,10 +110,10 @@ export async function GET(request: NextRequest) {
           SELECT * FROM (
             ${SEARCH_SOURCE}
           ) AS medicine_search
-          WHERE sku = $1
+          WHERE sku = $2
           LIMIT 10
         `;
-        params = [searchQuery];
+        params = [localDate, searchQuery];
         break;
 
       case 'name':
@@ -120,18 +123,18 @@ export async function GET(request: NextRequest) {
             ${SEARCH_SOURCE}
           ) AS medicine_search
           WHERE
-            search_vector @@ plainto_tsquery('english', $1)
-            OR generic_name ILIKE $2
-            OR brand_name ILIKE $2
+            search_vector @@ plainto_tsquery('english', $2)
+            OR generic_name ILIKE $3
+            OR brand_name ILIKE $3
           ORDER BY 
             CASE 
-              WHEN generic_name ILIKE $2 THEN 1
-              WHEN brand_name ILIKE $2 THEN 2
+              WHEN generic_name ILIKE $3 THEN 1
+              WHEN brand_name ILIKE $3 THEN 2
               ELSE 3
             END
           LIMIT 20
         `;
-        params = [searchQuery, `%${searchQuery}%`];
+        params = [localDate, searchQuery, `%${searchQuery}%`];
         break;
     }
 

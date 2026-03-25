@@ -1,10 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { query } from '@/database/db'
+import { getCurrentDateInTimezone, getSystemTimezone } from "@/src/lib/server/systemTimezone";
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(req: NextRequest) {
+export async function GET() {
     try {
+        const timeZone = await getSystemTimezone();
+        const localDate = getCurrentDateInTimezone(timeZone);
         /**
          * Specialized endpoint for Pharmacy Purchases search.
          * 1. Returns display_mrp from the LATEST active batch (received_date DESC, batch_id DESC).
@@ -18,7 +21,7 @@ export async function GET(req: NextRequest) {
                     medicine_id, 
                     sale_price 
                 FROM medicine_batch 
-                WHERE (expiry_date > CURRENT_DATE OR expiry_date IS NULL)
+                WHERE (expiry_date > $1::date OR expiry_date IS NULL)
                 ORDER BY medicine_id, received_date DESC, batch_id DESC
             ),
             active_stock_pool AS (
@@ -27,7 +30,7 @@ export async function GET(req: NextRequest) {
                     SUM(COALESCE(mb.stock_quantity, 0)) as total_stock_quantity,
                     SUM(COALESCE(mb.stock_sub_quantity, 0)) as total_stock_sub_quantity
                 FROM medicine_batch mb
-                WHERE (mb.expiry_date > CURRENT_DATE OR mb.expiry_date IS NULL)
+                WHERE (mb.expiry_date > $1::date OR mb.expiry_date IS NULL)
                 GROUP BY mb.medicine_id
             )
             SELECT
@@ -49,7 +52,7 @@ export async function GET(req: NextRequest) {
             ORDER BY m.brand_name ASC
         `;
 
-        const data = await query(sql);
+        const data = await query(sql, [localDate]);
 
         // Sanitize numeric strings to numbers if necessary, or let JSON handle it
         return NextResponse.json(data.rows);

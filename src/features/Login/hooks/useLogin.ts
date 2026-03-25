@@ -2,8 +2,9 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { fetchUserData, loginUser } from "../api";
-import { UserData, DecodedToken } from "../types";
 
+const RECENT_LOGIN_CODES_KEY = "hms_recent_login_codes";
+const MAX_RECENT_CODES = 6;
 
 export function useLogin() {
   const [userCode, setUserCode] = useState("");
@@ -81,11 +82,16 @@ export function useLogin() {
 
     try {
       const data = await fetchUserData(userCode);
-      if (!data) setLookupError("User code not found");
-      else {
+      if (!data) {
+        setLookupError("User code not found");
+      } else {
         setName(data.name);
         setDesignation(data.role);
       }
+    } catch (err: any) {
+      setLookupError(err?.message || "Unable to verify user code right now");
+      setName("");
+      setDesignation("");
     } finally {
       setIsFetchingInfo(false);
     }
@@ -97,7 +103,20 @@ export function useLogin() {
 
     try {
       const data = await loginUser(userCode, password);
-      console.log(data);
+      const normalizedCode = userCode.trim().toUpperCase();
+      if (normalizedCode && typeof window !== "undefined") {
+        try {
+          const existingRaw = window.localStorage.getItem(RECENT_LOGIN_CODES_KEY);
+          const existing = existingRaw ? (JSON.parse(existingRaw) as string[]) : [];
+          const next = [normalizedCode, ...existing.filter((c) => c !== normalizedCode)].slice(
+            0,
+            MAX_RECENT_CODES
+          );
+          window.localStorage.setItem(RECENT_LOGIN_CODES_KEY, JSON.stringify(next));
+        } catch {
+          // Best-effort only: login should never fail because localStorage is unavailable.
+        }
+      }
 
       if (data?.role) redirectByRole(data.role);
     } catch (err: any) {

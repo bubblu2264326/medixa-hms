@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/database/db";
 import { AuthError, requireAdminOrSuperAdmin } from "@/src/lib/server/auth";
+import { logAuditEvent } from "@/src/lib/server/audit";
 
 function titleizeEvent(raw: string | null | undefined) {
   const input = String(raw ?? "").trim();
@@ -30,9 +31,14 @@ export async function GET(req: NextRequest) {
     const logs = await query(`
       SELECT 
         l.*, 
-        s.name as staff_name, 
-        s.role as staff_role,
-        s.user_code
+        COALESCE(
+          s.name,
+          l.details->>'userName',
+          l.details->>'name',
+          l.details->>'userCode'
+        ) AS staff_name,
+        COALESCE(s.role, l.details->>'role') AS staff_role,
+        COALESCE(s.user_code, l.details->>'userCode') AS user_code
       FROM audit_logs l
       LEFT JOIN staff s ON l.staff_id = s.staff_id
       ORDER BY l.created_at DESC
@@ -108,20 +114,15 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { action, entity_type, entity_id, details } = body;
 
-    const staffResult = await query(
-      "SELECT staff_id FROM staff WHERE user_code = $1 LIMIT 1",
-      [user.user_code]
-    );
-    const actorStaffId = staffResult.rows[0]?.staff_id ?? null;
+    const inserted = await logAuditEvent({
+      actorUserCode: user.user_code,
+      action: String(action ?? "System event"),
+      entityType: entity_type ?? null,
+      entityId: entity_id ?? null,
+      details: details ?? null,
+    });
 
-    const result = await query(
-      `INSERT INTO audit_logs (staff_id, action, entity_type, entity_id, details) 
-       VALUES ($1, $2, $3, $4, $5) 
-       RETURNING *`,
-      [actorStaffId, action, entity_type, entity_id, details ? JSON.stringify(details) : null]
-    );
-
-    return NextResponse.json(result.rows[0]);
+    return NextResponse.json(inserted ?? { success: true });
   } catch (error: any) {
     if (error instanceof AuthError) {
       return NextResponse.json({ error: error.message }, { status: error.status });

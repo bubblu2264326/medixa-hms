@@ -30,6 +30,7 @@ export type ReceiptConfig = Record<string, any> & {
   receipt_header?: string | null;
   receipt_footer?: string | null;
   paper_size?: string | null;
+  system_timezone?: string | null;
 };
 
 export interface ReceiptPayload {
@@ -44,4 +45,3 @@ export interface PrinterSettings {
   autoPrint: boolean;
   qzPrinterName: string;
 }
-

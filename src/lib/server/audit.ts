@@ -1,4 +1,5 @@
 import { query } from "@/database/db";
+import { publishAuditInvalidation } from "@/src/lib/server/auditEvents";
 
 type QueryRunner = {
   query: (text: string, params?: any[]) => Promise<{ rows: any[] }>;
@@ -31,7 +32,7 @@ async function resolveStaffIdByUserCode(userCode: string, runner: QueryRunner) {
 export async function logAuditEvent(
   input: LogAuditInput,
   runner?: QueryRunner
-): Promise<void> {
+): Promise<any | null> {
   const dbRunner: QueryRunner = runner ?? { query };
   try {
     const actorStaffId =
@@ -48,10 +49,11 @@ export async function logAuditEvent(
           ? JSON.stringify({ message: input.details })
           : JSON.stringify(input.details);
 
-    await dbRunner.query(
+    const inserted = await dbRunner.query(
       `
         INSERT INTO audit_logs (staff_id, action, entity_type, entity_id, details)
         VALUES ($1, $2, $3, $4, $5::jsonb)
+        RETURNING *
       `,
       [
         actorStaffId,
@@ -61,6 +63,10 @@ export async function logAuditEvent(
         detailsJson,
       ]
     );
+
+    const row = inserted.rows[0] ?? null;
+    publishAuditInvalidation("audit_log_inserted", row?.log_id ?? null);
+    return row;
   } catch (error) {
     console.warn("audit log write failed", {
       action: input.action,
@@ -69,4 +75,5 @@ export async function logAuditEvent(
       error,
     });
   }
+  return null;
 }

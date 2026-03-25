@@ -4,9 +4,7 @@ import {
   Package, 
   AlertTriangle, 
   Clock, 
-  TrendingUp,
   BarChart3,
-  Search,
   ArrowRight,
   ShieldAlert,
   Layers,
@@ -14,8 +12,11 @@ import {
 } from "lucide-react";
 import { Card } from "@/src/components/ui/Card";
 import { Button } from "@/src/components/ui/Button";
+import { formatDateInTimezone } from "@/src/lib/timezone/client";
+import { useSystemTimezone } from "@/src/lib/timezone/useSystemTimezone";
 
 export default function InventoryPage() {
+  const systemTimezone = useSystemTimezone();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -201,7 +202,7 @@ export default function InventoryPage() {
                         </div>
                         <div className="text-right">
                            <p className="text-xs font-black text-amber-600">{daysLeft} Days Left</p>
-                           <p className="text-[10px] font-bold text-slate-400">{expiry.toLocaleDateString()}</p>
+                           <p className="text-[10px] font-bold text-slate-400">{formatDateInTimezone(expiry, systemTimezone)}</p>
                         </div>
                      </div>
                    );

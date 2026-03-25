@@ -9,12 +9,14 @@ import {
     History,
     AlertCircle,
     CheckCircle2,
-    Calendar,
     ChevronRight,
     Loader2
 } from "lucide-react";
+import { formatDateInTimezone } from "@/src/lib/timezone/client";
+import { useSystemTimezone } from "@/src/lib/timezone/useSystemTimezone";
 
 export const PurchaseReturn: React.FC = () => {
+    const systemTimezone = useSystemTimezone();
     const {
         searchQuery,
         setSearchQuery,
@@ -138,7 +140,7 @@ export const PurchaseReturn: React.FC = () => {
                                                         #{inv.invoice_no}
                                                     </span>
                                                     <span className={`text-[10px] font-bold ${index === focusedIndex ? "text-rose-100" : "text-slate-400"}`}>
-                                                        {new Date(inv.invoice_timestamp).toLocaleDateString()}
+                                                        {formatDateInTimezone(inv.invoice_timestamp, systemTimezone)}
                                                     </span>
                                                 </div>
                                                 <h3 className="text-lg font-black tracking-tight mt-0.5">{inv.party_name}</h3>

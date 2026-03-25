@@ -16,6 +16,8 @@ import { Maximize, Minimize, Layout, ShoppingCart, RotateCcw, Link2Off, Search, 
 import toast, { ToastBar, Toaster } from 'react-hot-toast';
 import { getMedicineAvailability, validateRequestedStock } from '../stock';
 import { formatCurrency } from '../utils';
+import { formatDateInTimezone, formatDateTimeInTimezone } from '@/src/lib/timezone/client';
+import { useSystemTimezone } from '@/src/lib/timezone/useSystemTimezone';
 
 const OVERRIDE_REASON_OPTIONS: Array<{ value: OverrideReasonCode; label: string }> = [
   { value: 'purchased_from_other_store', label: 'Purchased from other store' },
@@ -25,6 +27,7 @@ const OVERRIDE_REASON_OPTIONS: Array<{ value: OverrideReasonCode; label: string 
 ];
 
 const PharmacyPOS: React.FC = () => {
+  const systemTimezone = useSystemTimezone();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -544,7 +547,7 @@ const PharmacyPOS: React.FC = () => {
 
       setItemSearched(medicine);
       const expiryDate = medicine.expiry_date
-        ? new Date(medicine.expiry_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+        ? formatDateInTimezone(medicine.expiry_date, systemTimezone, { day: '2-digit', month: 'short', year: 'numeric' })
         : 'N/A';
 
       const batchInfo = medicine.batch_number ? ` [Lot: ${medicine.batch_number}]` : '';
@@ -1503,7 +1506,7 @@ const PharmacyPOS: React.FC = () => {
                           <div className="min-w-0">
                             <div className="truncate text-sm font-bold text-slate-900">{invoice.reference}</div>
                             <div className="mt-1 text-[11px] text-slate-500">
-                              {invoice.patientName ?? 'Walk-in'} • {new Date(invoice.timestamp).toLocaleString()} • {invoice.itemsCount} item{invoice.itemsCount === 1 ? '' : 's'}
+                              {invoice.patientName ?? 'Walk-in'} • {formatDateTimeInTimezone(invoice.timestamp, systemTimezone)} • {invoice.itemsCount} item{invoice.itemsCount === 1 ? '' : 's'}
                             </div>
                           </div>
                           <div className="shrink-0 text-right">
@@ -1972,7 +1975,7 @@ const PharmacyPOS: React.FC = () => {
                       Dr. {visit.doctor_name} • Clinic #{visit.clinic_number ?? '-'}
                     </div>
                     <div className="mt-1 text-xs text-slate-500">
-                      {new Date(visit.visit_timestamp).toLocaleString()}
+                      {formatDateTimeInTimezone(visit.visit_timestamp, systemTimezone)}
                     </div>
                   </div>
                   <span className="rounded-full bg-emerald-600 px-3 py-2 text-xs font-black uppercase tracking-[0.18em] text-white">

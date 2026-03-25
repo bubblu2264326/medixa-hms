@@ -4,10 +4,15 @@ import React from "react";
 import { Activity, AlertTriangle, BarChart3, CircleDollarSign, ShieldCheck } from "lucide-react";
 import { Card } from "@/src/components/ui/Card";
 import { Button } from "@/src/components/ui/Button";
+import { useSystemTimezone } from "@/src/lib/timezone/useSystemTimezone";
+import { formatDateTimeInTimezone } from "@/src/lib/timezone/client";
 
 type KpiPayload = {
   todayCollections: number;
   outstandingDue: number;
+  last30Collections?: number;
+  last30Outstanding?: number;
+  last30TxnCount?: number;
   reversalsToday: { count: number; amount: number };
   shifts: { openShifts: number; todayVariance: number };
   cashierWiseTotals: Array<{ staffId: number | null; cashierName: string; total: number }>;
@@ -50,11 +55,9 @@ const fmt = (value: number) =>
     maximumFractionDigits: 0,
   }).format(value || 0);
 
-const dt = (value: string | null) => {
+const dt = (value: string | null, timeZone: string) => {
   if (!value) return "-";
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return "-";
-  return d.toLocaleString();
+  return formatDateTimeInTimezone(value, timeZone);
 };
 
 async function jsonFetch<T>(url: string): Promise<T> {
@@ -67,6 +70,7 @@ async function jsonFetch<T>(url: string): Promise<T> {
 }
 
 export default function AdminCashierDashboard() {
+  const systemTimezone = useSystemTimezone();
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [kpis, setKpis] = React.useState<KpiPayload | null>(null);
@@ -116,10 +120,12 @@ export default function AdminCashierDashboard() {
         <Card className="rounded-2xl border-none bg-white shadow-md">
           <div className="flex items-center gap-2 text-slate-500"><CircleDollarSign className="h-4 w-4" /> Today Collections</div>
           <p className="mt-1 text-xl font-black text-slate-900">{fmt(kpis?.todayCollections ?? 0)}</p>
+          <p className="text-xs text-slate-500">Last 30d: {fmt(kpis?.last30Collections ?? 0)}</p>
         </Card>
         <Card className="rounded-2xl border-none bg-white shadow-md">
           <div className="flex items-center gap-2 text-slate-500"><AlertTriangle className="h-4 w-4" /> Outstanding</div>
           <p className="mt-1 text-xl font-black text-rose-700">{fmt(kpis?.outstandingDue ?? 0)}</p>
+          <p className="text-xs text-slate-500">Last 30d: {fmt(kpis?.last30Outstanding ?? 0)}</p>
         </Card>
         <Card className="rounded-2xl border-none bg-white shadow-md">
           <div className="flex items-center gap-2 text-slate-500"><ShieldCheck className="h-4 w-4" /> Reversals Today</div>
@@ -129,7 +135,9 @@ export default function AdminCashierDashboard() {
         <Card className="rounded-2xl border-none bg-white shadow-md">
           <div className="flex items-center gap-2 text-slate-500"><Activity className="h-4 w-4" /> Shift Monitor</div>
           <p className="mt-1 text-xl font-black text-emerald-700">{kpis?.shifts.openShifts ?? 0} open</p>
-          <p className="text-xs text-slate-500">Variance: {fmt(kpis?.shifts.todayVariance ?? 0)}</p>
+          <p className="text-xs text-slate-500">
+            Variance: {fmt(kpis?.shifts.todayVariance ?? 0)} • Last 30d Txns: {Number(kpis?.last30TxnCount ?? 0)}
+          </p>
         </Card>
       </div>
 
@@ -140,7 +148,7 @@ export default function AdminCashierDashboard() {
           </h2>
           <div className="space-y-2">
             {(kpis?.cashierWiseTotals ?? []).length === 0 ? (
-              <p className="text-sm text-slate-500">No activity today.</p>
+              <p className="text-sm text-slate-500">No pharmacy sales in selected period.</p>
             ) : (
               (kpis?.cashierWiseTotals ?? []).map((row) => (
                 <div key={`${row.staffId ?? "unknown"}-${row.cashierName}`} className="flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2">
@@ -203,13 +211,13 @@ export default function AdminCashierDashboard() {
           <h2 className="mb-3 text-sm font-black uppercase tracking-wide text-slate-800">Live Transaction Feed</h2>
           <div className="space-y-2">
             {audit.length === 0 ? (
-              <p className="text-sm text-slate-500">No recent cashier events.</p>
+              <p className="text-sm text-slate-500">No pharmacy sales in selected period.</p>
             ) : (
               audit.map((event) => (
                 <div key={event.cashierAuditEventId} className="rounded-lg border border-slate-200 px-3 py-2">
                   <p className="text-sm font-semibold text-slate-800">{event.eventType}</p>
                   <p className="text-xs text-slate-500">
-                    {event.actorName || "System"} • Bill {event.billId ?? "-"} • Visit {event.visitId ?? "-"} • {dt(event.createdAt)}
+                    {event.actorName || "System"} • Bill {event.billId ?? "-"} • Visit {event.visitId ?? "-"} • {dt(event.createdAt, systemTimezone)}
                   </p>
                 </div>
               ))

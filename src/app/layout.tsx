@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { PatientContextProvider } from "@/contexts/PatientIdContext";
 import { SidebarProvider } from "@/contexts/SidebarContext";
 import AppToaster from "../components/AppToaster";
+import { SessionGuard } from "@/src/components/session/SessionGuard";
+import { SelfAttendancePanel } from "@/src/components/session/SelfAttendancePanel";
 // import { Geist, Geist_Mono } from "next/font/google";
 // import { Edu_NSW_ACT_Cursive } from "next/font/google";
 // import { Dancing_Script } from "next/font/google";
@@ -101,6 +103,8 @@ export default function RootLayout({
 
 
             <AppToaster />
+            <SessionGuard />
+            <SelfAttendancePanel />
             {children}
           </PatientContextProvider>
         </SidebarProvider>

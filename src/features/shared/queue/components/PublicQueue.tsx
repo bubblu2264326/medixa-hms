@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Clock, Users, User, Maximize, Minimize, ChevronRight, Stethoscope, AlertCircle, Calendar } from "lucide-react";
+import { Users, Maximize, Minimize, ChevronRight, Stethoscope, Calendar } from "lucide-react";
 import toast from "react-hot-toast";
+import { useSystemTimezone } from "@/src/lib/timezone/useSystemTimezone";
+import { formatDateInTimezone, formatDateTimeInTimezone } from "@/src/lib/timezone/client";
 
 interface QueueItem {
   patient_id: string | number;
@@ -21,11 +23,11 @@ interface Doctor {
 }
 
 export function PublicQueue() {
+  const systemTimezone = useSystemTimezone();
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [selectedDoctorId, setSelectedDoctorId] = useState<string>("all");
   const [selectedType, setSelectedType] = useState<"ALL" | "OPD" | "Emergency">("ALL");
-  const [loading, setLoading] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   
@@ -47,8 +49,6 @@ export function PublicQueue() {
       }
     } catch (err) {
       console.error("Failed to fetch queue:", err);
-    } finally {
-      setLoading(false);
     }
   }, [selectedDoctorId]);
 
@@ -124,7 +124,7 @@ export function PublicQueue() {
               </span>
               <span className="flex items-center gap-2">
                 <Calendar size={14} />
-                {currentTime.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                {formatDateInTimezone(currentTime, systemTimezone)}
               </span>
             </div>
           </div>
@@ -133,10 +133,15 @@ export function PublicQueue() {
         <div className="flex items-center gap-4">
           <div className="flex flex-col items-end">
             <div className="text-5xl font-black font-mono tracking-tighter text-emerald-400">
-              {currentTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+              {formatDateTimeInTimezone(currentTime, systemTimezone, {
+                day: undefined,
+                month: undefined,
+                year: undefined,
+                second: "2-digit",
+              })}
             </div>
             <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mt-1">
-              Current Local Time
+              {systemTimezone}
             </div>
           </div>
           

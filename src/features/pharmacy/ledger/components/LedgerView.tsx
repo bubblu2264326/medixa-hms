@@ -3,8 +3,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
   BookOpen, ArrowDownLeft, ArrowUpRight, CreditCard,
-  Search, Filter, TrendingDown, TrendingUp, DollarSign
+  Search, Filter
 } from 'lucide-react';
+import { formatDateInTimezone } from '@/src/lib/timezone/client';
+import { useSystemTimezone } from '@/src/lib/timezone/useSystemTimezone';
 
 type LedgerRow = {
   id: number;
@@ -37,6 +39,7 @@ function TypeBadge({ type }: { type: LedgerRow['type'] }) {
 }
 
 export function LedgerView() {
+  const systemTimezone = useSystemTimezone();
   const [entries, setEntries] = useState<LedgerRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -151,7 +154,7 @@ export function LedgerView() {
               {filtered.map((e, i) => (
                 <tr key={`${e.type}-${e.id}-${i}`} className="hover:bg-slate-50 transition-colors">
                   <td className="px-5 py-3 text-slate-500 font-semibold text-xs whitespace-nowrap">
-                    {new Date(e.date).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: '2-digit' })}
+                    {formatDateInTimezone(e.date, systemTimezone, { day: '2-digit', month: 'short', year: '2-digit' })}
                   </td>
                   <td className="px-5 py-3 font-black text-slate-800 text-xs">{e.party_name}</td>
                   <td className="px-5 py-3"><TypeBadge type={e.type} /></td>

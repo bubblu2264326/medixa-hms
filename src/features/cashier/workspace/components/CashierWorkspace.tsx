@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import { Card } from "@/src/components/ui/Card";
 import { Button } from "@/src/components/ui/Button";
+import { formatDateTimeInTimezone } from "@/src/lib/timezone/client";
+import { useSystemTimezone } from "@/src/lib/timezone/useSystemTimezone";
 
 type CashierTab = "worklist" | "settle" | "history" | "drafts" | "overdue";
 
@@ -120,11 +122,9 @@ const fmt = (value: number) =>
     maximumFractionDigits: 0,
   }).format(value || 0);
 
-const dt = (value: string | null) => {
+const dt = (value: string | null, timeZone: string) => {
   if (!value) return "-";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "-";
-  return date.toLocaleString();
+  return formatDateTimeInTimezone(value, timeZone);
 };
 
 const statusPill = (status: string) => {
@@ -139,6 +139,7 @@ function safeJson<T>(value: unknown): T {
 
 export default function CashierWorkspace() {
   const searchParams = useSearchParams();
+  const systemTimezone = useSystemTimezone();
 
   const [activeTab, setActiveTab] = useState<CashierTab>("worklist");
   const [globalLoading, setGlobalLoading] = useState(false);
@@ -674,7 +675,7 @@ export default function CashierWorkspace() {
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
                       <p className="text-sm font-black text-slate-800">Txn #{row.cashierPaymentTxnId} • Bill #{row.billId}</p>
-                      <p className="text-xs text-slate-500">{row.patientName || "Unknown"} • {dt(row.createdAt)} • {row.txnType}</p>
+                      <p className="text-xs text-slate-500">{row.patientName || "Unknown"} • {dt(row.createdAt, systemTimezone)} • {row.txnType}</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className={`rounded-full px-2 py-1 text-[10px] font-black uppercase tracking-wider ${row.txnType === "payment" ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>{row.txnType}</span>
@@ -748,7 +749,7 @@ export default function CashierWorkspace() {
                 <div key={draft.cashierSettlementDraftId} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 px-3 py-3">
                   <div>
                     <p className="text-sm font-black">Draft #{draft.cashierSettlementDraftId} • Bill #{draft.billId}</p>
-                    <p className="text-xs text-slate-500">{draft.patientName || "Unknown"} • {draft.paymentType} • {fmt(draft.amount)} • {dt(draft.updatedAt)}</p>
+                    <p className="text-xs text-slate-500">{draft.patientName || "Unknown"} • {draft.paymentType} • {fmt(draft.amount)} • {dt(draft.updatedAt, systemTimezone)}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-slate-700">{draft.draftStatus}</span>

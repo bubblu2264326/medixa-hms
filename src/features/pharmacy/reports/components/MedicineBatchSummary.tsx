@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { Card } from "@/src/components/ui/Card";
 import { Button } from "@/src/components/ui/Button";
+import { formatDateInTimezone, getTimezoneNowDateInput } from "@/src/lib/timezone/client";
+import { useSystemTimezone } from "@/src/lib/timezone/useSystemTimezone";
 
 type BatchSummary = {
   batch_id: number;
@@ -51,7 +53,7 @@ const INITIAL_FILTERS: Filters = {
   includeInactive: false,
 };
 
-const formatDate = (value: string | null) => {
+const formatDate = (value: string | null, timeZone: string) => {
   if (!value) {
     return "N/A";
   }
@@ -61,14 +63,10 @@ const formatDate = (value: string | null) => {
     return value;
   }
 
-  return date.toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+  return formatDateInTimezone(date, timeZone);
 };
 
-const isExpired = (value: string | null) => {
+const isExpired = (value: string | null, timeZone: string) => {
   if (!value) {
     return false;
   }
@@ -78,12 +76,16 @@ const isExpired = (value: string | null) => {
     return false;
   }
 
-  const now = new Date();
-  now.setHours(0, 0, 0, 0);
-  return date < now;
+  const expiryDate = formatDateInTimezone(date, timeZone, { year: "numeric", month: "2-digit", day: "2-digit" });
+  const today = getTimezoneNowDateInput(timeZone);
+  // Convert dd/mm/yyyy from en-GB formatDateInTimezone to yyyy-mm-dd for stable compare.
+  const [dd, mm, yyyy] = expiryDate.split("/");
+  const normalizedExpiry = `${yyyy}-${mm}-${dd}`;
+  return normalizedExpiry < today;
 };
 
 export function MedicineBatchSummary() {
+  const systemTimezone = useSystemTimezone();
   const [items, setItems] = useState<MedicineStockItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -345,9 +347,9 @@ export function MedicineBatchSummary() {
                                     <tr key={batch.batch_id} className="border-b border-slate-100 last:border-b-0">
                                       <td className="px-4 py-2.5 font-medium text-slate-700">#{batch.batch_number || "N/A"}</td>
                                       <td className="px-4 py-2.5">
-                                        <span className={`text-xs font-semibold ${isExpired(batch.expiry_date) ? "text-red-600" : "text-slate-600"}`}>
-                                          {formatDate(batch.expiry_date)}
-                                          {isExpired(batch.expiry_date) ? " (Expired)" : ""}
+                                        <span className={`text-xs font-semibold ${isExpired(batch.expiry_date, systemTimezone) ? "text-red-600" : "text-slate-600"}`}>
+                                          {formatDate(batch.expiry_date, systemTimezone)}
+                                          {isExpired(batch.expiry_date, systemTimezone) ? " (Expired)" : ""}
                                         </span>
                                       </td>
                                       <td className="px-4 py-2.5 text-right">

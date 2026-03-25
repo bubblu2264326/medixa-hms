@@ -12,6 +12,8 @@ import {
 import { getPartyInsights, getPartyLedger, getPartySupplies } from '../api';
 import { RecordPaymentDialog } from './RecordPaymentDialog';
 import { usePharmacyPosSettings } from '@/src/features/pharmacy/settings/hooks/usePharmacyPosSettings';
+import { formatDateInTimezone, getTimezoneNowDateInput } from '@/src/lib/timezone/client';
+import { useSystemTimezone } from '@/src/lib/timezone/useSystemTimezone';
 import {
   ArrowDownLeft,
   ArrowUpRight,
@@ -31,21 +33,14 @@ type PartyDetailModalProps = {
 
 type ActiveTab = 'ledger' | 'supplies' | 'insights';
 
-function toDateInputValue(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-function getDefaultDateRange() {
-  const today = new Date();
-  const oneMonthBefore = new Date(today);
-  oneMonthBefore.setMonth(oneMonthBefore.getMonth() - 1);
-
+function getDefaultDateRange(timeZone: string) {
+  const to = getTimezoneNowDateInput(timeZone);
+  const [year, month, day] = to.split('-').map((v) => Number(v));
+  const oneMonthBefore = new Date(Date.UTC(year, month - 1, day));
+  oneMonthBefore.setUTCMonth(oneMonthBefore.getUTCMonth() - 1);
   return {
-    from: toDateInputValue(oneMonthBefore),
-    to: toDateInputValue(today),
+    from: oneMonthBefore.toISOString().slice(0, 10),
+    to,
   };
 }
 
@@ -56,13 +51,9 @@ function fmtMoney(value: number | string) {
   });
 }
 
-function fmtDate(value: string | null | undefined) {
+function fmtDate(value: string | null | undefined, timeZone: string) {
   if (!value) return '—';
-  return new Date(value).toLocaleDateString('en-PK', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  });
+  return formatDateInTimezone(value, timeZone);
 }
 
 function TypeBadge({ type }: { type: LedgerEntry['type'] }) {
@@ -99,7 +90,8 @@ export function PartyDetailModal({
   permissions,
   onClose,
 }: PartyDetailModalProps) {
-  const defaultDateRange = getDefaultDateRange();
+  const systemTimezone = useSystemTimezone();
+  const defaultDateRange = getDefaultDateRange(systemTimezone);
   const { settings: posSettings } = usePharmacyPosSettings();
 
   const [activeTab, setActiveTab] = useState<ActiveTab>(
@@ -334,7 +326,7 @@ export function PartyDetailModal({
                       <tbody className="divide-y divide-slate-100">
                         {ledgerWithBalance.map((entry, index) => (
                           <tr key={`${entry.type}-${entry.id}-${index}`}>
-                            <td className="px-4 py-3 text-xs font-semibold text-slate-600">{fmtDate(entry.date)}</td>
+                            <td className="px-4 py-3 text-xs font-semibold text-slate-600">{fmtDate(entry.date, systemTimezone)}</td>
                             <td className="px-4 py-3"><TypeBadge type={entry.type} /></td>
                             <td className="px-4 py-3 text-xs font-semibold text-slate-600">{entry.reference ?? '—'}</td>
                             <td className="px-4 py-3 text-right text-xs font-bold text-red-600">
@@ -472,7 +464,7 @@ export function PartyDetailModal({
                                 >
                                   <td className="px-4 py-3 font-bold text-slate-800">{group.batch_number || 'No Batch'}</td>
                                   <td className="px-4 py-3 text-xs font-semibold text-slate-600">{group.batch_code || '—'}</td>
-                                  <td className="px-4 py-3 text-xs font-semibold text-slate-600">{fmtDate(group.expiry_date)}</td>
+                                  <td className="px-4 py-3 text-xs font-semibold text-slate-600">{fmtDate(group.expiry_date, systemTimezone)}</td>
                                   <td className="px-4 py-3 text-right text-xs font-bold text-slate-700">{group.total_units}</td>
                                   <td className="px-4 py-3 text-right text-xs font-bold text-slate-700">{group.total_sub_units}</td>
                                   <td className="px-4 py-3 text-right text-xs font-bold text-slate-700">{group.supply_events}</td>
@@ -488,7 +480,7 @@ export function PartyDetailModal({
                                   }
                                 >
                                   <td className="px-4 py-3 font-bold text-slate-800">{group.invoice_no || `#${group.purchase_id}`}</td>
-                                  <td className="px-4 py-3 text-xs font-semibold text-slate-600">{fmtDate(group.invoice_timestamp)}</td>
+                                  <td className="px-4 py-3 text-xs font-semibold text-slate-600">{fmtDate(group.invoice_timestamp, systemTimezone)}</td>
                                   <td className="px-4 py-3 text-right text-xs font-bold text-slate-700">{group.total_units}</td>
                                   <td className="px-4 py-3 text-right text-xs font-bold text-slate-700">{group.total_sub_units}</td>
                                   <td className="px-4 py-3 text-right text-xs font-bold text-slate-700">{group.supply_events}</td>
@@ -523,7 +515,7 @@ export function PartyDetailModal({
                                               <td className="px-3 py-2 text-slate-500">{child.category || '—'}</td>
                                               <td className="px-3 py-2 text-slate-500">{child.batch_number || '—'}</td>
                                               <td className="px-3 py-2 text-slate-500">{child.batch_code || '—'}</td>
-                                              <td className="px-3 py-2 text-slate-500">{fmtDate(child.expiry_date)}</td>
+                                              <td className="px-3 py-2 text-slate-500">{fmtDate(child.expiry_date, systemTimezone)}</td>
                                               <td className="px-3 py-2 text-right font-bold text-slate-700">{child.quantity}</td>
                                               <td className="px-3 py-2 text-right font-bold text-slate-700">{child.sub_quantity}</td>
                                             </tr>

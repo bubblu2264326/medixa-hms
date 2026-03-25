@@ -54,6 +54,70 @@ export async function GET(req: NextRequest) {
       ]
     );
 
+    if (result.rows.length === 0) {
+      const fallback = await query(
+        `
+          SELECT
+            ps.sale_id,
+            ps.bill_id,
+            ps.visit_id,
+            ps.status,
+            ps.total_amount,
+            ps.notes,
+            ps.sale_timestamp,
+            s.staff_id AS actor_staff_id,
+            s.name AS actor_name
+          FROM pharmacy_sale ps
+          LEFT JOIN staff s ON s.staff_id = ps.handled_by
+          WHERE ($1::date IS NULL OR ps.sale_timestamp::date >= $1::date)
+            AND ($2::date IS NULL OR ps.sale_timestamp::date <= $2::date)
+            AND ($3::int IS NULL OR ps.bill_id = $3::int)
+            AND ($4::int IS NULL OR ps.visit_id = $4::int)
+            AND ($5::int IS NULL OR ps.handled_by = $5::int)
+            AND (
+              $6::text IS NULL
+              OR ($6::text = 'sale_returned' AND ps.status = 'Returned')
+              OR ($6::text = 'sale_completed' AND ps.status <> 'Returned')
+            )
+          ORDER BY ps.sale_timestamp DESC, ps.sale_id DESC
+          LIMIT $7 OFFSET $8
+        `,
+        [
+          from || null,
+          to || null,
+          billId ? Number(billId) : null,
+          visitId ? Number(visitId) : null,
+          actorStaffId ? Number(actorStaffId) : null,
+          eventType || null,
+          pageSize,
+          offset,
+        ]
+      );
+
+      return NextResponse.json({
+        page,
+        pageSize,
+        items: fallback.rows.map((row) => ({
+          cashierAuditEventId: Number(row.sale_id),
+          eventType: row.status === "Returned" ? "sale_returned" : "sale_completed",
+          billId: row.bill_id == null ? null : Number(row.bill_id),
+          visitId: row.visit_id == null ? null : Number(row.visit_id),
+          cashierPaymentTxnId: null,
+          reasonCode: null,
+          reasonNote: row.notes ?? null,
+          before: null,
+          after: {
+            saleId: Number(row.sale_id),
+            totalAmount: Number(row.total_amount ?? 0),
+            source: "pharmacy_sale_fallback",
+          },
+          createdAt: row.sale_timestamp ?? null,
+          actorStaffId: row.actor_staff_id == null ? null : Number(row.actor_staff_id),
+          actorName: row.actor_name ?? null,
+        })),
+      });
+    }
+
     return NextResponse.json({
       page,
       pageSize,

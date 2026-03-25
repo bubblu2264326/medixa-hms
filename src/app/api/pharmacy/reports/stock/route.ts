@@ -1,8 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { query } from "@/database/db";
+import { getCurrentDateInTimezone, getSystemTimezone } from "@/src/lib/server/systemTimezone";
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
+    const timeZone = await getSystemTimezone();
+    const localDate = getCurrentDateInTimezone(timeZone);
     // 1. Expiring soon (90 days)
     const expiringSoonQuery = `
       SELECT 
@@ -14,8 +17,8 @@ export async function GET(req: NextRequest) {
         mb.stock_sub_quantity
       FROM medicine_batch mb
       JOIN medicine m ON mb.medicine_id = m.medicine_id
-      WHERE mb.expiry_date <= CURRENT_DATE + INTERVAL '90 days'
-        AND mb.expiry_date >= CURRENT_DATE
+      WHERE mb.expiry_date <= $1::date + INTERVAL '90 days'
+        AND mb.expiry_date >= $1::date
         AND (mb.stock_quantity > 0 OR mb.stock_sub_quantity > 0)
       ORDER BY mb.expiry_date ASC;
     `;
@@ -36,13 +39,13 @@ export async function GET(req: NextRequest) {
       LEFT JOIN pharmacy_sale ps ON psd.sale_id = ps.sale_id
       WHERE (mb.stock_quantity > 0 OR mb.stock_sub_quantity > 0)
       GROUP BY m.medicine_id, m.brand_name, m.generic_name
-      HAVING MAX(ps.sale_timestamp) IS NULL OR MAX(ps.sale_timestamp) < CURRENT_DATE - INTERVAL '6 months'
+      HAVING MAX(ps.sale_timestamp) IS NULL OR MAX(ps.sale_timestamp) < $1::date - INTERVAL '6 months'
       ORDER BY m.brand_name ASC;
     `;
 
     const [expiringSoonRes, deadStockRes] = await Promise.all([
-      query(expiringSoonQuery),
-      query(deadStockQuery)
+      query(expiringSoonQuery, [localDate]),
+      query(deadStockQuery, [localDate])
     ]);
 
     return NextResponse.json({

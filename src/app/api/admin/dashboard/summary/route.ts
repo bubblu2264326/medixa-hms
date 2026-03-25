@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/database/db";
 import { AuthError, requireAdminOrSuperAdmin } from "@/src/lib/server/auth";
 import { getAdminInventorySummary } from "@/src/lib/server/adminInventory";
+import {
+  getCurrentDateInTimezone,
+  getSystemTimezone,
+  getUtcRollingDayRangeForTimezone,
+} from "@/src/lib/server/systemTimezone";
 
 type ActivityType = "attendance" | "financial" | "inventory" | "patient" | "system";
 type ActivityStatus = "success" | "warning" | "danger" | "info";
@@ -63,14 +68,13 @@ const addUtcYears = (d: Date, years: number) => {
 
 const utcDayStart = (d: Date) => new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
 const utcMonthStart = (d: Date) => new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1));
-const utcYearStart = (d: Date) => new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
 
 const bucketKey = (d: Date) => d.toISOString().slice(0, 10);
 const isBucketKey = (text: string) => /^\d{4}-\d{2}-\d{2}$/.test(text);
 
-const formatBucketLabel = (d: Date, bucket: TrendBucket) => {
-  if (bucket === "day") return d.toLocaleDateString("en-US", { weekday: "short", timeZone: "UTC" });
-  if (bucket === "month") return d.toLocaleDateString("en-US", { month: "short", timeZone: "UTC" });
+const formatBucketLabel = (d: Date, bucket: TrendBucket, timeZone: string) => {
+  if (bucket === "day") return d.toLocaleDateString("en-US", { weekday: "short", timeZone });
+  if (bucket === "month") return d.toLocaleDateString("en-US", { month: "short", timeZone });
   return String(d.getUTCFullYear());
 };
 
@@ -256,9 +260,13 @@ function getRangeStart(range: TrendRange, now: Date): Date | null {
 export async function GET(req: NextRequest) {
   try {
     await requireAdminOrSuperAdmin(req);
+    const timeZone = await getSystemTimezone();
     const range = getTrendRange(req);
     const bucket = getBucketForRange(range);
     const now = new Date();
+    const current30 = getUtcRollingDayRangeForTimezone({ timeZone, days: 30, now });
+    const current60 = getUtcRollingDayRangeForTimezone({ timeZone, days: 60, now });
+    const localDate = getCurrentDateInTimezone(timeZone, now);
     const ledgerSourceSql = await resolveLedgerSource();
     const bucketExpr =
       bucket === "day"
@@ -277,15 +285,28 @@ export async function GET(req: NextRequest) {
           WITH ledger AS (
             ${ledgerSourceSql}
           )
-          SELECT COALESCE(SUM(amount), 0) AS revenue_30d
+          SELECT
+            COALESCE(
+              SUM(amount) FILTER (
+                WHERE collected_at >= $1::timestamptz
+                  AND collected_at < $2::timestamptz
+              ),
+              0
+            ) AS revenue_30d,
+            COALESCE(
+              SUM(amount) FILTER (
+                WHERE collected_at >= $3::timestamptz
+                  AND collected_at < $1::timestamptz
+              ),
+              0
+            ) AS revenue_prev_30d
           FROM ledger
-          WHERE collected_at >= NOW() - INTERVAL '30 days'
-        `),
+        `, [current30.startUtcIso, current30.endUtcIso, current60.startUtcIso]),
         query(`
           WITH patient_visits AS (
             SELECT COUNT(*)::int AS daily_patients
             FROM visit
-            WHERE visit_timestamp::date = CURRENT_DATE
+            WHERE (visit_timestamp AT TIME ZONE $1)::date = $2::date
           ),
           staff_summary AS (
             SELECT
@@ -295,7 +316,7 @@ export async function GET(req: NextRequest) {
                   SELECT 1
                   FROM staff_attendance sa
                   WHERE sa.staff_id = s.staff_id
-                    AND sa.date = CURRENT_DATE
+                    AND sa.date = $2::date
                     AND sa.status = 'Present'
                 )
               )::int AS active_staff
@@ -307,7 +328,7 @@ export async function GET(req: NextRequest) {
             ss.total_staff
           FROM patient_visits p
           CROSS JOIN staff_summary ss
-        `),
+        `, [timeZone, localDate]),
         query(`
           WITH ledger AS (
             ${ledgerSourceSql}
@@ -327,7 +348,12 @@ export async function GET(req: NextRequest) {
             l.entity_type,
             l.entity_id,
             l.created_at,
-            s.name AS staff_name
+            COALESCE(
+              s.name,
+              l.details->>'userName',
+              l.details->>'name',
+              l.details->>'userCode'
+            ) AS staff_name
           FROM audit_logs l
           LEFT JOIN staff s ON s.staff_id = l.staff_id
           ORDER BY l.created_at DESC
@@ -339,10 +365,17 @@ export async function GET(req: NextRequest) {
 
     const metrics = {
       revenue: Number(revenueResult.rows[0]?.revenue_30d ?? 0),
+      previous_revenue_30d: Number(revenueResult.rows[0]?.revenue_prev_30d ?? 0),
       daily_patients: Number(staffPatientResult.rows[0]?.daily_patients ?? 0),
       active_staff: Number(staffPatientResult.rows[0]?.active_staff ?? 0),
       total_staff: Number(staffPatientResult.rows[0]?.total_staff ?? 0),
     };
+    const revenueChangePct30d =
+      metrics.previous_revenue_30d === 0
+        ? metrics.revenue === 0
+          ? 0
+          : null
+        : ((metrics.revenue - metrics.previous_revenue_30d) / metrics.previous_revenue_30d) * 100;
 
     const activities = activitiesResult.rows.map((row: any) => ({
       id: row.log_id,
@@ -359,11 +392,11 @@ export async function GET(req: NextRequest) {
       activities.length > 0
         ? activities
         : buildFallbackActivities({
-            now,
-            revenue30d: metrics.revenue,
-            dailyPatients: metrics.daily_patients,
-            lowStockCount: Number(inventorySummary.lowStockCount ?? 0),
-          });
+          now,
+          revenue30d: metrics.revenue,
+          dailyPatients: metrics.daily_patients,
+          lowStockCount: Number(inventorySummary.lowStockCount ?? 0),
+        });
 
     const expectedBuckets = buildExpectedBuckets(range, now, lifetimeStart);
     const valueMap = new Map<string, number>();
@@ -381,7 +414,7 @@ export async function GET(req: NextRequest) {
       const value = Number.isFinite(rawValue) ? rawValue : 0;
       return {
         date: key,
-        day: formatBucketLabel(date, bucket),
+        day: formatBucketLabel(date, bucket, timeZone),
         value,
       };
     });
@@ -396,6 +429,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       metrics: {
         revenue: metrics.revenue,
+        previousRevenue30d: metrics.previous_revenue_30d,
+        revenueChangePct30d,
         dailyPatients: metrics.daily_patients,
         activeStaff: metrics.active_staff,
         totalStaff: metrics.total_staff,

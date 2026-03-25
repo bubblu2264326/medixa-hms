@@ -18,7 +18,8 @@ import {
 import { logoutUser } from "@/src/features/Login/api";
 import Image from "next/image";
 import { UserProfile } from "@/src/components/session/UserProfile";
-import { useState, useEffect } from "react";
+import { SidebarAttendance } from "@/src/components/admin/SidebarAttendance";
+import { useState, useEffect, useMemo } from "react";
 
 const SidebarItem = ({ href, icon: Icon, label, active }: { href: string; icon: any; label: string; active: boolean }) => (
   <Link
@@ -39,12 +40,22 @@ export const AdminSidebar = () => {
     const router = useRouter();
     const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
 
-    const menuGroups = [
+    const menuGroups = useMemo(() => [
         {
             title: "Staff Management",
             items: [
-                { href: "/admin/staff", icon: Users, label: "Access Control" },
+                { href: "/admin/staff", icon: Users, label: "Directory" },
+                { href: "/admin/staff/access", icon: Settings, label: "Access & Roles" },
+                { href: "/admin/staff/security", icon: History, label: "Security Sessions" },
                 { href: "/admin/attendance", icon: CalendarCheck, label: "Attendance" },
+                { href: "/admin/roster", icon: CalendarCheck, label: "Roster" },
+                { href: "/admin/leave", icon: CalendarCheck, label: "Leave" },
+                { href: "/admin/approvals", icon: CalendarCheck, label: "Approvals" },
+                { href: "/admin/credentialing", icon: Users, label: "Credentialing" },
+                { href: "/admin/lifecycle", icon: Users, label: "Lifecycle" },
+                { href: "/admin/documents", icon: History, label: "Documents" },
+                { href: "/admin/analytics", icon: LayoutDashboard, label: "Analytics" },
+                { href: "/admin/staff/settings", icon: Settings, label: "Employee Settings" },
             ]
         },
         {
@@ -58,6 +69,7 @@ export const AdminSidebar = () => {
             title: "Financials",
             items: [
                 { href: "/admin/financials", icon: IndianRupee, label: "System Finance" },
+                { href: "/admin/payroll", icon: HandCoins, label: "Payroll Runs" },
             ]
         },
         {
@@ -67,7 +79,7 @@ export const AdminSidebar = () => {
                 { href: "/admin/audit", icon: History, label: "Audit Logs" },
             ]
         }
-    ];
+    ], []);
 
     const toggleGroup = (title: string) => {
         setExpandedGroups(prev => ({
@@ -75,6 +87,24 @@ export const AdminSidebar = () => {
             [title]: !prev[title]
         }));
     };
+
+    // Auto-expand group containing the active item
+    useEffect(() => {
+        setExpandedGroups(prev => {
+            const next = { ...prev };
+            let changed = false;
+
+            menuGroups.forEach(group => {
+                const hasActiveItem = group.items.some(item => item.href === pathname);
+                if (hasActiveItem && !next[group.title]) {
+                    next[group.title] = true;
+                    changed = true;
+                }
+            });
+
+            return changed ? next : prev;
+        });
+    }, [pathname, menuGroups]);
 
     return (
         <aside className="w-72 h-screen bg-white border-r border-slate-100 flex flex-col p-6 sticky top-0">
@@ -150,6 +180,9 @@ export const AdminSidebar = () => {
                      <UserProfile />
                  </div>
 
+                 {/* Sidebar Attendance */}
+                 <SidebarAttendance />
+
                  {/* Premium Logout Button */}
                  <button 
                     onClick={async () => {
@@ -169,4 +202,3 @@ export const AdminSidebar = () => {
         </aside>
     );
 };
-

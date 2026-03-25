@@ -3,8 +3,48 @@ import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import AdminDashboard from "@/src/app/admin/page";
+import toast from "react-hot-toast";
 
 type TrendRange = "7d" | "30d" | "1y" | "5y" | "lifetime";
+
+vi.mock("react-hot-toast", () => ({
+  default: {
+    success: vi.fn(),
+    error: vi.fn(),
+  },
+}));
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+  }),
+}));
+
+class MockEventSource {
+  static instances: MockEventSource[] = [];
+  listeners = new Map<string, Array<(event: MessageEvent) => void>>();
+  onerror: ((this: EventSource, ev: Event) => any) | null = null;
+  url: string;
+
+  constructor(url: string) {
+    this.url = url;
+    MockEventSource.instances.push(this);
+  }
+
+  addEventListener(type: string, listener: (event: MessageEvent) => void) {
+    const current = this.listeners.get(type) ?? [];
+    current.push(listener);
+    this.listeners.set(type, current);
+  }
+
+  emit(type: string, payload: unknown = {}) {
+    const message = { data: JSON.stringify(payload) } as MessageEvent;
+    const current = this.listeners.get(type) ?? [];
+    for (const listener of current) listener(message);
+  }
+
+  close() {}
+}
 
 function jsonResponse(body: unknown, ok = true): Response {
   return {
@@ -13,12 +53,14 @@ function jsonResponse(body: unknown, ok = true): Response {
   } as Response;
 }
 
-function makePayload(range: TrendRange) {
+function makePayload(range: TrendRange, activitiesCount = 0) {
   return {
     metrics: {
       revenue: 11079.04,
+      previousRevenue30d: 2500,
+      revenueChangePct30d: 343.16,
       dailyPatients: 5,
-      activeStaff: 0,
+      activeStaff: 2,
       totalStaff: 6,
       criticalLowStockCount: 4,
     },
@@ -43,8 +85,28 @@ function makePayload(range: TrendRange) {
             { date: "2026-03-22", day: "Sat", value: 1200 },
             { date: "2026-03-23", day: "Sun", value: 4149.04 },
           ],
-    activities: [],
+    activities: Array.from({ length: activitiesCount }).map((_, idx) => ({
+      id: idx + 1,
+      type: "system",
+      status: "info",
+      action: `Event ${idx + 1}`,
+      staff: "System",
+      entityType: null,
+      entityId: null,
+      time: new Date(Date.now() - idx * 60_000).toISOString(),
+    })),
   };
+}
+
+function makeAuditRows(count = 1) {
+  return Array.from({ length: count }).map((_, idx) => ({
+    log_id: `log-${idx + 1}`,
+    action: `Attendance check-in marked ${idx + 1}`,
+    entity_type: "staff_attendance",
+    entity_id: `att-${idx + 1}`,
+    created_at: new Date(Date.now() - idx * 60_000).toISOString(),
+    staff_name: "Bilal",
+  }));
 }
 
 function createDeferred<T>() {
@@ -57,25 +119,24 @@ function createDeferred<T>() {
   return { promise, resolve, reject };
 }
 
-describe("AdminDashboard trend loading", () => {
+describe("AdminDashboard pulse feed + realtime", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    MockEventSource.instances = [];
+    vi.stubGlobal("EventSource", MockEventSource as unknown as typeof EventSource);
   });
 
-  it("keeps page mounted and only chart section loading on range change", async () => {
+  it("keeps page mounted when range changes", async () => {
     const nextRangeResponse = createDeferred<Response>();
 
     global.fetch = vi
       .fn()
-      .mockResolvedValueOnce(jsonResponse(makePayload("7d")))
+      .mockResolvedValueOnce(jsonResponse(makePayload("30d", 3)))
       .mockImplementationOnce(() => nextRangeResponse.promise) as unknown as typeof fetch;
 
     render(<AdminDashboard />);
 
     await screen.findByText("Hospital Overview");
-    expect(screen.getByText("Revenue Trends")).toBeTruthy();
-    expect(screen.getByText("Cash Collected (30d)")).toBeTruthy();
-
     fireEvent.click(screen.getByRole("button", { name: "1Y" }));
 
     await waitFor(() => {
@@ -83,30 +144,85 @@ describe("AdminDashboard trend loading", () => {
     });
 
     expect(screen.getByText("Hospital Overview")).toBeTruthy();
-    expect(screen.getByText("Revenue Trends")).toBeTruthy();
-    expect(screen.getByText("Cash Collected (30d)")).toBeTruthy();
-    expect(document.querySelectorAll(".animate-spin").length).toBeGreaterThan(0);
+    expect(screen.getByText("Pulse Feed")).toBeTruthy();
 
-    nextRangeResponse.resolve(jsonResponse(makePayload("1y")));
-
+    nextRangeResponse.resolve(jsonResponse(makePayload("1y", 2)));
     await waitFor(() => {
-      expect(screen.getByText("Last 12 months cash collected")).toBeTruthy();
+      expect(screen.getByText("Revenue Trends")).toBeTruthy();
     });
   });
 
-  it("renders SVG line chart and shows tooltip on point hover", async () => {
-    global.fetch = vi.fn().mockResolvedValue(jsonResponse(makePayload("30d"))) as unknown as typeof fetch;
+  it("keeps View all logs button pinned and list scrollable", async () => {
+    global.fetch = vi.fn().mockResolvedValue(jsonResponse(makePayload("30d", 25))) as unknown as typeof fetch;
 
     render(<AdminDashboard />);
-
     await screen.findByText("Hospital Overview");
-    expect(screen.getByTestId("trend-line-chart")).toBeTruthy();
 
-    const point = await screen.findByTestId("trend-point-1");
-    fireEvent.mouseEnter(point);
+    const scrollArea = screen.getByTestId("pulse-feed-scroll");
+    expect(scrollArea.className).toContain("overflow-y-auto");
+
+    const viewAllLogsButton = screen.getByRole("button", { name: /view all logs/i });
+    expect(viewAllLogsButton.className).toContain("shrink-0");
+  });
+
+  it("renders revenue summary and modern trend elements", async () => {
+    global.fetch = vi.fn().mockResolvedValue(jsonResponse(makePayload("30d", 3))) as unknown as typeof fetch;
+
+    render(<AdminDashboard />);
+    await screen.findByText("Hospital Overview");
+
+    expect(screen.getByTestId("revenue-summary-total").textContent).toContain("PKR");
+    expect(screen.getByTestId("revenue-summary-change").textContent).toContain("%");
+    expect(screen.getByTestId("trend-area-fill")).toBeTruthy();
+    expect(screen.getByTestId("trend-active-line")).toBeTruthy();
+  });
+
+  it("shows tooltip on hover layer and highlights spikes", async () => {
+    global.fetch = vi.fn().mockResolvedValue(jsonResponse(makePayload("30d", 3))) as unknown as typeof fetch;
+
+    render(<AdminDashboard />);
+    await screen.findByText("Hospital Overview");
+
+    const hoverLayer = screen.getByTestId("trend-hover-layer");
+    fireEvent.mouseMove(hoverLayer, { clientX: 200 });
 
     await waitFor(() => {
       expect(screen.getByTestId("trend-tooltip")).toBeTruthy();
+    });
+    expect(screen.getByTestId("trend-tooltip").textContent).toContain("PKR");
+
+    expect(screen.getAllByTestId(/trend-spike-marker-/).length).toBeGreaterThan(0);
+  });
+
+  it("subscribes to SSE and updates activities with toast on invalidate", async () => {
+    const fetchMock = vi.fn().mockImplementation((input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("/api/admin/dashboard/summary")) {
+        return Promise.resolve(jsonResponse(makePayload("30d", 1)));
+      }
+      if (url.includes("/api/admin/audit-logs?limit=10")) {
+        return Promise.resolve(jsonResponse(makeAuditRows(2)));
+      }
+      return Promise.resolve(jsonResponse({}));
+    });
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    render(<AdminDashboard />);
+    await screen.findByText("Hospital Overview");
+
+    const source = MockEventSource.instances[0];
+    expect(source).toBeTruthy();
+    source.emit("invalidate", { reason: "audit_log_inserted" });
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/admin/audit-logs?limit=10",
+        expect.objectContaining({ credentials: "include" })
+      );
+    });
+
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalled();
     });
   });
 });

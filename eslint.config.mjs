@@ -19,9 +19,30 @@ const eslintConfig = [
       "build/**",
       "next-env.d.ts",
     ],
-     rules: {
-    "@typescript-eslint/no-explicit-any": "off",
-  },
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
+      "no-restricted-properties": [
+        "warn",
+        {
+          object: "Date",
+          property: "toLocaleString",
+          message:
+            "Use timezone helpers from src/lib/timezone/client.ts instead of Date.toLocaleString().",
+        },
+        {
+          object: "Date",
+          property: "toLocaleDateString",
+          message:
+            "Use timezone helpers from src/lib/timezone/client.ts instead of Date.toLocaleDateString().",
+        },
+        {
+          object: "Date",
+          property: "toLocaleTimeString",
+          message:
+            "Use timezone helpers from src/lib/timezone/client.ts instead of Date.toLocaleTimeString().",
+        },
+      ],
+    },
   },
 ];
 

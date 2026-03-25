@@ -5,6 +5,8 @@ import { PartyDetail, LedgerEntry } from '../types';
 import { getPartyLedger } from '../api';
 import { RecordPaymentDialog } from './RecordPaymentDialog';
 import { ArrowDownLeft, ArrowUpRight, CreditCard, DollarSign, TrendingDown, X } from 'lucide-react';
+import { formatDateInTimezone } from '@/src/lib/timezone/client';
+import { useSystemTimezone } from '@/src/lib/timezone/useSystemTimezone';
 
 interface PartyLedgerPanelProps {
   party: PartyDetail;
@@ -29,6 +31,7 @@ function TypeBadge({ type }: { type: LedgerEntry['type'] }) {
 }
 
 export function PartyLedgerPanel({ party, onClose }: PartyLedgerPanelProps) {
+  const systemTimezone = useSystemTimezone();
   const [entries, setEntries] = useState<LedgerEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [showPayment, setShowPayment] = useState(false);
@@ -129,7 +132,7 @@ export function PartyLedgerPanel({ party, onClose }: PartyLedgerPanelProps) {
                 {withBalance.map((e, i) => (
                   <tr key={`${e.type}-${e.id}-${i}`} className="group hover:bg-slate-50 transition-colors">
                     <td className="py-3 text-slate-500 font-semibold text-xs">
-                      {new Date(e.date).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: '2-digit' })}
+                      {formatDateInTimezone(e.date, systemTimezone, { day: '2-digit', month: 'short', year: '2-digit' })}
                     </td>
                     <td className="py-3"><TypeBadge type={e.type} /></td>
                     <td className="py-3 text-slate-600 font-semibold text-xs max-w-[120px] truncate">{e.reference ?? '—'}</td>

@@ -2,10 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/database/db";
 import { AuthError } from "@/src/lib/server/auth";
 import { requireCashierOrAdmin } from "@/src/lib/server/cashier";
+import { getCurrentDateInTimezone, getSystemTimezone } from "@/src/lib/server/systemTimezone";
 
 export async function GET(req: NextRequest) {
   try {
     await requireCashierOrAdmin(req);
+    const timeZone = await getSystemTimezone();
+    const localDate = getCurrentDateInTimezone(timeZone);
 
     const { searchParams } = new URL(req.url);
     const dateFrom = searchParams.get("dateFrom");
@@ -48,17 +51,17 @@ export async function GET(req: NextRequest) {
             COALESCE(SUM(cpt.amount), 0) AS paid_amount,
             GREATEST(COALESCE(b.total_amount, 0) - COALESCE(SUM(cpt.amount), 0), 0) AS due_amount,
             MAX(cpt.created_at) AS last_payment_at,
-            GREATEST((CURRENT_DATE - b.created_at::date), 0)::int AS overdue_days,
+            GREATEST(($14::date - (b.created_at AT TIME ZONE $15)::date), 0)::int AS overdue_days,
             (
               GREATEST(COALESCE(b.total_amount, 0) - COALESCE(SUM(cpt.amount), 0), 0) * 0.7
-              + GREATEST((CURRENT_DATE - b.created_at::date), 0)::int * 25
+              + GREATEST(($14::date - (b.created_at AT TIME ZONE $15)::date), 0)::int * 25
             )::numeric(12,2) AS due_score
           FROM bill b
           JOIN patient p ON p.patient_id = b.patient_id
           LEFT JOIN visit v ON v.visit_id = b.visit_id
           LEFT JOIN cashier_payment_txn cpt ON cpt.bill_id = b.bill_id
-          WHERE ($1::date IS NULL OR b.created_at::date >= $1::date)
-            AND ($2::date IS NULL OR b.created_at::date <= $2::date)
+          WHERE ($1::date IS NULL OR (b.created_at AT TIME ZONE $15)::date >= $1::date)
+            AND ($2::date IS NULL OR (b.created_at AT TIME ZONE $15)::date <= $2::date)
             AND ($3::text IS NULL OR b.payment_status = $3::text)
             AND ($4::text IS NULL OR p.patient_name ILIKE ('%' || $4::text || '%'))
             AND ($5::int IS NULL OR b.visit_id = $5::int)
@@ -100,6 +103,8 @@ export async function GET(req: NextRequest) {
         sortDir,
         pageSize,
         offset,
+        localDate,
+        timeZone,
       ]
     );
 

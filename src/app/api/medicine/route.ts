@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from '@/database/db'
 import { resolveMedicineMaster } from "@/src/lib/server/medicineMasters";
+import { getCurrentDateInTimezone, getSystemTimezone } from "@/src/lib/server/systemTimezone";
 
 export async function GET() {
 
     //fetch patient party from db
     try {
+        const timeZone = await getSystemTimezone();
+        const localDate = getCurrentDateInTimezone(timeZone);
 
         const sql = `
             SELECT
@@ -25,10 +28,10 @@ export async function GET() {
                 )::integer as stock_sub_quantity
             FROM medicine m
             LEFT JOIN medicine_batch mb ON m.medicine_id = mb.medicine_id
-                AND (mb.expiry_date > CURRENT_DATE OR mb.expiry_date IS NULL)
+                AND (mb.expiry_date > $1::date OR mb.expiry_date IS NULL)
             GROUP BY m.medicine_id
         `;
-        const data = await query(sql);
+        const data = await query(sql, [localDate]);
 
         return NextResponse.json(data.rows);
 

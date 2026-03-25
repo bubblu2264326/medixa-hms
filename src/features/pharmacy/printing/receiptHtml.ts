@@ -1,4 +1,5 @@
 import type { ReceiptPayload } from './types';
+import { DEFAULT_TIMEZONE, formatDateTimeInTimezone, isValidIanaTimezone } from "@/src/lib/timezone/client";
 
 function asNumber(value: unknown) {
   const n = typeof value === 'number' ? value : Number(value);
@@ -30,7 +31,9 @@ export function buildReceiptHtml(payload: ReceiptPayload, opts?: { origin?: stri
   const origin = opts?.origin;
   const saleId = transaction.sale_id;
   const ref = transaction.payment_reference || `SALE-${saleId}`;
-  const ts = transaction.sale_timestamp ? new Date(transaction.sale_timestamp).toLocaleString() : '';
+  const payloadTz = String(config?.system_timezone ?? '').trim();
+  const tz = isValidIanaTimezone(payloadTz) ? payloadTz : DEFAULT_TIMEZONE;
+  const ts = transaction.sale_timestamp ? formatDateTimeInTimezone(transaction.sale_timestamp, tz) : '';
   const staffName = (transaction as any).staff_name || '';
   const patientName = (transaction as any).patient_name || '';
 

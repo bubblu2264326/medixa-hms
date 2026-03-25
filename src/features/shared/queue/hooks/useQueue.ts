@@ -4,6 +4,10 @@ import toast from "react-hot-toast";
 import { fetchQueue, deleteVisit } from "../api";
 import { QueueItem } from "../types";
 
+const FORCED_LOGOUT_MESSAGE = "Admin has force logged you out. Please sign in again.";
+const FORCED_LOGOUT_REASON = "forced_logout";
+const REDIRECTING_KEY = "hms_forced_logout_redirecting";
+
 export function useQueue(queueEndpoint = "/api/queue", allowDelete = true) {
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const [filtered, setFiltered] = useState<QueueItem[]>([]);
@@ -20,6 +24,30 @@ export function useQueue(queueEndpoint = "/api/queue", allowDelete = true) {
   const abortControllerRef = useRef<AbortController | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
   const errorToastVisibleRef = useRef(false);
+  const redirectingRef = useRef(false);
+
+  const redirectToForcedLogout = useCallback(async () => {
+    if (redirectingRef.current) return;
+    redirectingRef.current = true;
+
+    if (typeof window !== "undefined") {
+      if (window.sessionStorage.getItem(REDIRECTING_KEY) === "1") {
+        return;
+      }
+      window.sessionStorage.setItem(REDIRECTING_KEY, "1");
+    }
+
+    if (!errorToastVisibleRef.current) {
+      toast.error(FORCED_LOGOUT_MESSAGE);
+      errorToastVisibleRef.current = true;
+    }
+
+    await fetch("/api/logout", { method: "POST", credentials: "include" }).catch(() => null);
+
+    if (typeof window !== "undefined") {
+      window.location.replace(`/?reason=${FORCED_LOGOUT_REASON}`);
+    }
+  }, []);
 
   const loadQueue = useCallback(async () => {
     if (inFlightRef.current) {
@@ -54,11 +82,17 @@ export function useQueue(queueEndpoint = "/api/queue", allowDelete = true) {
       }
 
       console.error(err);
-      setErrorMessage(err instanceof Error ? err.message : "Failed to load queue");
+      const message = err instanceof Error ? err.message : "Failed to load queue";
+      setErrorMessage(message);
       setIsStale(queueRef.current.length > 0);
 
+      if (message.includes("force logged you out")) {
+        await redirectToForcedLogout();
+        return;
+      }
+
       if (!errorToastVisibleRef.current) {
-        toast.error("Failed to load queue");
+        toast.error(message || "Failed to load queue");
         errorToastVisibleRef.current = true;
       }
     } finally {
@@ -74,7 +108,7 @@ export function useQueue(queueEndpoint = "/api/queue", allowDelete = true) {
         void loadQueue();
       }
     }
-  }, [queueEndpoint]);
+  }, [queueEndpoint, redirectToForcedLogout]);
 
   useEffect(() => {
     void loadQueue();

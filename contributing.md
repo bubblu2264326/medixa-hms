@@ -44,6 +44,11 @@ pnpm dev
 - Preserve trigger-driven inventory behavior unless the change explicitly redesigns it
 - Prefer parameterized SQL and keep route handlers aligned with live schema names
 - If you touch documentation, update the corresponding HMS skill references when the change affects project-specific rules
+- Timezone governance (mandatory):
+  - `system_settings.system_timezone` is the only timezone source of truth.
+  - Server business-day/range logic must use timezone helpers from `src/lib/server/systemTimezone.ts`.
+  - Client date/time rendering must use helpers from `src/lib/timezone/client.ts` (avoid raw `toLocale*` calls).
+  - APIs should return normalized ISO UTC timestamps for instants; UI handles timezone rendering.
 
 ## Useful Commands
 

@@ -9,15 +9,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
             {/* Main Content Area */}
             <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
-                {/* Clean Header */}
-                <header className="h-16 bg-white border-b border-slate-100 flex items-center justify-between px-8 shrink-0">
-                    <div>
-                        {/* Placeholder for page specific titles if needed */}
-                    </div>
-                </header>
-
                 {/* Main Scrollable Content */}
-                <main className="flex-1 p-8 overflow-x-hidden">
+                <main className="flex-1 px-8 pt-2 pb-8 overflow-x-hidden">
                     <div className="max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
                         {children}
                     </div>

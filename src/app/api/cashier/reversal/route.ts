@@ -3,6 +3,7 @@ import pool from "@/database/db";
 import { AuthError } from "@/src/lib/server/auth";
 import { deriveBillPaymentStatus, requireCashierAdminOnlyForReversal } from "@/src/lib/server/cashier";
 import { logAuditEvent } from "@/src/lib/server/audit";
+import { getReceiptDateStamp, getSystemTimezone } from "@/src/lib/server/systemTimezone";
 
 type ReversalPayload = {
   cashierPaymentTxnId?: number;
@@ -22,6 +23,7 @@ export async function POST(req: NextRequest) {
   const client = await pool.connect();
   try {
     const user = await requireCashierAdminOnlyForReversal(req);
+    const systemTimezone = await getSystemTimezone();
     const body = (await req.json()) as ReversalPayload;
     const txnId = Number(body.cashierPaymentTxnId ?? 0);
     const reasonCode = (body.reasonCode ?? "").trim();
@@ -132,7 +134,8 @@ export async function POST(req: NextRequest) {
       ]
     );
     const reversalTxnId = Number(reversalTxnResult.rows[0].cashier_payment_txn_id);
-    const reversalReceiptNo = `CRV-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${reversalTxnId}`;
+    const reversalDate = getReceiptDateStamp(new Date(), systemTimezone);
+    const reversalReceiptNo = `CRV-${reversalDate}-${reversalTxnId}`;
     await client.query(
       `UPDATE cashier_payment_txn SET receipt_no = $2 WHERE cashier_payment_txn_id = $1`,
       [reversalTxnId, reversalReceiptNo]

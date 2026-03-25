@@ -5,6 +5,7 @@ import { NextRequest } from "next/server";
 const secret = new TextEncoder().encode(
   process.env.secret_key || "hms_super_secure_2026_clinic_key"
 );
+const FORCED_LOGOUT_MESSAGE = "Admin has force logged you out. Please sign in again.";
 
 export type AuthenticatedDoctor = {
   doctor_id: number;
@@ -29,14 +30,27 @@ export async function getAuthenticatedDoctor(
     throw new Error("Doctor access required");
   }
 
+  const userCode = String(payload.user_code);
+  const sid = payload.sid ? String(payload.sid) : null;
+  const sessionVersion = Number(payload.sv ?? 1);
+
   const doctorResult = await query(
     `
-      select doctor_id, doctor_name, specialization, user_code
-      from doctor
-      where user_code = $1
+      select
+        d.doctor_id,
+        d.doctor_name,
+        d.specialization,
+        d.user_code,
+        d.session_version,
+        d.employment_status,
+        ds.session_id as resolved_session_id,
+        ds.revoked_at
+      from doctor d
+      left join doctor_security_sessions ds on ds.session_id::text = $2
+      where d.user_code = $1
       limit 1
     `,
-    [payload.user_code]
+    [userCode, sid]
   );
 
   if (doctorResult.rows.length === 0) {
@@ -44,6 +58,22 @@ export async function getAuthenticatedDoctor(
   }
 
   const doctor = doctorResult.rows[0];
+
+  if (String(doctor.employment_status ?? "active").toLowerCase() !== "active") {
+    throw new Error("Doctor account is not active");
+  }
+
+  if (Number(doctor.session_version ?? 1) !== sessionVersion) {
+    throw new Error(FORCED_LOGOUT_MESSAGE);
+  }
+
+  if (sid && !doctor.resolved_session_id) {
+    throw new Error(FORCED_LOGOUT_MESSAGE);
+  }
+
+  if (sid && doctor.revoked_at) {
+    throw new Error(FORCED_LOGOUT_MESSAGE);
+  }
 
   return {
     doctor_id: Number(doctor.doctor_id),
