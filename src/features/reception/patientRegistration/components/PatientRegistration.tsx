@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { usePatient } from "@/contexts/PatientIdContext";
 import { patientSchema, PatientFormData } from "../types";
 import { usePatientRegistration } from "../hooks/usePatientRegistration";
-import { formatCNIC, formatPhone } from "../utils";
+import { composePatientName, formatCNIC, formatPhone, RELATION_TAGS, RelationTag, splitPatientName } from "../utils";
 import { Input } from "@/src/components/ui/Input";
 import { Label } from "@/src/components/ui/Label";
 
@@ -25,6 +25,7 @@ export default function PatientRegistrationForm() {
   const lastLoadedIdRef = useRef<string | null>(null);
   const firstFieldRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
+  const [relationTag, setRelationTag] = useState<RelationTag | "">("");
 
   // Load patient from context
   useEffect(() => {
@@ -42,9 +43,12 @@ export default function PatientRegistrationForm() {
 
   /** Populate form with patient data — handles Controller fields explicitly */
   function populateForm(data: any) {
+    const parsedName = splitPatientName(data.patient_name || "");
+    setRelationTag(parsedName.tag || "");
+
     // Reset all register-based fields
     reset({
-      patient_name: data.patient_name || "",
+      patient_name: parsedName.baseName || "",
       age: data.age != null ? String(data.age) : "",
       gender: data.gender || "",
       cnic: data.cnic || "",
@@ -60,6 +64,7 @@ export default function PatientRegistrationForm() {
 
   function handleNewPatient() {
     clearPatient();
+    setRelationTag("");
     reset({ patient_name: "", age: "", gender: "", cnic: "", contact_number: "", address: "" });
     setValue("cnic", "");
     setValue("contact_number", "");
@@ -68,10 +73,15 @@ export default function PatientRegistrationForm() {
   }
 
   async function onSubmit(data: PatientFormData) {
+    const payload: PatientFormData = {
+      ...data,
+      patient_name: composePatientName(relationTag, data.patient_name),
+    };
+
     if (isEditMode) {
-      await updateInfo(data);
+      await updateInfo(payload);
     } else {
-      const result = await addPatient(data);
+      const result = await addPatient(payload);
       if (result?.patient_id) {
         lastLoadedIdRef.current = String(result.patient_id);
       }
@@ -145,11 +155,33 @@ export default function PatientRegistrationForm() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
           {/* Patient Name — first field, gets focus after patient load */}
           <div className="flex flex-col space-y-1.5">
-            <Label htmlFor="pname" className="text-slate-600 font-semibold ml-1">Patient Name</Label>
+            <div className="ml-1 flex items-center justify-between gap-3">
+              <Label htmlFor="pname" className="text-slate-600 font-semibold">Patient Name</Label>
+              <div className="flex flex-wrap items-center justify-end gap-2">
+                {RELATION_TAGS.map((tag) => {
+                  const selected = relationTag === tag;
+                  return (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => setRelationTag((prev) => (prev === tag ? "" : tag))}
+                      className={`rounded-full border px-2.5 py-1 text-[11px] font-black tracking-[0.12em] transition ${
+                        selected
+                          ? "border-emerald-300 bg-emerald-50 text-emerald-700"
+                          : "border-slate-200 bg-white text-slate-600 hover:border-emerald-200 hover:text-emerald-700"
+                      }`}
+                      aria-pressed={selected}
+                    >
+                      {tag}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
             <Input
               id="pname"
               type="text"
-              placeholder="Full Name"
+              placeholder="Name / Reference Name"
               autoComplete="off"
               className="h-12 bg-white/70 border-slate-200 focus:border-emerald-500 focus:ring-emerald-500/20 rounded-2xl transition-all shadow-sm hover:bg-white"
               {...register("patient_name")}

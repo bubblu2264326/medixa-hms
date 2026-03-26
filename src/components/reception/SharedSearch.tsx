@@ -1,17 +1,18 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Search, User, CreditCard, Hash, Loader2 } from "lucide-react";
+import { Search, Loader2 } from "lucide-react";
 import { usePatient } from "@/contexts/PatientIdContext";
-import { searchPatients, fetchPatientInfo } from "@/src/features/reception/queueManagement/api";
+import { searchPatients, fetchPatientVisit } from "@/src/features/reception/queueManagement/api";
 import { Patient } from "@/src/features/reception/queueManagement/types";
 import toast from "react-hot-toast";
 
 export function SharedSearch() {
-  const { setPatientId, patientId } = usePatient();
+  const { setPatientVisit } = usePatient();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Patient[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [isSelecting, setIsSelecting] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -44,12 +45,31 @@ export function SharedSearch() {
   }, [query, search]);
 
   const handleSelect = async (patient: Patient) => {
-    setPatientId(patient.patient_id.toString());
+    const nextPatientId = patient.patient_id.toString();
+    setIsSelecting(true);
     lastSelectedName.current = patient.patient_name;
     setQuery(patient.patient_name);
     setResults([]);
     setShowDropdown(false);
-    toast.success(`Patient Selected: ${patient.patient_name}`);
+
+    try {
+      const visit = await fetchPatientVisit(nextPatientId);
+      const visitId = visit?.visit_id != null ? String(visit.visit_id) : null;
+
+      if (visitId) {
+        setPatientVisit(nextPatientId, visitId);
+        toast.success(`Patient + Visit Selected: ${patient.patient_name} (Visit #${visitId})`);
+        return;
+      }
+
+      setPatientVisit(nextPatientId, null);
+      toast("Patient selected. No active queued visit found.", { icon: "ℹ️" });
+    } catch {
+      setPatientVisit(nextPatientId, null);
+      toast("Patient selected. No active queued visit found.", { icon: "ℹ️" });
+    } finally {
+      setIsSelecting(false);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -79,7 +99,7 @@ export function SharedSearch() {
     <div className="relative flex-1 max-w-[500px] group" ref={dropdownRef}>
       <div className="relative">
         <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors">
-          {isSearching ? <Loader2 className="h-6 w-6 animate-spin" /> : <Search className="h-6 w-6" />}
+          {isSearching || isSelecting ? <Loader2 className="h-6 w-6 animate-spin" /> : <Search className="h-6 w-6" />}
         </div>
         <input
           type="text"
@@ -88,6 +108,7 @@ export function SharedSearch() {
           onKeyDown={handleKeyDown}
           onFocus={() => results.length > 0 && setShowDropdown(true)}
           placeholder="Search by Name, ID, or CNIC..."
+          disabled={isSelecting}
           className="w-full h-14 pl-14 pr-4 bg-white hover:border-emerald-500/30 focus:bg-white border-slate-200/80 focus:border-emerald-500/50 rounded-2xl text-[13px] font-bold placeholder:text-slate-400 placeholder:font-medium focus:ring-4 focus:ring-emerald-500/10 transition-all outline-none border shadow-sm hover:shadow-md focus:shadow-md"
         />
       </div>

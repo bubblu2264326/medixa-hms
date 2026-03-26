@@ -2,8 +2,7 @@
 
 import { usePatient } from "@/contexts/PatientIdContext";
 import { useOptionalDoctorWorkspace } from "@/src/features/doctor/workspace/DoctorWorkspaceContext";
-import { Clock3, PanelLeftClose, PanelLeftOpen, Search, Stethoscope } from "lucide-react";
-import Link from "next/link";
+import { Clock3, PanelLeftClose, PanelLeftOpen, Search, Stethoscope, Trash2 } from "lucide-react";
 import { useEffect } from "react";
 import { useQueue } from "../hooks/useQueue";
 
@@ -165,19 +164,21 @@ export function Queue({
                   isSelected
                     ? "border-emerald-200 bg-emerald-50 shadow-[0_10px_30px_rgba(5,150,105,0.12)]"
                     : "border-slate-200 bg-white hover:border-emerald-100 hover:bg-emerald-50/40"
-                }`}
+                } ${deleteEnabled ? "pb-11" : ""}`}
                 onClick={() => setPatientVisit(String(item.patient_id), String(item.visit_id))}
               >
                 {deleteEnabled && (
                   <button
                     type="button"
-                    className="absolute right-3 top-3 opacity-0 transition group-hover:opacity-100 rounded-xl border border-red-100 bg-red-50 px-2 py-1 text-[11px] font-bold text-red-600"
+                    title="Delete patient from queue"
+                    aria-label="Delete patient from queue"
+                    className="absolute bottom-3 right-3 inline-flex h-8 w-8 items-center justify-center rounded-full border border-red-100 bg-red-50 text-red-600 opacity-0 transition group-hover:opacity-100 hover:bg-red-100"
                     onClick={(event) => {
                       event.stopPropagation();
                       deleteVisit(item.visit_id);
                     }}
                   >
-                    Remove
+                    <Trash2 size={14} />
                   </button>
                 )}
 
@@ -232,17 +233,8 @@ export function Queue({
                   </div>
 
                   <div className="flex items-center gap-2">
-                    {item.bill_id ? (
-                      <Link
-                        href={`/cashier?billId=${encodeURIComponent(String(item.bill_id))}`}
-                        onClick={(event) => event.stopPropagation()}
-                        className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-black uppercase tracking-[0.12em] text-slate-700 hover:border-emerald-200 hover:text-emerald-700"
-                      >
-                        Open Cashier
-                      </Link>
-                    ) : null}
                     {isSelected && (
-                      <span className="rounded-full border border-emerald-200 bg-white px-2.5 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-emerald-700">
+                      <span className="rounded-full border border-emerald-200 bg-white px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.14em] text-emerald-700">
                         Active
                       </span>
                     )}
