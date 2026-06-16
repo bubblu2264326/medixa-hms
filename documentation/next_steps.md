@@ -1,182 +1,116 @@
 # Next Steps
 
-## Priority 1
+Priorities derived from the current state of the codebase and live DB (verified 2026-05-23).
 
-- harden authentication and password storage
-- remove placeholder staff identity logic from purchase/POS routes
-- standardize visit status updates through the stored procedure
+## Priority 1 — correctness & safety
 
-## Priority 2
+- **Standardize visit-status updates** through `update_and_log_visit_status(…)` (procedure) across every route that mutates `visit.status`. Status changes that skip the procedure silently desync `visit_status_history`.
+- **Eliminate `getCurrentStaffId()` placeholder** ([`src/lib/utils.ts:28`](../src/lib/utils.ts#L28)). Replace every caller with JWT-derived staff id from `src/lib/server/auth.ts`.
+- **Force scrypt rotation** for any `staff` / `doctor` row still on plaintext after the auto-upgrade window. Optional: add a periodic check that flags those rows in admin.
+- **Drop the legacy `get_clinic_number()` and `get_clinic_number(p_patient_id integer)` overloads** after migrating callers to the `(p_visit_type)` overload.
 
-- finish documentation-driven cleanup of API routes that drift from live schema
-- add tests around pharmacy sale, purchase, and return trigger flows
-- improve lab result verification and approval workflow coverage
+## Priority 2 — audit coverage
 
-## Priority 3
+Already implemented (in `audit_logs`):
+- Staff profile created
+- Staff permissions updated
+- Attendance check-in / check-out / adjustment
+- Cashier shift open/close, draft created, payment settled/reversed
+- Update Setting
 
-- unify UI shell patterns across doctor, lab, receptionist, and pharmacy
-- improve party/ledger modules and complete placeholders in pharmacy layout
+Cashier event stream (`cashier_audit_event`):
+- `draft_created`, `draft_cancelled`, `draft_applied`, `settle_success`, `reversal_success`, `correction_success`
 
-## March 24, 2026
+Still missing — add via `src/lib/server/audit.ts`:
 
-- Group Admin Module Sidebar Tabs: Organize the sidebar into logical sections.
-  - Staff Management & Management
-  - Inventory (Pharmacy) & Operations
-  - Financials & Insights
-  - Dashboard (Direct/Overview)
-- Complete implementation of the grouped navigation layout in the Admin Sidebar.
+- Auth events: login success / logout / session-expired with actor, role, IP, UA; failed login attempts; lockout reached
+- Account events: role changes, account activate/deactivate, password reset
+- Inventory mutations: stock adjustment, stock transfer, purchase GRN/finalization, low-stock threshold changes
+- POS mutations: sale create/finalize, return create/finalize, hold/resume/cancel, receipt reprint
+- Patient/visit lifecycle: visit create, status transition (in addition to the history table), doctor assignment change
+- Clinical actions: prescription created/edited, lab order created/updated, report verified/approved
+- Configuration/security: module permission matrix changes, system settings changes (before/after snapshot), auth-secret rotation
 
-## Staff Management Rollout Progress (March 24, 2026)
+Retention + performance:
+- Confirm indexes exist: `audit_logs(created_at)`, `audit_logs(staff_id, created_at)`
+- Decide archival strategy beyond `cleanup_old_audit_logs(p_days)`
+- Consider async write path once traffic grows
 
-- Implemented **Phase 0 foundation hardening**:
-  - Password hashing with scrypt and legacy password auto-upgrade on successful login.
-  - Staff account status checks (`employment_status`) during login.
-  - Login lockout protections with failed-attempt tracking and temporary lock.
-  - Session tracking table (`staff_security_sessions`) with revoke support.
-  - Admin security controls API:
-    - `GET/POST /api/admin/staff/security` for lock/unlock, force logout, password reset, reset-token issue.
-  - Password reset flow endpoint:
-    - `POST /api/login/reset`.
-  - Session validation in server auth (`session_version` + revoked session checks).
+## Priority 3 — workforce roadmap
 
-- Implemented **Phase 1/2 schema scaffolding** via migration:
-  - Expanded staff directory profile columns.
-  - New RBAC v2 structures (`staff_roles`, `staff_role_assignments`, `staff_permission_policies`, `staff_permission_audit`).
-  - Attendance v2 and workflow foundations (`attendance_regularization_requests`, shift templates, roster assignments, leave tables).
-  - Added baseline indexes and audit log cleanup function (`cleanup_old_audit_logs`).
+### Phase A — admin module completion (current)
 
-- Implemented **versioned Staff v2 APIs**:
-  - `GET/POST /api/admin/staff/v2/directory`
-  - `GET/PUT /api/admin/staff/v2/permissions`
-  - `GET/POST /api/admin/staff/v2/roster`
-  - `GET/POST /api/admin/staff/v2/leave`
-  - `GET/PATCH /api/admin/staff/v2/approvals`
-  - `GET/POST /api/admin/staff/v2/attendance-corrections`
+- Finish Staff Management edit/view, status, credentials touchpoints
+- Finish Roster tab as the duty-planning baseline (templates, assignment, coverage view)
+- Finish Leave lifecycle (request, approve/reject, balances, audit)
+- Unify doctors and staff as `employees` wherever applicable
 
-- Added Staff Management tab routes in Admin:
-  - `/admin/staff` (seed module)
-  - `/admin/staff/access`
-  - `/admin/staff/security`
-  - `/admin/roster`
-  - `/admin/leave`
-  - `/admin/approvals`
-  - `/admin/credentialing`
-  - `/admin/lifecycle`
-  - `/admin/documents`
-  - `/admin/analytics`
+### Phase B — attendance + roster enforcement
 
-## Audit Logging Status (March 24, 2026)
+- Derive attendance from `staff_roster_assignments` + global attendance policy
+- Mark `unscheduled` when no roster row exists for the date
+- Keep admin manual override with full audit logging and actor/source tagging
 
-- Implemented centralized audit helper: `src/lib/server/audit.ts`.
-- `/admin/audit` reads from `audit_logs`; if empty, it falls back to `cashier_audit_event`.
-- Existing audited actions in `audit_logs`:
-  - Staff profile created
-  - Staff permissions updated
-  - Attendance check-in marked
-  - Attendance check-out marked
-  - Attendance adjusted manually
-  - Cashier shift opened
-  - Cashier shift closed
-  - Cashier draft created
-  - Cashier payment settled
-  - Cashier payment reversed
-  - Update Setting
-- Existing audited cashier stream events (`cashier_audit_event`):
-  - `draft_created`
-  - `draft_cancelled`
-  - `draft_applied`
-  - `settle_success`
-  - `reversal_success`
-  - `correction_success`
+### Phase C — payroll engine (full scope)
 
-## Audit Logging TODO (High Value)
+- Salary structures, allowances, deductions, overtime linkage
+- Monthly payroll processing with payout status tracking
+- Payroll reports and employee-wise salary ledger
+- Restrict payroll mutations to admin-authorized roles
 
-- Add login success/logout/session-expired events with actor, role, IP, and user-agent.
-- Add failed login attempts and lockout-related events.
-- Add role changes and account status changes (activate/deactivate/reset password).
-- Add inventory mutation events:
-  - stock adjustment
-  - stock transfer
-  - purchase GRN/finalization
-  - low-stock threshold changes
-- Add pharmacy POS mutation events:
-  - sale create/finalize
-  - return create/finalize
-  - hold/resume/cancel
-  - receipt reprint
-- Add patient/visit lifecycle events:
-  - visit create
-  - status transition
-  - doctor assignment change
-  - soft-delete/restore
-- Add clinical action events:
-  - prescription created/edited
-  - lab order created/updated
-  - report verification/approval
-- Add configuration/security events:
-  - module permission matrix changes
-  - system settings changes with before/after snapshots
-  - auth secret rotation/config updates
-- Add retention + performance controls:
-  - indexes for `audit_logs(created_at)` and `(staff_id, created_at)`
-  - archival strategy for old audit rows
-  - optional async write path when traffic increases
+### Phase D — employee records UX
 
-## Workforce Roadmap (Approved - March 24, 2026)
+- Surface core employee records inside admin staff edit/view
+- Launch dedicated employee portal pages with working hours, attendance summary, roster, leave history, salary slips, payroll history
 
-### Phase A - Admin Module Completion (Immediate)
+## Priority 4 — frontend polish
 
-- Complete Staff Management tab workflows (directory, edit, status, and credentials touchpoints).
-- Complete Roster tab as the shift and duty planning baseline (templates, assignment, coverage view).
-- Complete Leave tab lifecycle (request, approve/reject, balances, and audit trail).
-- Ensure doctors and staff are handled uniformly as employees wherever applicable.
+- Consolidate to one toast library (`sonner` preferred over `react-hot-toast`)
+- Normalize doctor and lab layouts toward the admin v2 / pharmacy patterns
+- Extract repeated workspace-shell patterns into shared components
+- Reduce per-feature type duplication of DB shapes
+- Sweep remaining `Date.toLocale*` call sites despite the ESLint warning (rule is `warn`, not `error`)
+- Re-enable `reactStrictMode` once double-mount-safe SSE + form bookkeeping is verified
 
-### Phase B - Attendance + Roster Enforcement
+## Priority 5 — infrastructure
 
-- Attendance derivation must use roster assignment plus global attendance policy settings.
-- Mark attendance as `unscheduled` if no roster assignment exists for the selected date.
-- Keep admin manual override available with full audit logging and actor/source tagging.
+- Add a CI pipeline: lint + test on every push, build on PR
+- Add structured server-side logging (pino or JSON-on-console)
+- Add `/api/healthz` for uptime checks with DB-pool ping
+- Add external error reporting (Sentry / Bugsnag)
+- Wire `cleanup_old_audit_logs(p_days)` to a real scheduler (Supabase cron / Vercel cron)
+- Gitignore `docs/` output or build it in CI instead of committing it
+- Decide on artifact cleanup: `backup.dump`, `pg4.dbm`, `pg_modeler_hms.dbm`, `debug-output.css`, `database/schema.prisma`
 
-### Phase C - Payroll Engine (Full Scope)
+## Source-of-truth policy
 
-- Build payroll domain end-to-end: salary structures, allowances, deductions, overtime linkage, monthly payroll processing, and payout status.
-- Add payroll reports and employee-wise salary ledger tracking.
-- Keep payroll mutation actions restricted to admin-authorized roles.
+- Supabase remains the only source of truth for all clinical, pharmacy, attendance, roster, leave, and payroll data.
+- Local SQL files (`backup.dump`, `database/migrations/*.sql`) are reference / migration artifacts, not the spec.
+- New endpoints and UI reads must resolve against live Supabase schema — refresh `database/snapshot/` before relying on the markdown docs.
 
-### Phase D - Employee Records UX (Both, Phased)
+## API & interface targets (in flight)
 
-- Step 1: expose core employee records in admin employee edit/view surfaces.
-- Step 2: launch dedicated employee portal pages for each employee to view:
-  - working hours
-  - attendance summary
-  - roster and shift details
-  - leave history
-  - salary slips and payroll history
+### Admin
+- `GET/POST/PATCH /api/admin/staff/*` — directory + lifecycle actions
+- `GET/POST /api/admin/staff/v2/roster*` — shift templates + assignments
+- `GET/POST/PATCH /api/admin/staff/v2/leave*` — requests + decisions
+- `GET/POST/PATCH /api/admin/payroll/*` — payroll engine
 
-### Source of Truth and Data Policy
+### Employee
+- `GET /api/employee/me/profile`
+- `GET /api/employee/me/attendance`
+- `GET /api/employee/me/roster`
+- `GET /api/employee/me/leave`
+- `GET /api/employee/me/payroll`
 
-- Supabase is the only source of truth for all staff, attendance, roster, leave, and payroll data.
-- Local/mock/outdated database records must not drive business workflows.
-- New endpoints and UI reads must resolve against live Supabase schema.
+## Delivery order
 
-### API and Interface Targets
-
-- Admin:
-  - `GET/POST/PATCH /api/admin/staff/*` for staff directory and lifecycle actions.
-  - `GET/POST /api/admin/staff/v2/roster*` for shift templates and assignments.
-  - `GET/POST/PATCH /api/admin/staff/v2/leave*` for leave requests and decisions.
-  - `GET/POST/PATCH /api/admin/payroll/*` for payroll engine operations.
-- Employee:
-  - `GET /api/employee/me/profile`
-  - `GET /api/employee/me/attendance`
-  - `GET /api/employee/me/roster`
-  - `GET /api/employee/me/leave`
-  - `GET /api/employee/me/payroll`
-
-### Delivery Order
-
-1. Staff Management hardening.
-2. Roster and Leave completion.
-3. Attendance-policy and status-derivation alignment.
-4. Payroll engine rollout.
-5. Employee portal rollout.
+1. Standardize visit-status writes through the procedure
+2. Eliminate `getCurrentStaffId()` placeholder
+3. Audit coverage Priority 2 list
+4. Roster + leave completion (Phase A workforce)
+5. Attendance-policy alignment (Phase B)
+6. Payroll engine rollout (Phase C)
+7. Employee portal rollout (Phase D)
+8. Frontend consolidation pass
+9. CI + observability
