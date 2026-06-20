@@ -236,7 +236,7 @@ export default function NewPrescriptionForm() {
               placeholder="Search medicines by category, generic, brand, or dosage"
               aria-label="Search medicines"
               aria-controls="medicine-search-results"
-              className="h-12 w-full rounded-md border border-input bg-background pl-12 pr-20 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/20"
+              className="h-11 w-full rounded-md border border-input bg-background pl-12 pr-20 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/20"
             />
             <div className="absolute inset-y-0 right-0 flex items-center gap-3 pr-4 text-xs font-semibold">
               <span className="hidden text-muted-foreground md:inline">`/`</span>

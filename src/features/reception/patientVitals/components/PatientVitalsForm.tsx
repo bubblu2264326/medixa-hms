@@ -148,7 +148,7 @@ export function PatientVitalsForm() {
           <div className="pt-6">
             <button
               type="submit"
-              className="w-full h-14 bg-primary hover:bg-primary/90 text-primary-foreground rounded-md font-semibold uppercase tracking-wide text-xs shadow-sm transition-all active:scale-[0.98] flex items-center justify-center gap-3"
+              className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground rounded-md font-semibold uppercase tracking-wide text-xs shadow-sm transition-all active:scale-[0.98] flex items-center justify-center gap-3"
             >
               <Activity className="w-4 h-4" />
               {mode === "update" ? "Update Biometric Data" : "Save Biometric Data"}
@@ -175,7 +175,7 @@ function Input({ label, id, icon, reg, err, placeholder }: any) {
           id={id}
           {...reg}
           placeholder={placeholder}
-          className="w-full h-12 pl-12 pr-4 bg-background border border-input rounded-md outline-none focus:ring-4 focus:ring-ring/10 focus:border-ring transition-all font-medium text-foreground placeholder:text-muted-foreground shadow-sm"
+          className="w-full h-10 pl-12 pr-4 bg-background border border-input rounded-md outline-none focus:ring-4 focus:ring-ring/10 focus:border-ring transition-all font-medium text-foreground placeholder:text-muted-foreground shadow-sm"
         />
       </div>
       {err && <p className="text-[10px] font-semibold text-destructive ml-1 mt-1 uppercase">! {err}</p>}

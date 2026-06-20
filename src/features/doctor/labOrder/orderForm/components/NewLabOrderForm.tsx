@@ -131,7 +131,7 @@ export default function NewLabOrderForm() {
               placeholder="Search lab tests by name, category, or price"
               aria-label="Search lab tests"
               aria-controls="lab-search-results"
-              className="h-12 w-full rounded-md border border-input bg-background pl-12 pr-16 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/20"
+              className="h-11 w-full rounded-md border border-input bg-background pl-12 pr-16 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/20"
             />
           </div>
 
