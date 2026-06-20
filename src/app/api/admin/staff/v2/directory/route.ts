@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/database/db";
 import { AuthError, requireAdminOrSuperAdmin } from "@/src/lib/server/auth";
+import { assertPermitted } from "@/src/lib/server/permissions";
 import { hashPassword } from "@/src/lib/server/password";
 import { logAuditEvent } from "@/src/lib/server/audit";
 
 export async function GET(req: NextRequest) {
   try {
-    await requireAdminOrSuperAdmin(req);
+    const actor = await requireAdminOrSuperAdmin(req);
+    await assertPermitted(actor, "staff_directory", "view");
     const { searchParams } = new URL(req.url);
     const q = String(searchParams.get("q") ?? "").trim();
     const department = searchParams.get("department");
@@ -126,6 +128,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const actor = await requireAdminOrSuperAdmin(req);
+    await assertPermitted(actor, "staff_directory", "create");
     const body = await req.json();
 
     const required = ["name", "user_code", "role", "password"] as const;
@@ -235,6 +238,7 @@ export async function POST(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   try {
     const actor = await requireAdminOrSuperAdmin(req);
+    await assertPermitted(actor, "staff_directory", "edit");
     const body = await req.json();
     const staffId = Number(body?.staff_id ?? 0);
     const accountType = body?.account_type === "doctor" ? "doctor" : "staff";
