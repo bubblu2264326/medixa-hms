@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/database/db';
 import { ApiResponse } from '@/src/lib/types';
-import { getCurrentStaffId } from '@/src/lib/utils';
+import type { PoolClient } from 'pg';
+import { AuthError, getAuthenticatedUser } from '@/src/lib/server/auth';
+import { resolveActorStaffId } from '@/src/lib/server/actor';
 
 /**
  * GET /api/transactions/return/[id]
@@ -12,9 +14,11 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const client = await pool.connect();
+  let client: PoolClient | undefined;
 
   try {
+    await getAuthenticatedUser(request);
+    client = await pool.connect();
     // 1. Fetch sale_return header
     const returnResult = await client.query(`
       SELECT 
@@ -125,13 +129,16 @@ export async function GET(
     });
 
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json<ApiResponse>({ success: false, error: error.message }, { status: error.status });
+    }
     console.error('Fetch sale return error:', error);
     return NextResponse.json<ApiResponse>({
       success: false,
       error: 'Failed to fetch sale return details'
     }, { status: 500 });
   } finally {
-    client.release();
+    if (client) client.release();
   }
 }
 
@@ -144,9 +151,11 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const client = await pool.connect();
+  let client: PoolClient | undefined;
 
   try {
+    await getAuthenticatedUser(request);
+    client = await pool.connect();
     const transaction = await request.json();
 
     if (!transaction.items || transaction.items.length === 0) {
@@ -157,7 +166,7 @@ export async function PUT(
     }
 
     await client.query('BEGIN');
-    const staffId = getCurrentStaffId();
+    const staffId = await resolveActorStaffId(request, client);
 
     // 1. Update the sale_return header
     await client.query(`
@@ -269,13 +278,16 @@ export async function PUT(
     });
 
   } catch (error) {
-    await client.query('ROLLBACK');
+    if (error instanceof AuthError) {
+      return NextResponse.json<ApiResponse>({ success: false, error: error.message }, { status: error.status });
+    }
+    if (client) await client.query('ROLLBACK');
     console.error('Sale return update error:', error);
     return NextResponse.json<ApiResponse>({
       success: false,
       error: 'Failed to update sale return'
     }, { status: 500 });
   } finally {
-    client.release();
+    if (client) client.release();
   }
 }
