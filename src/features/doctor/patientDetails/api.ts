@@ -1,5 +1,7 @@
 import {
   DoctorProfile,
+  NewAllergyInput,
+  PatientAllergy,
   PatientContextSummary,
   RecentPrescription,
   RecentVisit,
@@ -91,6 +93,50 @@ export async function fetchPreviousPrescriptions(
   if (!res.ok) {
     const data = await res.json().catch(() => null);
     throw new Error(data?.error || "Failed to fetch prescription history");
+  }
+
+  return res.json();
+}
+
+export async function fetchPatientAllergies(patientId: string): Promise<PatientAllergy[]> {
+  const res = await fetch(`/api/patient/${patientId}/allergies`);
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.error || "Failed to fetch allergies");
+  }
+
+  return res.json();
+}
+
+export async function addPatientAllergy(
+  patientId: string,
+  input: NewAllergyInput
+): Promise<{ success: boolean; allergy_id: number }> {
+  const res = await fetch(`/api/patient/${patientId}/allergies`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.error || "Failed to add allergy");
+  }
+
+  return res.json();
+}
+
+export async function removePatientAllergy(
+  patientId: string,
+  allergyId: number | string
+): Promise<{ success: boolean }> {
+  const res = await fetch(`/api/patient/${patientId}/allergies/${allergyId}`, {
+    method: "DELETE",
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.error || "Failed to remove allergy");
   }
 
   return res.json();

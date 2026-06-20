@@ -104,6 +104,23 @@ export type PatientContextSummary = {
   womenHealthSummary: WomenHealthSummary | null;
 };
 
+export const ALLERGY_SEVERITIES = ["mild", "moderate", "severe", "unknown"] as const;
+export type AllergySeverity = (typeof ALLERGY_SEVERITIES)[number];
+
+export type PatientAllergy = {
+  allergy_id: number;
+  allergen: string;
+  reaction: string | null;
+  severity: string;
+  noted_at?: string | null;
+};
+
+export type NewAllergyInput = {
+  allergen: string;
+  severity: AllergySeverity;
+  reaction?: string;
+};
+
 export type RecentVisit = {
   visit_id: string;
   patient_id: string;

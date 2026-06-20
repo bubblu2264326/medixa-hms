@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
+  AlertTriangle,
   ClipboardList,
   ContactRound,
   FlaskConical,
@@ -11,16 +13,23 @@ import {
   MapPin,
   NotebookTabs,
   Pill,
+  Plus,
   ShieldCheck,
   Stethoscope,
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/src/components/ui/Button";
+import { Input } from "@/src/components/ui/Input";
+import { DEFAULT_TIMEZONE, formatDateInTimezone } from "@/src/lib/timezone/client";
 import type {
+  AllergySeverity,
   CurrentPregnancySummary,
   MenstrualHistorySummary,
   ObstetricHistorySummary,
+  PatientAllergy,
   WomenHealthSummary,
 } from "../types";
+import { ALLERGY_SEVERITIES } from "../types";
 import { usePatientForm } from "../hooks/usePatientForm";
 import { useDoctorWorkspace } from "../../workspace/DoctorWorkspaceContext";
 import { StaleVisitNotice } from "../../workspace/StaleVisitNotice";
@@ -259,18 +268,173 @@ function WomenHealthSection<T extends MenstrualHistorySummary | ObstetricHistory
   );
 }
 
+const SEVERITY_TONE: Record<string, string> = {
+  severe: "border-rose-200 bg-rose-50 text-rose-700",
+  moderate: "border-amber-200 bg-amber-50 text-amber-700",
+  mild: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  unknown: "border-slate-200 bg-slate-50 text-slate-600",
+};
+
+function severityTone(severity: string | null | undefined) {
+  return SEVERITY_TONE[String(severity ?? "").toLowerCase()] ?? SEVERITY_TONE.unknown;
+}
+
+function AllergiesPanel({
+  allergies,
+  isSaving,
+  canEdit,
+  onAdd,
+  onRemove,
+}: {
+  allergies: PatientAllergy[];
+  isSaving: boolean;
+  canEdit: boolean;
+  onAdd: (input: { allergen: string; severity: AllergySeverity; reaction?: string }) => Promise<boolean>;
+  onRemove: (allergyId: number) => void;
+}) {
+  const [allergen, setAllergen] = useState("");
+  const [severity, setSeverity] = useState<AllergySeverity>("unknown");
+  const [reaction, setReaction] = useState("");
+
+  const handleAdd = async () => {
+    if (!allergen.trim()) return;
+    const added = await onAdd({ allergen, severity, reaction });
+    if (added) {
+      setAllergen("");
+      setSeverity("unknown");
+      setReaction("");
+    }
+  };
+
+  return (
+    <section className="mt-6 rounded-[1.75rem] border border-rose-100 bg-white p-5">
+      <div className="flex items-center gap-2">
+        <div className="rounded-2xl bg-rose-50 p-2 text-rose-600">
+          <AlertTriangle size={18} />
+        </div>
+        <div>
+          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">
+            Known Allergies
+          </p>
+          <h3 className="mt-1 text-lg font-black tracking-tight text-slate-900">
+            Active allergy register for this patient
+          </h3>
+        </div>
+      </div>
+
+      <div className="mt-4 space-y-2">
+        {allergies.length > 0 ? (
+          allergies.map((item) => (
+            <div
+              key={item.allergy_id}
+              className="flex flex-wrap items-center justify-between gap-3 rounded-[1.1rem] border border-slate-200 bg-slate-50/70 px-4 py-3"
+            >
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-sm font-black tracking-tight text-slate-900">
+                    {item.allergen}
+                  </span>
+                  <span
+                    className={`rounded-full border px-2.5 py-0.5 text-[10px] font-black uppercase tracking-[0.14em] ${severityTone(
+                      item.severity
+                    )}`}
+                  >
+                    {item.severity}
+                  </span>
+                </div>
+                {item.reaction?.trim() && (
+                  <div className="mt-1 text-sm text-slate-600">Reaction: {item.reaction}</div>
+                )}
+                {item.noted_at && (
+                  <div className="mt-1 text-xs text-slate-400">
+                    Noted {formatDateInTimezone(item.noted_at, DEFAULT_TIMEZONE)}
+                  </div>
+                )}
+              </div>
+              {canEdit && (
+                <button
+                  type="button"
+                  onClick={() => onRemove(item.allergy_id)}
+                  disabled={isSaving}
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-rose-100 bg-rose-50 text-rose-600 transition hover:bg-rose-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 disabled:cursor-not-allowed disabled:opacity-50"
+                  aria-label={`Remove allergy ${item.allergen}`}
+                >
+                  <Trash2 size={14} />
+                </button>
+              )}
+            </div>
+          ))
+        ) : (
+          <div className="rounded-[1.1rem] border border-dashed border-slate-200 bg-slate-50/70 px-4 py-6 text-center text-sm text-slate-400">
+            No allergies recorded for this patient yet.
+          </div>
+        )}
+      </div>
+
+      {canEdit && (
+        <div className="mt-4 rounded-[1.35rem] border border-slate-200 bg-slate-50/60 p-4">
+          <div className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">
+            Add Allergy
+          </div>
+          <div className="mt-3 grid gap-3 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1.2fr)]">
+            <Input
+              value={allergen}
+              onChange={(event) => setAllergen(event.target.value)}
+              placeholder="Allergen (e.g. Penicillin)"
+              aria-label="Allergen"
+            />
+            <select
+              value={severity}
+              onChange={(event) => setSeverity(event.target.value as AllergySeverity)}
+              aria-label="Severity"
+              className="h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground shadow-sm outline-none transition focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            >
+              {ALLERGY_SEVERITIES.map((option) => (
+                <option key={option} value={option}>
+                  {option.charAt(0).toUpperCase() + option.slice(1)}
+                </option>
+              ))}
+            </select>
+            <Input
+              value={reaction}
+              onChange={(event) => setReaction(event.target.value)}
+              placeholder="Reaction (optional)"
+              aria-label="Reaction"
+            />
+          </div>
+          <div className="mt-3 flex justify-end">
+            <Button
+              type="button"
+              onClick={handleAdd}
+              disabled={isSaving || !allergen.trim()}
+              className="h-10 rounded-xl px-4 font-bold"
+            >
+              <Plus size={16} className="mr-1" />
+              {isSaving ? "Saving..." : "Add Allergy"}
+            </Button>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
 export default function PatientForm() {
   const {
     doctor,
     contextSummary,
     recentVisits,
     recentPrescriptions,
+    allergies,
     doctorNoteDraft,
     setDoctorNoteDraft,
     isLoading,
     isSaving,
+    isSavingAllergy,
     error,
     saveDoctorNote,
+    addAllergy,
+    removeAllergy,
     markVisitSeen,
     reopenVisit,
     cancelVisit,
@@ -549,6 +713,14 @@ export default function PatientForm() {
         </div>
 
         <WomenHealthPanel summary={womenHealthSummary} gender={patient?.gender} />
+
+        <AllergiesPanel
+          allergies={allergies}
+          isSaving={isSavingAllergy}
+          canEdit={Boolean(patient)}
+          onAdd={addAllergy}
+          onRemove={removeAllergy}
+        />
 
         <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
           <section className="rounded-[1.75rem] border border-slate-200 bg-white p-5">

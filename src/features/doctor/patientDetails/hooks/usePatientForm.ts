@@ -5,6 +5,8 @@ import toast from "react-hot-toast";
 import { usePatient } from "@/contexts/PatientIdContext";
 import { useDoctorWorkspace } from "@/src/features/doctor/workspace/DoctorWorkspaceContext";
 import {
+  NewAllergyInput,
+  PatientAllergy,
   PatientContextSummary,
   DoctorProfile,
   RecentPrescription,
@@ -23,9 +25,11 @@ export function usePatientForm() {
   const [contextSummary, setContextSummary] = useState<PatientContextSummary | null>(null);
   const [recentVisits, setRecentVisits] = useState<RecentVisit[]>([]);
   const [recentPrescriptions, setRecentPrescriptions] = useState<RecentPrescription[]>([]);
+  const [allergies, setAllergies] = useState<PatientAllergy[]>([]);
   const [doctorNoteDraft, setDoctorNoteDraft] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSavingAllergy, setIsSavingAllergy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -47,6 +51,7 @@ export function usePatientForm() {
         setContextSummary(null);
         setRecentVisits([]);
         setRecentPrescriptions([]);
+        setAllergies([]);
         setDoctorNoteDraft("");
         setError(null);
         setSelectedVisitStatus(null);
@@ -58,10 +63,11 @@ export function usePatientForm() {
       setError(null);
 
       try {
-        const [summary, visits, prescriptions] = await Promise.all([
+        const [summary, visits, prescriptions, patientAllergies] = await Promise.all([
           api.fetchPatientContextSummary(patientId, selectedVisitId),
           api.fetchPastVisits(patientId).catch(() => []),
           api.fetchPreviousPrescriptions(patientId).catch(() => []),
+          api.fetchPatientAllergies(patientId).catch(() => []),
         ]);
 
         setContextSummary(summary);
@@ -69,6 +75,7 @@ export function usePatientForm() {
           visits.filter((item) => item.visit_id !== summary.activeVisit.visit_id).slice(0, 3)
         );
         setRecentPrescriptions(prescriptions.slice(0, 4));
+        setAllergies(patientAllergies);
         setDoctorNoteDraft(summary.encounterNote?.doctor_note ?? "");
         setSelectedVisitStatus(summary.activeVisit.status);
         clearStaleVisitSelection();
@@ -79,6 +86,7 @@ export function usePatientForm() {
         setContextSummary(null);
         setRecentVisits([]);
         setRecentPrescriptions([]);
+        setAllergies([]);
         setDoctorNoteDraft("");
         setError(message);
 
@@ -183,6 +191,7 @@ export function usePatientForm() {
       setContextSummary(null);
       setRecentVisits([]);
       setRecentPrescriptions([]);
+      setAllergies([]);
       setDoctorNoteDraft("");
       setSelectedVisitStatus(null);
       window.dispatchEvent(new Event("refresh-queue"));
@@ -194,17 +203,64 @@ export function usePatientForm() {
     }
   }
 
+  async function addAllergy(input: NewAllergyInput) {
+    const allergen = input.allergen.trim();
+    if (!patientId || !allergen) {
+      toast.error("Allergen is required");
+      return false;
+    }
+
+    setIsSavingAllergy(true);
+    try {
+      await api.addPatientAllergy(patientId, {
+        allergen,
+        severity: input.severity,
+        reaction: input.reaction?.trim() || undefined,
+      });
+      const refreshed = await api.fetchPatientAllergies(patientId).catch(() => allergies);
+      setAllergies(refreshed);
+      toast.success("Allergy recorded");
+      return true;
+    } catch (err) {
+      console.error(err);
+      toast.error(err instanceof Error ? err.message : "Failed to add allergy");
+      return false;
+    } finally {
+      setIsSavingAllergy(false);
+    }
+  }
+
+  async function removeAllergy(allergyId: number) {
+    if (!patientId) return;
+
+    setIsSavingAllergy(true);
+    try {
+      await api.removePatientAllergy(patientId, allergyId);
+      setAllergies((current) => current.filter((item) => item.allergy_id !== allergyId));
+      toast.success("Allergy removed");
+    } catch (err) {
+      console.error(err);
+      toast.error(err instanceof Error ? err.message : "Failed to remove allergy");
+    } finally {
+      setIsSavingAllergy(false);
+    }
+  }
+
   return {
     doctor,
     contextSummary,
     recentVisits,
     recentPrescriptions,
+    allergies,
     doctorNoteDraft,
     setDoctorNoteDraft,
     isLoading,
     isSaving,
+    isSavingAllergy,
     error,
     saveDoctorNote,
+    addAllergy,
+    removeAllergy,
     markVisitSeen: () => updateVisitStatus("seen_by_doctor"),
     reopenVisit: () => updateVisitStatus("waiting"),
     cancelVisit: () => updateVisitStatus("discharged"),
