@@ -55,6 +55,27 @@ UNION ALL
   ORDER BY (date(sale_timestamp)) DESC;
 ```
 
+## v_ip_running_bill
+
+```sql
+ SELECT admission_id,
+    admission_no,
+    patient_id,
+    status,
+    COALESCE(( SELECT sum(c.amount) AS sum
+           FROM ip_charge c
+          WHERE (c.admission_id = a.admission_id)), (0)::numeric) AS total_charges,
+    COALESCE(( SELECT sum(v.amount) AS sum
+           FROM ip_advance v
+          WHERE (v.admission_id = a.admission_id)), (0)::numeric) AS total_advances,
+    (COALESCE(( SELECT sum(c.amount) AS sum
+           FROM ip_charge c
+          WHERE (c.admission_id = a.admission_id)), (0)::numeric) - COALESCE(( SELECT sum(v.amount) AS sum
+           FROM ip_advance v
+          WHERE (v.admission_id = a.admission_id)), (0)::numeric)) AS balance_due
+   FROM admission a;
+```
+
 ## v_low_stock_medicines
 
 ```sql

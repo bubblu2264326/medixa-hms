@@ -107,6 +107,12 @@
 | public | finance_expense_entry | idx_finance_expense_entry_date | CREATE INDEX idx_finance_expense_entry_date ON public.finance_expense_entry USING btree (expense_date DESC, category) |
 | public | intake_output | idx_intake_output_admission | CREATE INDEX idx_intake_output_admission ON public.intake_output USING btree (admission_id) |
 | public | intake_output | intake_output_pkey | CREATE UNIQUE INDEX intake_output_pkey ON public.intake_output USING btree (io_id) |
+| public | ip_advance | idx_ip_advance_admission | CREATE INDEX idx_ip_advance_admission ON public.ip_advance USING btree (admission_id) |
+| public | ip_advance | ip_advance_pkey | CREATE UNIQUE INDEX ip_advance_pkey ON public.ip_advance USING btree (advance_id) |
+| public | ip_charge | idx_ip_charge_admission | CREATE INDEX idx_ip_charge_admission ON public.ip_charge USING btree (admission_id) |
+| public | ip_charge | ip_charge_pkey | CREATE UNIQUE INDEX ip_charge_pkey ON public.ip_charge USING btree (charge_id) |
+| public | ip_charge | uq_ip_charge_room_rent | CREATE UNIQUE INDEX uq_ip_charge_room_rent ON public.ip_charge USING btree (admission_id, source_ref) WHERE ((charge_type)::text = 'room_rent'::text) |
+| public | ip_final_bill | ip_final_bill_pkey | CREATE UNIQUE INDEX ip_final_bill_pkey ON public.ip_final_bill USING btree (admission_id) |
 | public | lab_order | idx_lab_order_visit_id | CREATE INDEX idx_lab_order_visit_id ON public.lab_order USING btree (visit_id) |
 | public | lab_order | lab_order_pkey | CREATE UNIQUE INDEX lab_order_pkey ON public.lab_order USING btree (order_id) |
 | public | lab_result | lab_result_pkey | CREATE UNIQUE INDEX lab_result_pkey ON public.lab_result USING btree (result_id) |

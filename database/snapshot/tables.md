@@ -2245,6 +2245,170 @@ _(none)_
 
 
 
+## ip_advance
+
+### Columns
+
+| table_name | column_name | data_type | udt_name | is_nullable | column_default | character_maximum_length |
+| --- | --- | --- | --- | --- | --- | --- |
+| ip_advance | advance_id | integer | int4 | NO | nextval('ip_advance_advance_id_seq'::regclass) |  |
+| ip_advance | admission_id | integer | int4 | NO |  |  |
+| ip_advance | amount | numeric | numeric | NO |  |  |
+| ip_advance | payment_type | character varying | varchar | NO | 'CASH'::character varying | 20 |
+| ip_advance | receipt_no | character varying | varchar | YES |  | 60 |
+| ip_advance | received_by | integer | int4 | YES |  |  |
+| ip_advance | received_at | timestamp without time zone | timestamp | NO | CURRENT_TIMESTAMP |  |
+| ip_advance | notes | text | text | YES |  |  |
+| ip_advance | created_at | timestamp without time zone | timestamp | NO | CURRENT_TIMESTAMP |  |
+
+
+### Primary key
+
+| table_name | column_name | constraint_name |
+| --- | --- | --- |
+| ip_advance | advance_id | ip_advance_pkey |
+
+
+### Foreign keys
+
+| table_name | column_name | ref_table | ref_column | update_rule | delete_rule | constraint_name |
+| --- | --- | --- | --- | --- | --- | --- |
+| ip_advance | admission_id | admission | admission_id | NO ACTION | CASCADE | ip_advance_admission_id_fkey |
+| ip_advance | received_by | staff | staff_id | NO ACTION | NO ACTION | ip_advance_received_by_fkey |
+
+
+### Unique constraints
+
+_(none)_
+
+
+### Check constraints
+
+| table_name | constraint_name | check_clause |
+| --- | --- | --- |
+| ip_advance | ck_ip_advance_amount_pos | (amount > (0)::numeric) |
+| ip_advance | ck_ip_advance_payment_type | ((payment_type)::text = ANY ((ARRAY['CASH'::character varying, 'CARD'::character varying, 'INSURANCE'::character varying, 'MOBILE'::character varying, 'SPLIT'::character varying])::text[])) |
+| ip_advance | ip_advance_admission_id_not_null | admission_id IS NOT NULL |
+| ip_advance | ip_advance_advance_id_not_null | advance_id IS NOT NULL |
+| ip_advance | ip_advance_amount_not_null | amount IS NOT NULL |
+| ip_advance | ip_advance_created_at_not_null | created_at IS NOT NULL |
+| ip_advance | ip_advance_payment_type_not_null | payment_type IS NOT NULL |
+| ip_advance | ip_advance_received_at_not_null | received_at IS NOT NULL |
+
+
+
+## ip_charge
+
+### Columns
+
+| table_name | column_name | data_type | udt_name | is_nullable | column_default | character_maximum_length |
+| --- | --- | --- | --- | --- | --- | --- |
+| ip_charge | charge_id | integer | int4 | NO | nextval('ip_charge_charge_id_seq'::regclass) |  |
+| ip_charge | admission_id | integer | int4 | NO |  |  |
+| ip_charge | charge_type | character varying | varchar | NO |  | 20 |
+| ip_charge | description | text | text | YES |  |  |
+| ip_charge | qty | numeric | numeric | NO | 1 |  |
+| ip_charge | unit_rate | numeric | numeric | NO | 0 |  |
+| ip_charge | amount | numeric | numeric | NO |  |  |
+| ip_charge | source_ref | character varying | varchar | YES |  | 80 |
+| ip_charge | posted_by | integer | int4 | YES |  |  |
+| ip_charge | posted_at | timestamp without time zone | timestamp | NO | CURRENT_TIMESTAMP |  |
+| ip_charge | created_at | timestamp without time zone | timestamp | NO | CURRENT_TIMESTAMP |  |
+
+
+### Primary key
+
+| table_name | column_name | constraint_name |
+| --- | --- | --- |
+| ip_charge | charge_id | ip_charge_pkey |
+
+
+### Foreign keys
+
+| table_name | column_name | ref_table | ref_column | update_rule | delete_rule | constraint_name |
+| --- | --- | --- | --- | --- | --- | --- |
+| ip_charge | admission_id | admission | admission_id | NO ACTION | CASCADE | ip_charge_admission_id_fkey |
+| ip_charge | posted_by | staff | staff_id | NO ACTION | NO ACTION | ip_charge_posted_by_fkey |
+
+
+### Unique constraints
+
+_(none)_
+
+
+### Check constraints
+
+| table_name | constraint_name | check_clause |
+| --- | --- | --- |
+| ip_charge | ck_ip_charge_qty_nonneg | (qty >= (0)::numeric) |
+| ip_charge | ck_ip_charge_rate_nonneg | (unit_rate >= (0)::numeric) |
+| ip_charge | ck_ip_charge_type | ((charge_type)::text = ANY ((ARRAY['room_rent'::character varying, 'nursing'::character varying, 'doctor_visit'::character varying, 'service'::character varying, 'pharmacy'::character varying, 'procedure'::character varying, 'consumable'::character varying, 'lab'::character varying, 'adjustment'::character varying, 'other'::character varying])::text[])) |
+| ip_charge | ip_charge_admission_id_not_null | admission_id IS NOT NULL |
+| ip_charge | ip_charge_amount_not_null | amount IS NOT NULL |
+| ip_charge | ip_charge_charge_id_not_null | charge_id IS NOT NULL |
+| ip_charge | ip_charge_charge_type_not_null | charge_type IS NOT NULL |
+| ip_charge | ip_charge_created_at_not_null | created_at IS NOT NULL |
+| ip_charge | ip_charge_posted_at_not_null | posted_at IS NOT NULL |
+| ip_charge | ip_charge_qty_not_null | qty IS NOT NULL |
+| ip_charge | ip_charge_unit_rate_not_null | unit_rate IS NOT NULL |
+
+
+
+## ip_final_bill
+
+### Columns
+
+| table_name | column_name | data_type | udt_name | is_nullable | column_default | character_maximum_length |
+| --- | --- | --- | --- | --- | --- | --- |
+| ip_final_bill | admission_id | integer | int4 | NO |  |  |
+| ip_final_bill | gross_amount | numeric | numeric | NO | 0 |  |
+| ip_final_bill | discount_amount | numeric | numeric | NO | 0 |  |
+| ip_final_bill | advance_adjusted | numeric | numeric | NO | 0 |  |
+| ip_final_bill | net_due | numeric | numeric | NO | 0 |  |
+| ip_final_bill | settled | boolean | bool | NO | false |  |
+| ip_final_bill | settled_at | timestamp without time zone | timestamp | YES |  |  |
+| ip_final_bill | settled_by | integer | int4 | YES |  |  |
+| ip_final_bill | gate_pass_no | character varying | varchar | YES |  | 60 |
+| ip_final_bill | created_at | timestamp without time zone | timestamp | NO | CURRENT_TIMESTAMP |  |
+| ip_final_bill | updated_at | timestamp without time zone | timestamp | NO | CURRENT_TIMESTAMP |  |
+
+
+### Primary key
+
+| table_name | column_name | constraint_name |
+| --- | --- | --- |
+| ip_final_bill | admission_id | ip_final_bill_pkey |
+
+
+### Foreign keys
+
+| table_name | column_name | ref_table | ref_column | update_rule | delete_rule | constraint_name |
+| --- | --- | --- | --- | --- | --- | --- |
+| ip_final_bill | admission_id | admission | admission_id | NO ACTION | CASCADE | ip_final_bill_admission_id_fkey |
+| ip_final_bill | settled_by | staff | staff_id | NO ACTION | NO ACTION | ip_final_bill_settled_by_fkey |
+
+
+### Unique constraints
+
+_(none)_
+
+
+### Check constraints
+
+| table_name | constraint_name | check_clause |
+| --- | --- | --- |
+| ip_final_bill | ck_ip_final_nonneg | ((gross_amount >= (0)::numeric) AND (discount_amount >= (0)::numeric) AND (advance_adjusted >= (0)::numeric)) |
+| ip_final_bill | ip_final_bill_admission_id_not_null | admission_id IS NOT NULL |
+| ip_final_bill | ip_final_bill_advance_adjusted_not_null | advance_adjusted IS NOT NULL |
+| ip_final_bill | ip_final_bill_created_at_not_null | created_at IS NOT NULL |
+| ip_final_bill | ip_final_bill_discount_amount_not_null | discount_amount IS NOT NULL |
+| ip_final_bill | ip_final_bill_gross_amount_not_null | gross_amount IS NOT NULL |
+| ip_final_bill | ip_final_bill_net_due_not_null | net_due IS NOT NULL |
+| ip_final_bill | ip_final_bill_settled_not_null | settled IS NOT NULL |
+| ip_final_bill | ip_final_bill_updated_at_not_null | updated_at IS NOT NULL |
+
+
+
 ## lab_order
 
 ### Columns

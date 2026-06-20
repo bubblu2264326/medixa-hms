@@ -1,9 +1,9 @@
 # DB Snapshot — overview
 
-Generated: 2026-06-20T09:05:09.713Z
+Generated: 2026-06-20T09:11:43.640Z
 
-- Tables: 104
-- Views: 4
+- Tables: 107
+- Views: 5
 - Functions/Procedures: 15
 - Triggers: 17
 - Enums: 0
@@ -53,6 +53,9 @@ Generated: 2026-06-20T09:05:09.713Z
 | finance_expense_category | 7 |
 | finance_expense_entry | 0 |
 | intake_output | 0 |
+| ip_advance | 0 |
+| ip_charge | 0 |
+| ip_final_bill | 0 |
 | lab_order | 0 |
 | lab_result | 0 |
 | lab_result_approvals | 0 |

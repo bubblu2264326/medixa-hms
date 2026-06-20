@@ -125,6 +125,24 @@ const checks = [
       )
       SELECT return_id, refund_amount, detail_total FROM d WHERE abs(refund_amount - detail_total) > 0.01 LIMIT 5`,
   },
+  {
+    name: "ipd-bed-single-occupancy",
+    desc: "no bed holds more than one active (admitted) admission",
+    sql: `SELECT count(*)::int AS violations FROM (
+            SELECT current_bed_id FROM admission
+            WHERE status = 'admitted' AND current_bed_id IS NOT NULL
+            GROUP BY current_bed_id HAVING count(*) > 1
+          ) x`,
+    sample: `SELECT current_bed_id, count(*) FROM admission
+             WHERE status='admitted' AND current_bed_id IS NOT NULL
+             GROUP BY current_bed_id HAVING count(*) > 1 LIMIT 5`,
+  },
+  {
+    name: "ipd-mar-ties-to-order",
+    desc: "every medication_administration (MAR) row references an existing medication_order",
+    sql: `SELECT count(*)::int AS violations FROM medication_administration m
+          WHERE NOT EXISTS (SELECT 1 FROM medication_order o WHERE o.med_order_id = m.med_order_id)`,
+  },
 ];
 
 let failed = 0;
