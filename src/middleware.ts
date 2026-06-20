@@ -1,18 +1,8 @@
 import { jwtVerify } from "jose";
 import { NextRequest, NextResponse } from "next/server";
-const JWT_Secret = new TextEncoder().encode(process.env.secret_key || "hms_super_secure_2026_clinic_key");
+import { normalizeRole } from "@/src/lib/server/roles";
 
-const normalizeRole = (raw: unknown) => {
-    const role = String(raw ?? "").trim().toLowerCase();
-    if (role === "super admin" || role === "super_admin") return "super_admin";
-    if (role === "admin") return "admin";
-    if (role === "doctor") return "doctor";
-    if (role === "lab_technician" || role === "lab technician" || role === "technician") return "lab_technician";
-    if (role === "receptionist" || role === "front_desk" || role === "front desk") return "receptionist";
-    if (role === "pharmacist") return "pharmacist";
-    if (role === "cashier") return "cashier";
-    return role;
-};
+const JWT_Secret = new TextEncoder().encode(process.env.secret_key || "hms_super_secure_2026_clinic_key");
 
 export async function middleware(req: NextRequest) {
     //get token from request

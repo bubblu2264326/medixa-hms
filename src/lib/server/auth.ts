@@ -1,6 +1,7 @@
 import { jwtVerify } from "jose";
 import { NextRequest } from "next/server";
 import { query } from "@/database/db";
+import { rolesMatch } from "./roles";
 
 const secret = new TextEncoder().encode(
   process.env.secret_key || "hms_super_secure_2026_clinic_key"
@@ -119,7 +120,7 @@ export async function requireAdminOrSuperAdmin(
 ): Promise<AuthenticatedUser> {
   const user = await getAuthenticatedUser(req);
 
-  if (user.role !== "Admin" && user.role !== "Super Admin") {
+  if (!rolesMatch(user.role, ["admin", "super_admin"])) {
     throw new AuthError("Forbidden", 403);
   }
 
@@ -127,7 +128,7 @@ export async function requireAdminOrSuperAdmin(
 }
 
 export function hasAnyRole(userRole: string, allowedRoles: string[]) {
-  return allowedRoles.includes(userRole);
+  return rolesMatch(userRole, allowedRoles);
 }
 
 export async function requireRoles(
