@@ -113,6 +113,120 @@ async function expectStatus(name, p, expected) {
   }
 }
 
+function localDbUrl() {
+  const url = process.env.DATABASE_URL;
+  if (!url) throw new Error("DATABASE_URL required (run with --env-file=.env.local)");
+  if (!/@(localhost|127\.0\.0\.1)\b/.test(url)) {
+    throw new Error("refusing to run write scenarios against a non-local DB");
+  }
+  return url;
+}
+
+// WRITE SCENARIO 1 — a sensitive action (patient create) leaves an audit trail.
+// Proves "audit per sensitive action" actively (vs the static presence check).
+// Self-cleaning: removes the audit row + the test patient it created.
+async function scenarioAuditOnSensitiveAction(cookie) {
+  const pool = new pg.Pool({ connectionString: localDbUrl(), ssl: false });
+  let patientId;
+  try {
+    const cnic = "SCN" + String(Date.now()).slice(-12); // unique per run
+    const res = await call("POST", "/api/patient", {
+      cookie,
+      body: { patient_name: "SCN Audit Patient", gender: "Other", cnic },
+    });
+    if (res.status !== 200) {
+      record("audit: POST /api/patient (authed) -> 200", false, `got ${res.status}`);
+      return;
+    }
+    const body = await res.json();
+    patientId = body.patient_id;
+    record("audit: POST /api/patient (authed) -> 200", patientId != null, "no patient_id in response");
+
+    const { rows } = await pool.query(
+      `SELECT count(*)::int AS n FROM audit_logs WHERE action='patient.create' AND entity_id = $1`,
+      [String(patientId)]
+    );
+    record(
+      "audit: patient.create writes a matching audit_logs row",
+      Number(rows[0]?.n) === 1,
+      `found ${rows[0]?.n} audit rows for patient ${patientId}`
+    );
+  } catch (e) {
+    record("audit: sensitive-action audit scenario", false, `threw: ${e.message}`);
+  } finally {
+    try {
+      if (patientId != null) {
+        await pool.query(`DELETE FROM audit_logs WHERE action='patient.create' AND entity_id = $1`, [String(patientId)]);
+        await pool.query(`DELETE FROM patient WHERE patient_id = $1`, [patientId]);
+      }
+    } catch {
+      /* best-effort cleanup */
+    }
+    await pool.end();
+  }
+}
+
+// WRITE SCENARIO 2 — concurrent decrements cannot drive stock below zero.
+// Fires ATTEMPTS parallel single-unit decrements at a fresh batch with INITIAL
+// stock; the medicine_batch CHECK (stock_quantity >= 0) — the same guard the
+// stock trigger relies on — must abort every decrement that would go negative.
+// Self-cleaning: deletes the dedicated test batch + medicine.
+async function scenarioConcurrencyOversell() {
+  const INITIAL = 5;
+  const ATTEMPTS = 12;
+  const pool = new pg.Pool({ connectionString: localDbUrl(), ssl: false, max: ATTEMPTS });
+  let medId;
+  let batchId;
+  try {
+    const med = await pool.query(
+      `INSERT INTO medicine (generic_name, brand_name, category, is_active)
+       VALUES ('SCN_OVERSELL_MED','SCN_OVERSELL','SCN_TEST', true) RETURNING medicine_id`
+    );
+    medId = med.rows[0].medicine_id;
+    const batch = await pool.query(
+      `INSERT INTO medicine_batch (medicine_id, stock_quantity, sale_price)
+       VALUES ($1, $2, 10) RETURNING batch_id`,
+      [medId, INITIAL]
+    );
+    batchId = batch.rows[0].batch_id;
+
+    const outcomes = await Promise.all(
+      Array.from({ length: ATTEMPTS }, () =>
+        pool
+          .query(`UPDATE medicine_batch SET stock_quantity = stock_quantity - 1 WHERE batch_id = $1`, [batchId])
+          .then(() => ({ ok: true }))
+          .catch((e) => ({ ok: false, code: e.code }))
+      )
+    );
+    const successes = outcomes.filter((o) => o.ok).length;
+    const failures = outcomes.filter((o) => !o.ok);
+    const allCheckViolations = failures.length === 0 || failures.every((f) => f.code === "23514");
+    const { rows } = await pool.query(`SELECT stock_quantity FROM medicine_batch WHERE batch_id = $1`, [batchId]);
+    const finalStock = Number(rows[0]?.stock_quantity);
+
+    record(
+      `concurrency: ${ATTEMPTS} parallel decrements on stock=${INITIAL} -> exactly ${INITIAL} succeed`,
+      successes === INITIAL,
+      `succeeded ${successes}, expected ${INITIAL}`
+    );
+    record(
+      "concurrency: stock never negative (final=0; CHECK aborts the oversell attempts)",
+      finalStock === 0 && allCheckViolations,
+      `final stock ${finalStock}, failure codes=[${failures.map((f) => f.code).join(",")}]`
+    );
+  } catch (e) {
+    record("concurrency: oversell scenario", false, `threw: ${e.message}`);
+  } finally {
+    try {
+      if (batchId != null) await pool.query(`DELETE FROM medicine_batch WHERE batch_id = $1`, [batchId]);
+      if (medId != null) await pool.query(`DELETE FROM medicine WHERE medicine_id = $1`, [medId]);
+    } catch {
+      /* best-effort cleanup */
+    }
+    await pool.end();
+  }
+}
+
 const main = async () => {
   console.log(`Scenario suite against ${BASE}\n=============================`);
 
@@ -150,6 +264,10 @@ const main = async () => {
   await expectStatus("rbac: receptionist -> GET /api/admin/staff/v2/directory -> 403", call("GET", "/api/admin/staff/v2/directory", { cookie: recept }), 403);
   await expectStatus("rbac: doctor -> GET /api/admin/staff/v2/directory -> 403", call("GET", "/api/admin/staff/v2/directory", { cookie: doctor }), 403);
   await expectStatus("rbac: admin -> GET /api/admin/staff/v2/directory -> 200", call("GET", "/api/admin/staff/v2/directory", { cookie: admin }), 200);
+
+  // --- WRITE / INTEGRITY SCENARIOS (self-cleaning, local DB only) ---
+  await scenarioAuditOnSensitiveAction(recept);
+  await scenarioConcurrencyOversell();
 
   console.log("=============================");
   console.log(`Scenarios: ${passed} passed, ${failed} failed`);
