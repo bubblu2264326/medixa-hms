@@ -41,6 +41,7 @@ describe("doctor prescriptions api", () => {
   });
 
   it("creates a prescription against the explicit selected visit when visit_id is provided", async () => {
+    queryMock.mockResolvedValue({ rows: [] }); // default for trailing reads (allergy check, COMMIT)
     queryMock
       .mockResolvedValueOnce({})
       .mockResolvedValueOnce({ rows: [{ visit_id: 44, status: "waiting" }] })

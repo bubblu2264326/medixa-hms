@@ -13,7 +13,7 @@ export async function listActiveAllergies(runner: AllergyRunner, patientId: numb
       ORDER BY noted_at DESC`,
     [patientId]
   );
-  return r.rows;
+  return r?.rows ?? [];
 }
 
 // First active allergy whose allergen overlaps the drug name (case-insensitive,
@@ -28,5 +28,5 @@ export async function findAllergyConflict(runner: AllergyRunner, patientId: numb
       LIMIT 1`,
     [patientId, drugName]
   );
-  return r.rows[0] ?? null;
+  return r?.rows?.[0] ?? null;
 }

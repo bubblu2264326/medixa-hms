@@ -1,5 +1,6 @@
 import pool from "@/database/db";
 import { getAuthenticatedDoctor } from "@/src/lib/server/doctor";
+import { listActiveAllergies } from "@/src/lib/server/allergy";
 import {
   ensureDoctorVisitWriteAccess,
   resolveDoctorVisit,
@@ -196,6 +197,27 @@ export async function POST(req: NextRequest) {
       insertedMedicines.push(medicineResult.rows[0]);
     }
 
+    // Prescribe-time allergy check (non-blocking): surface any prescribed drug
+    // whose name overlaps an active patient allergy so the doctor is warned.
+    const allergyWarnings: { medicine_id: number; drug: string; allergen: string; severity: string }[] = [];
+    const allergies = await listActiveAllergies(client, Number(patient_id));
+    if (allergies.length > 0) {
+      const meds = await client.query(
+        `select medicine_id, generic_name, brand_name from medicine where medicine_id = any($1::int[])`,
+        [[...seenMedicineIds]]
+      );
+      for (const m of meds.rows) {
+        const names = [m.generic_name, m.brand_name].map((n) => String(n ?? "").toLowerCase()).filter(Boolean);
+        for (const a of allergies) {
+          const allergen = String(a.allergen ?? "").toLowerCase();
+          if (allergen && names.some((n) => n.includes(allergen) || allergen.includes(n))) {
+            allergyWarnings.push({ medicine_id: m.medicine_id, drug: m.generic_name || m.brand_name, allergen: a.allergen, severity: a.severity });
+            break;
+          }
+        }
+      }
+    }
+
     await client.query("COMMIT");
 
     return NextResponse.json(
@@ -204,6 +226,7 @@ export async function POST(req: NextRequest) {
         prescription_id: prescriptionId,
         visit_id: visitId,
         medicines: insertedMedicines,
+        allergy_warnings: allergyWarnings,
       },
       { status: 201 }
     );
