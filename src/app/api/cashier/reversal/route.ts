@@ -9,6 +9,9 @@ type ReversalPayload = {
   cashierPaymentTxnId?: number;
   reasonCode?: string;
   reasonNote?: string;
+  // H2: explicit admin acknowledgement that the reversal may reopen a
+  // completed/discharged visit. Without it, such a reversal is refused.
+  allowTerminalReopen?: boolean;
 };
 
 async function resolveStaffId(userCode: string, client: any) {
@@ -28,6 +31,7 @@ export async function POST(req: NextRequest) {
     const txnId = Number(body.cashierPaymentTxnId ?? 0);
     const reasonCode = (body.reasonCode ?? "").trim();
     const reasonNote = (body.reasonNote ?? "").trim();
+    const allowTerminalReopen = body.allowTerminalReopen === true;
 
     if (!txnId || txnId <= 0 || !reasonCode) {
       return NextResponse.json(
@@ -223,20 +227,37 @@ export async function POST(req: NextRequest) {
 
     await client.query(`UPDATE bill SET payment_status = $2 WHERE bill_id = $1`, [billId, paymentStatus]);
 
-    // H2: if this reversal leaves the bill no longer fully paid, revert the
-    // visit status that settle auto-advanced to 'payment_done' back to the
-    // status it held immediately before payment (from visit_status_history),
-    // via the audited proc. Terminal states (completed/discharged) are left
-    // untouched — reversing a payment on those is a policy edge (TODO review).
+    // H2: a reversal that leaves the bill no longer fully paid must walk back the
+    // visit status that settle auto-advanced. For a visit at 'payment_done' we
+    // revert to the pre-payment status automatically. For a TERMINAL visit
+    // (completed/discharged), reversing the payment reopens a closed encounter —
+    // that requires an explicit admin override (allowTerminalReopen); without it
+    // the entire reversal is refused so it cannot happen by accident.
+    let terminalReopen = false;
+    let reopenedFrom: string | null = null;
     if (visitId && dueAmount > 0) {
       const currentVisit = await client.query(
         `SELECT status FROM visit WHERE visit_id = $1 LIMIT 1`,
         [visitId]
       );
-      if (currentVisit.rows[0]?.status === "payment_done") {
+      const currentStatus = currentVisit.rows[0]?.status as string | undefined;
+      const TERMINAL = ["completed", "discharged"];
+      const settleAdvanced = ["payment_done", ...TERMINAL];
+      if (currentStatus && settleAdvanced.includes(currentStatus)) {
+        const isTerminal = TERMINAL.includes(currentStatus);
+        if (isTerminal && !allowTerminalReopen) {
+          await client.query("ROLLBACK");
+          return NextResponse.json(
+            {
+              error: `Reversal would reopen a '${currentStatus}' visit. Resubmit with allowTerminalReopen=true to confirm reopening the encounter.`,
+              code: "TERMINAL_REOPEN_REQUIRED",
+            },
+            { status: 409 }
+          );
+        }
         const priorStatus = await client.query(
           `SELECT status FROM visit_status_history
-           WHERE visit_id = $1 AND status <> 'payment_done'
+           WHERE visit_id = $1 AND status NOT IN ('payment_done','completed','discharged')
            ORDER BY updated_at DESC, visit_status_id DESC
            LIMIT 1`,
           [visitId]
@@ -249,6 +270,10 @@ export async function POST(req: NextRequest) {
             null,
             staffId,
           ]);
+          if (isTerminal) {
+            terminalReopen = true;
+            reopenedFrom = currentStatus;
+          }
         }
       }
     }
@@ -296,6 +321,8 @@ export async function POST(req: NextRequest) {
           paidAmount,
           dueAmount,
           paymentStatus,
+          terminalReopen,
+          reopenedFrom,
         },
       },
       client
@@ -313,6 +340,8 @@ export async function POST(req: NextRequest) {
         paidAmount,
         dueAmount,
         paymentStatus,
+        terminalReopen,
+        reopenedFrom,
       },
     });
   } catch (error: any) {
