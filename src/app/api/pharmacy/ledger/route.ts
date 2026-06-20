@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import pool from '@/database/db';
-import { getCurrentStaffId } from '@/src/lib/utils';
+import pool, { query } from '@/database/db';
+import { resolveActorStaffId } from '@/src/lib/server/actor';
 import { getAuthenticatedUser } from '@/src/lib/server/auth';
 
 export async function GET(request: NextRequest) {
@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ success: false, error: 'party_id and amount are required' }, { status: 400 });
         }
 
-        const staffId = getCurrentStaffId();
+        const staffId = await resolveActorStaffId(request, { query });
 
         const result = await pool.query(
             `INSERT INTO party_payment (party_id, amount, payment_method, reference_note, created_by)
