@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { admitPatient, dischargePatient } from "@/src/lib/server/ipd";
+import { admitPatient, dischargePatient, chartMedicationAdministration } from "@/src/lib/server/ipd";
 
 function makeClient(opts: { bedStatus?: string; admissionStatus?: string } = {}) {
   const calls: { sql: string; params: any[] }[] = [];
@@ -65,5 +65,63 @@ describe("ipd domain — discharge", () => {
     await expect(
       dischargePatient(client, { admissionId: 100, dischargeType: "normal", byStaffId: 1 })
     ).rejects.toMatchObject({ status: 409 });
+  });
+});
+
+function marClient(opts: { orderStatus?: string; allergy?: boolean; drugName?: string } = {}) {
+  const calls: { sql: string; params: any[] }[] = [];
+  const orderStatus = opts.orderStatus ?? "active";
+  const allergyRows = opts.allergy ? [{ allergen: "Penicillin", severity: "severe" }] : [];
+  const query = vi.fn(async (sql: string, params: any[] = []) => {
+    const s = String(sql);
+    calls.push({ sql: s, params });
+    if (s.includes("FROM medication_order mo")) {
+      return { rows: [{ med_order_id: 1, drug_name: opts.drugName ?? "Amoxicillin", order_status: orderStatus, patient_id: 9, admission_id: 100 }] };
+    }
+    if (s.includes("FROM patient_allergy")) return { rows: allergyRows };
+    if (s.includes("INSERT INTO medication_administration")) return { rows: [{ mar_id: 7 }] };
+    return { rows: [] };
+  });
+  return { client: { query } as any, calls };
+}
+const marFind = (calls: { sql: string }[], frag: string) => calls.find((c) => c.sql.includes(frag));
+
+describe("ipd domain — MAR safety", () => {
+  it("charts a given dose against an active order with no allergy conflict", async () => {
+    const { client, calls } = marClient();
+    const res = await chartMedicationAdministration(client, { medOrderId: 1, action: "given", administeredByStaffId: 3 });
+    expect(res).toEqual({ marId: 7, admissionId: 100 });
+    expect(marFind(calls, "INSERT INTO medication_administration")).toBeTruthy();
+  });
+
+  it("refuses to administer against a non-active order (409)", async () => {
+    const { client } = marClient({ orderStatus: "discontinued" });
+    await expect(
+      chartMedicationAdministration(client, { medOrderId: 1, action: "given", administeredByStaffId: 3 })
+    ).rejects.toMatchObject({ status: 409 });
+  });
+
+  it("requires the administering nurse for a given dose (400)", async () => {
+    const { client } = marClient();
+    await expect(
+      chartMedicationAdministration(client, { medOrderId: 1, action: "given", administeredByStaffId: null })
+    ).rejects.toMatchObject({ status: 400 });
+  });
+
+  it("blocks a given dose that conflicts with an active allergy (409), no insert", async () => {
+    const { client, calls } = marClient({ allergy: true, drugName: "Penicillin V" });
+    await expect(
+      chartMedicationAdministration(client, { medOrderId: 1, action: "given", administeredByStaffId: 3 })
+    ).rejects.toMatchObject({ status: 409 });
+    expect(marFind(calls, "INSERT INTO medication_administration")).toBeFalsy();
+  });
+
+  it("allows an allergy-conflicting dose when explicitly overridden (and skips the allergy query)", async () => {
+    const { client, calls } = marClient({ allergy: true, drugName: "Penicillin V" });
+    const res = await chartMedicationAdministration(client, {
+      medOrderId: 1, action: "given", administeredByStaffId: 3, allowAllergyOverride: true,
+    });
+    expect(res.marId).toBe(7);
+    expect(marFind(calls, "FROM patient_allergy")).toBeFalsy();
   });
 });

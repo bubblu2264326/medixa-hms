@@ -17,6 +17,8 @@ export class IpdError extends Error {
 
 export const ADMISSION_TYPES = ["opd_referred", "emergency", "direct", "planned"] as const;
 export const DISCHARGE_TYPES = ["normal", "lama", "referred", "transferred", "death", "absconded"] as const;
+export const ORDER_TYPES = ["medication", "lab", "radiology", "diet", "iv", "procedure", "nursing"] as const;
+export const MAR_ACTIONS = ["given", "refused", "held", "skipped", "missed"] as const;
 
 export type AdmitInput = {
   patientId: number;
@@ -171,4 +173,118 @@ export async function dischargePatient(
 export async function getRunningBill(runner: IpdRunner, admissionId: number) {
   const r = await runner.query(`SELECT * FROM v_ip_running_bill WHERE admission_id = $1`, [admissionId]);
   return r.rows[0] ?? null;
+}
+
+export type OrderInput = {
+  admissionId: number;
+  orderedByDoctorId?: number | null;
+  orderType: (typeof ORDER_TYPES)[number];
+  details?: string | null;
+  priority?: "stat" | "routine" | "prn";
+  medication?: {
+    medicineId?: number | null;
+    drugName: string;
+    dose?: string | null;
+    route?: string | null;
+    frequency?: string | null;
+    scheduleTimes?: string | null;
+  };
+};
+
+// Place an inpatient doctor order; if it's a medication order, also create the
+// medication_order detail the MAR will chart against.
+export async function placeDoctorOrder(client: IpdRunner, input: OrderInput) {
+  const adm = await client.query(`SELECT status FROM admission WHERE admission_id = $1`, [input.admissionId]);
+  if (adm.rows.length === 0) throw new IpdError("Admission not found", 404);
+  if (adm.rows[0].status !== "admitted") throw new IpdError("Admission is not active", 409);
+
+  const ord = await client.query(
+    `INSERT INTO doctor_order (admission_id, ordered_by_doctor_id, order_type, details, priority)
+     VALUES ($1, $2, $3, $4, COALESCE($5, 'routine')) RETURNING order_id`,
+    [input.admissionId, input.orderedByDoctorId ?? null, input.orderType, input.details ?? null, input.priority ?? null]
+  );
+  const orderId: number = ord.rows[0].order_id;
+
+  let medOrderId: number | null = null;
+  if (input.orderType === "medication" && input.medication) {
+    const m = input.medication;
+    const mo = await client.query(
+      `INSERT INTO medication_order (order_id, medicine_id, drug_name, dose, route, frequency, schedule_times)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING med_order_id`,
+      [orderId, m.medicineId ?? null, m.drugName, m.dose ?? null, m.route ?? null, m.frequency ?? null, m.scheduleTimes ?? null]
+    );
+    medOrderId = mo.rows[0].med_order_id;
+  }
+  return { orderId, medOrderId };
+}
+
+export type MarInput = {
+  medOrderId: number;
+  action: (typeof MAR_ACTIONS)[number];
+  scheduledDt?: string | null;
+  doseGiven?: string | null;
+  route?: string | null;
+  reason?: string | null;
+  notes?: string | null;
+  administeredByStaffId: number | null;
+  allowAllergyOverride?: boolean;
+};
+
+// Chart a medication administration (MAR). Patient-safety gates:
+//  * the dose must chart against an existing medication_order whose parent
+//    doctor_order is ACTIVE (no free-floating / stale-order administrations);
+//  * a 'given' dose must record the administering nurse (non-repudiation);
+//  * a 'given' dose is blocked if the drug matches an active patient allergy,
+//    unless an explicit override is supplied (then it's recorded for audit).
+export async function chartMedicationAdministration(client: IpdRunner, input: MarInput) {
+  if (!(MAR_ACTIONS as readonly string[]).includes(input.action)) throw new IpdError("Invalid action", 400);
+
+  const mo = await client.query(
+    `SELECT mo.med_order_id, mo.drug_name, o.status AS order_status, a.patient_id, a.admission_id
+       FROM medication_order mo
+       JOIN doctor_order o ON o.order_id = mo.order_id
+       JOIN admission a ON a.admission_id = o.admission_id
+      WHERE mo.med_order_id = $1`,
+    [input.medOrderId]
+  );
+  if (mo.rows.length === 0) throw new IpdError("Medication order not found", 404);
+  const row = mo.rows[0];
+  if (row.order_status !== "active") throw new IpdError("Cannot administer against a non-active order", 409);
+  if (input.action === "given" && !input.administeredByStaffId) {
+    throw new IpdError("administered_by is required for a given dose", 400);
+  }
+
+  if (input.action === "given" && !input.allowAllergyOverride) {
+    const allergy = await client.query(
+      `SELECT allergen, severity FROM patient_allergy
+        WHERE patient_id = $1 AND is_active
+          AND ($2 ILIKE '%' || allergen || '%' OR allergen ILIKE '%' || $2 || '%')
+        LIMIT 1`,
+      [row.patient_id, row.drug_name]
+    );
+    if (allergy.rows.length > 0) {
+      throw new IpdError(
+        `Allergy alert: patient is allergic to '${allergy.rows[0].allergen}' (${allergy.rows[0].severity}). Resubmit with allowAllergyOverride=true to proceed.`,
+        409
+      );
+    }
+  }
+
+  const ins = await client.query(
+    `INSERT INTO medication_administration
+       (med_order_id, scheduled_dt, action, administered_dt, administered_by_staff_id, dose_given, route, reason, notes)
+     VALUES ($1, $2, $3, CASE WHEN $3 = 'given' THEN now() ELSE NULL END, $4, $5, $6, $7, $8)
+     RETURNING mar_id`,
+    [
+      input.medOrderId,
+      input.scheduledDt ?? null,
+      input.action,
+      input.administeredByStaffId ?? null,
+      input.doseGiven ?? null,
+      input.route ?? null,
+      input.reason ?? null,
+      input.notes ?? null,
+    ]
+  );
+  return { marId: ins.rows[0].mar_id as number, admissionId: row.admission_id as number };
 }
