@@ -187,3 +187,56 @@ loop per screen:
 - Dev server running on **:3000** (the harness targets it). If down: `pnpm dev`.
 - On `feat/hms-completion`, working tree clean (this plan + harness committed).
 - `ux-shots/` is gitignored (artifacts never committed).
+
+---
+
+## 13. Full coverage — every module → tab → form → field
+
+The polish is **not** done at "the landing screen looks fine." Each module is
+worked **page-by-page (every tab/sub-route) and field-by-field (every form,
+input, table, modal, empty/loading/error state)**. Run one dedicated `/goal`
+session per module (pharmacy first — see `PHARMACY_UX_PASS.md`), then the next.
+
+### Coverage matrix (tabs/sub-routes to walk in each module)
+| Module | Tabs / sub-routes to cover | Forms & data surfaces inside |
+|---|---|---|
+| **Pharmacy** | Retail, Purchases, Transactions, Parties, P.Return, Products, Reports, Settings | POS cart+checkout, purchase entry form, party add/edit, product add/edit modal, settings forms, transaction/return filters & tables |
+| **Reception** | Queue, Appointments, Register, Vitals, Clinical | Visit-registration form, appointment booking form, patient-registration form, vitals form, gynae forms (Menstrual, Current Pregnancy, Obstetric, Para Details) |
+| **Doctor** | Patient, Medicines, Labs, History, Dashboard | patient form, new-prescription form, new-lab-order form, previous-prescriptions/labs lists, past-visits |
+| **Lab** | Sample Collection, Test Results, Lab Orders | result-entry forms, order list/filters, sample tables |
+| **Cashier** | Worklist, Settle, History, Drafts, Overdue & Alerts | worklist filters+table, settle/payment form, draft forms, alert lists |
+| **IPD** | Admissions, Bed Board | admit form, MAR/chart entry, advance/charge forms, bed grid (logic byte-for-byte) |
+| **Admin** | Dashboard + Staff Mgmt / Pharmacy / Financials / General System and every sub-page: analytics, staff, staff/settings, staff/security, staff/access, patients, lifecycle, attendance, inventory, financials, roster, documents, credentialing, payroll, notifications, audit, leave, narcotics, fbr-invoices, approvals, settings, cashier | every dashboard tile/chart, every list/table, every create/edit form + modal |
+| **Auth / Kiosk / Employee** | Login, Attendance kiosk, employee self-service | login form, kiosk form, employee forms |
+
+> The matrix names the tabs; **within each tab the session must enumerate and
+> cover every form/field/table/modal it finds** (don't stop at the first view).
+
+### Field-level checklist (apply to every input/control)
+- Wrapped in `FormField` rhythm: label + control + error/hint; required marker where apt.
+- Control height **h-9 (36) / h-10 (40)** — never h-12+ on desk; selects/inputs/date pickers all consistent.
+- Radius `rounded-md`; focus ring `ring-ring`; placeholder `text-muted-foreground`.
+- Numeric/money/qty/ID/date fields use `font-mono tabular-nums`.
+- **Error state** styled (`aria-invalid` → destructive border/ring + message), not raw text.
+- Laid out in a `FormGrid` (2–3 cols) — no single field stretched full-width across a wide card.
+
+### Form-level checklist
+- Compact `PageHeader` (no oversized icon-tile/title); section grouping with consistent gaps.
+- One prominent primary action (`success`/`primary`), secondary as `outline`; destructive as `destructive`.
+- Capped content width (`max-w-3xl`–`5xl`); no acres of vertical gap.
+
+### Table-level checklist
+- Use the dense `DataTable` (sticky header, `text-sm`, hover rows).
+- Semantic `StatusBadge` for status/stock/severity (color **and** label).
+- Numeric columns right-aligned + `font-mono tabular-nums`; consistent row-action buttons.
+- Real empty / loading / error states (`EmptyState`), never a blank panel.
+
+### Per-tab loop & gate (every tab, every module)
+1. Screenshot the tab (`?tab=` / route) at 1536×864 → **Read** the PNG.
+2. Walk every form/field/table/modal against the checklists above; fix in code.
+3. Re-screenshot → confirm density + fit + alignment.
+4. Gate: `tsc` / `lint` 0 errors / `build` / `test` 181 → commit that tab → pinned push.
+5. Next tab. When a module's every tab passes, move to the next module.
+
+Visual only throughout; no logic/props/data-flow/DB changes; IPD patient-safety
+logic stays byte-for-byte. New code must be token-clean (the ESLint guard backs this).

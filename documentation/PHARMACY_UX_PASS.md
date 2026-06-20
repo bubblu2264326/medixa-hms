@@ -78,7 +78,9 @@ sub-tab, pinned push to `feat/hms-completion` (gh auth switch bubblu2264326).
 > + all 8 sub-tabs meet the v2 density spec at 1536px and the gate is green.
 
 ## After pharmacy
-Repeat module-by-module, page-by-page for any remaining un-polished areas
-(employee self-service, pharmacy `settings` deep forms, admin sub-pages) using
-the same loop. Reception/doctor/lab/ipd/cashier/admin/login/attendance already
-passed the v2 spec in the prior session.
+Repeat module-by-module, **page-by-page and field-by-field**, per the full
+coverage matrix + field/form/table checklists in
+`FRONTEND_UX_OVERHAUL_PLAN.md` §13 (one `/goal` session per module: reception,
+doctor, lab, cashier, IPD, admin sub-pages, employee/auth). The prior session
+made the *landing* screens pass the v2 spec; §13 drives them to full depth —
+every tab, every form, every field, every table/modal.
