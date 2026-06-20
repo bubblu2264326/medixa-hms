@@ -1,5 +1,6 @@
 import { query } from "@/database/db";
 import { NextRequest, NextResponse } from "next/server";
+import { AuthError, getAuthenticatedUser } from "@/src/lib/server/auth";
 
 export async function GET(
   req: NextRequest,
@@ -8,6 +9,7 @@ export async function GET(
   const id = params.patientId;
 
   try {
+    await getAuthenticatedUser(req);
     const res = await query(
       `
       SELECT
@@ -36,6 +38,9 @@ export async function GET(
     
     return NextResponse.json(res.rows, { status: 200 });
   } catch (err) {
+    if (err instanceof AuthError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
     console.error(err);
     return NextResponse.json({ error: err }, { status: 500 });
   }
