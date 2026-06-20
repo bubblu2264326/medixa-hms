@@ -1,4 +1,5 @@
 import type { PoolClient } from "pg";
+import { findAllergyConflict } from "@/src/lib/server/allergy";
 
 // IPD domain logic. All mutating helpers take a transactional client and are
 // meant to run inside BEGIN/COMMIT from the route. Visit status transitions go
@@ -255,16 +256,10 @@ export async function chartMedicationAdministration(client: IpdRunner, input: Ma
   }
 
   if (input.action === "given" && !input.allowAllergyOverride) {
-    const allergy = await client.query(
-      `SELECT allergen, severity FROM patient_allergy
-        WHERE patient_id = $1 AND is_active
-          AND ($2 ILIKE '%' || allergen || '%' OR allergen ILIKE '%' || $2 || '%')
-        LIMIT 1`,
-      [row.patient_id, row.drug_name]
-    );
-    if (allergy.rows.length > 0) {
+    const conflict = await findAllergyConflict(client, row.patient_id, row.drug_name);
+    if (conflict) {
       throw new IpdError(
-        `Allergy alert: patient is allergic to '${allergy.rows[0].allergen}' (${allergy.rows[0].severity}). Resubmit with allowAllergyOverride=true to proceed.`,
+        `Allergy alert: patient is allergic to '${conflict.allergen}' (${conflict.severity}). Resubmit with allowAllergyOverride=true to proceed.`,
         409
       );
     }
