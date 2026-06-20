@@ -8,7 +8,7 @@ export async function GET(req:NextRequest,{params}:{params:Promise<{id:string}>}
     try{
         await getAuthenticatedUser(req);
 
-        const data=await query('select * from patient where patient_id = $1',[pid]);
+        const data=await query('select patient_id, patient_name, age, gender, contact_number, cnic, address, created_at from patient where patient_id = $1',[pid]);
 
         return NextResponse.json(data.rows[0]);
 
