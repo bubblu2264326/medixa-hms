@@ -2,7 +2,7 @@
 
 import { usePatient } from "@/contexts/PatientIdContext";
 import { useDoctorWorkspace } from "@/src/features/doctor/workspace/DoctorWorkspaceContext";
-import { ClipboardCheck, Pill, Search, ShieldAlert, Sparkles, Trash2 } from "lucide-react";
+import { AlertTriangle, ClipboardCheck, Pill, Search, ShieldAlert, Sparkles, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { usePrescriptionForm } from "../hooks/usePrescriptionForm";
@@ -93,6 +93,8 @@ export default function NewPrescriptionForm() {
     isDraftValid,
     isVisitActionable,
     isPrescriptionRowValid,
+    allergyWarnings,
+    dismissAllergyWarnings,
     addMedicine,
     remove,
     clearPrescription,
@@ -478,6 +480,52 @@ export default function NewPrescriptionForm() {
               <h4 className="text-base font-black tracking-tight text-slate-900">Search and add medicines to begin</h4>
               <p className="mt-1 text-sm text-slate-500">Build the prescription in the grid below.</p>
             </div>
+          </div>
+        )}
+
+        {allergyWarnings.length > 0 && (
+          <div
+            className="rounded-[0.95rem] border border-red-300 bg-red-50 px-4 py-3 text-red-800"
+            role="alert"
+            aria-live="assertive"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-2">
+                <AlertTriangle size={18} className="mt-0.5 shrink-0 text-red-600" />
+                <div>
+                  <p className="text-sm font-black tracking-tight">
+                    Allergy warning — review before dispensing
+                  </p>
+                  <p className="mt-0.5 text-xs font-semibold text-red-700">
+                    The order was recorded. These medicines may conflict with this patient&apos;s
+                    known allergies. Clinical decision stays with you.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={dismissAllergyWarnings}
+                className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-red-600 transition hover:bg-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+                aria-label="Dismiss allergy warning"
+              >
+                <X size={15} />
+              </button>
+            </div>
+            <ul className="mt-2 space-y-1">
+              {allergyWarnings.map((warning) => (
+                <li
+                  key={`${warning.medicine_id}-${warning.allergen}`}
+                  className="flex flex-wrap items-center gap-2 text-sm"
+                >
+                  <span className="font-black">{warning.drug}</span>
+                  <span className="text-red-700">conflicts with allergy</span>
+                  <span className="font-black">{warning.allergen}</span>
+                  <span className="rounded-full border border-red-300 bg-white px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.14em] text-red-700">
+                    {warning.severity}
+                  </span>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
 
