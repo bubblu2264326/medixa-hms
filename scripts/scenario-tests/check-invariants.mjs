@@ -97,6 +97,34 @@ const checks = [
     desc: "audit_logs has entries (an audit trail exists)",
     sql: `SELECT CASE WHEN count(*) > 0 THEN 0 ELSE 1 END::int AS violations FROM audit_logs`,
   },
+  {
+    name: "sale-return-refund-reconciles",
+    desc: "every sale_return.refund_amount matches the sum of its detail line values (M3)",
+    sql: `
+      WITH d AS (
+        SELECT sr.return_id, COALESCE(sr.refund_amount,0) AS refund_amount,
+               COALESCE(SUM(
+                   COALESCE(srd.returned_quantity,0)     * COALESCE(srd.returned_unit_price,0)
+                 + COALESCE(srd.returned_sub_quantity,0) * COALESCE(srd.returned_sub_unit_price,0)
+               ),0) AS detail_total
+        FROM sale_return sr
+        LEFT JOIN sale_return_detail srd ON srd.return_id = sr.return_id
+        GROUP BY sr.return_id, sr.refund_amount
+      )
+      SELECT count(*)::int AS violations FROM d WHERE abs(refund_amount - detail_total) > 0.01`,
+    sample: `
+      WITH d AS (
+        SELECT sr.return_id, COALESCE(sr.refund_amount,0) AS refund_amount,
+               COALESCE(SUM(
+                   COALESCE(srd.returned_quantity,0)     * COALESCE(srd.returned_unit_price,0)
+                 + COALESCE(srd.returned_sub_quantity,0) * COALESCE(srd.returned_sub_unit_price,0)
+               ),0) AS detail_total
+        FROM sale_return sr
+        LEFT JOIN sale_return_detail srd ON srd.return_id = sr.return_id
+        GROUP BY sr.return_id, sr.refund_amount
+      )
+      SELECT return_id, refund_amount, detail_total FROM d WHERE abs(refund_amount - detail_total) > 0.01 LIMIT 5`,
+  },
 ];
 
 let failed = 0;

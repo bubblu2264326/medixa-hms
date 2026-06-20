@@ -145,11 +145,23 @@ export async function POST(req: NextRequest) {
       throw new Error("One or more return items no longer exist on the sale");
     }
 
+    // M3: capture the monetary refund for this return so it nets against
+    // revenue (mirrors the per-item detail values inserted below). refund_method
+    // defaults to CASH (this clinical return path carries no tender selection).
+    const refundAmount = Math.round(
+      items.reduce((sum: number, item: any) => {
+        const sourceRow = outstandingById.get(item.sale_detail_id);
+        const unitPrice = Number(item.unit_sale_price ?? sourceRow?.unit_sale_price ?? 0);
+        const subPrice = Number(item.sub_unit_sale_price ?? sourceRow?.sub_unit_sale_price ?? 0);
+        return sum + Number(item.quantity || 0) * unitPrice + Number(item.sub_quantity || 0) * subPrice;
+      }, 0) * 100
+    ) / 100;
+
     const returnRes = await client.query(
-      `INSERT INTO sale_return (sale_id, reason, return_timestamp, created_by)
-       VALUES ($1, $2, CURRENT_TIMESTAMP, $3)
+      `INSERT INTO sale_return (sale_id, reason, return_timestamp, created_by, refund_amount)
+       VALUES ($1, $2, CURRENT_TIMESTAMP, $3, $4)
        RETURNING return_id`,
-      [saleId, reason, created_by]
+      [saleId, reason, created_by, refundAmount]
     );
     const return_id = returnRes.rows[0].return_id;
 

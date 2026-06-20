@@ -79,18 +79,39 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // M3: record the monetary refund (money out) for this return, linked to the
+    // sale. Default method = CASH (cash-first retail); honor the POS tender if
+    // valid. refundAmount mirrors the per-item detail values inserted below so
+    // the header total reconciles with sale_return_detail.
+    const ALLOWED_REFUND_METHODS = ['CASH', 'CARD', 'INSURANCE', 'MOBILE', 'SPLIT'];
+    const refundMethodRaw = String(transaction.payment?.type ?? 'CASH').toUpperCase();
+    const refundMethod = ALLOWED_REFUND_METHODS.includes(refundMethodRaw) ? refundMethodRaw : 'CASH';
+    const refundAmount = Math.round(
+      transaction.items.reduce((sum, item) => {
+        const subUnitsPerUnit = (item.medicine as any).sub_units_per_unit || 1;
+        const subUnitPrice = item.medicine.batch_sale_sub_unit_price
+          || (item.medicine as any).sub_unit_price
+          || (item.price / subUnitsPerUnit);
+        return sum + item.quantity * item.price + (item.subQuantity || 0) * subUnitPrice;
+      }, 0) * 100
+    ) / 100;
+
     // Create sale_return record linked to the sale header
     const returnResult = await client.query(`
       INSERT INTO sale_return (
         sale_id,
         reason,
-        created_by
-      ) VALUES ($1, $2, $3)
+        created_by,
+        refund_amount,
+        refund_method
+      ) VALUES ($1, $2, $3, $4, $5)
       RETURNING return_id, return_timestamp
     `, [
       saleId,
       'Customer return',
-      staffId
+      staffId,
+      refundAmount,
+      refundMethod
     ]);
 
     const returnId = returnResult.rows[0].return_id;
