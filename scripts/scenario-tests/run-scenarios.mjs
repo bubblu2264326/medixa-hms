@@ -227,6 +227,80 @@ async function scenarioConcurrencyOversell() {
   }
 }
 
+// WRITE SCENARIO 3 — full IPD lifecycle end-to-end via the live API.
+// Seeds a persistent SCN ward/room/bed, then admit -> advance -> order -> MAR ->
+// view running bill -> discharge, asserting statuses + bill math. Self-cleaning:
+// deletes the admission (cascades children) and resets the bed to vacant.
+async function scenarioIpdLifecycle(adminCookie) {
+  const pool = new pg.Pool({ connectionString: localDbUrl(), ssl: false });
+  let admissionId;
+  let bedId;
+  try {
+    // fixtures: a vacant SCN bed (daily_rate 2000) — find-or-create (no unique on names)
+    let w = (await pool.query(`SELECT ward_id FROM ward WHERE name='SCN Ward' LIMIT 1`)).rows[0]?.ward_id;
+    if (!w) w = (await pool.query(`INSERT INTO ward (name, ward_type) VALUES ('SCN Ward','general') RETURNING ward_id`)).rows[0].ward_id;
+    let r = (await pool.query(`SELECT room_id FROM room WHERE ward_id=$1 AND room_number='SCN-R1' LIMIT 1`, [w])).rows[0]?.room_id;
+    if (!r) r = (await pool.query(`INSERT INTO room (ward_id, room_number, default_daily_rate) VALUES ($1,'SCN-R1',2000) RETURNING room_id`, [w])).rows[0].room_id;
+    bedId = (await pool.query(`SELECT bed_id FROM bed WHERE room_id=$1 AND bed_number='SCN-B1' LIMIT 1`, [r])).rows[0]?.bed_id;
+    if (!bedId) bedId = (await pool.query(`INSERT INTO bed (room_id, bed_number, daily_rate, status) VALUES ($1,'SCN-B1',2000,'vacant') RETURNING bed_id`, [r])).rows[0].bed_id;
+    // clear any dangling admission from a prior crashed run, then free the bed
+    const dangling = (await pool.query(`SELECT admission_id FROM admission WHERE current_bed_id=$1`, [bedId])).rows;
+    for (const d of dangling) {
+      await pool.query(`DELETE FROM patient_vitals WHERE admission_id=$1`, [d.admission_id]);
+      await pool.query(`DELETE FROM admission WHERE admission_id=$1`, [d.admission_id]);
+    }
+    await pool.query(`UPDATE bed SET status='vacant' WHERE bed_id=$1`, [bedId]);
+
+    const patientId = (await pool.query(`SELECT patient_id FROM patient ORDER BY patient_id LIMIT 1`)).rows[0].patient_id;
+
+    // admit (direct admit, no visit — keeps cleanup simple)
+    const admitRes = await call("POST", "/api/ipd/admissions", { cookie: adminCookie, body: { patient_id: patientId, bed_id: bedId, admission_type: "direct" } });
+    const admitBody = await admitRes.json().catch(() => ({}));
+    admissionId = admitBody.admissionId;
+    record("ipd: POST /api/ipd/admissions (admin) -> 201", admitRes.status === 201 && admissionId != null, `status ${admitRes.status}`);
+    if (!admissionId) return;
+
+    const advRes = await call("POST", `/api/ipd/admissions/${admissionId}/advances`, { cookie: adminCookie, body: { amount: 5000, payment_type: "CASH" } });
+    record("ipd: POST advances 5000 -> 201", advRes.status === 201, `status ${advRes.status}`);
+
+    const ordRes = await call("POST", "/api/ipd/orders", { cookie: adminCookie, body: { admission_id: admissionId, order_type: "medication", medication: { drug_name: "SCN Test Drug", dose: "500mg", route: "oral", frequency: "TDS" } } });
+    const ordBody = await ordRes.json().catch(() => ({}));
+    record("ipd: POST /api/ipd/orders (medication) -> 201", ordRes.status === 201 && ordBody.medOrderId != null, `status ${ordRes.status}`);
+
+    if (ordBody.medOrderId) {
+      const marRes = await call("POST", "/api/ipd/nurse/mar", { cookie: adminCookie, body: { med_order_id: ordBody.medOrderId, action: "given", dose_given: "500mg" } });
+      record("ipd: POST /api/ipd/nurse/mar (given) -> 201", marRes.status === 201, `status ${marRes.status}`);
+    }
+
+    const detailRes = await call("GET", `/api/ipd/admissions/${admissionId}`, { cookie: adminCookie });
+    const detail = await detailRes.json().catch(() => ({}));
+    const charges = Number(detail?.bill?.total_charges ?? -1);
+    const advances = Number(detail?.bill?.total_advances ?? -1);
+    const balance = Number(detail?.bill?.balance_due ?? NaN);
+    record(
+      "ipd: running bill = charges - advances (advance 5000, 1-day room rent 2000)",
+      detailRes.status === 200 && advances === 5000 && charges === 2000 && balance === charges - advances,
+      `charges=${charges} advances=${advances} balance=${balance}`
+    );
+
+    const dischRes = await call("POST", `/api/ipd/admissions/${admissionId}/discharge`, { cookie: adminCookie, body: { discharge_type: "normal" } });
+    record("ipd: POST discharge -> 200", dischRes.status === 200, `status ${dischRes.status}`);
+  } catch (e) {
+    record("ipd: lifecycle scenario", false, `threw: ${e.message}`);
+  } finally {
+    try {
+      if (admissionId != null) {
+        await pool.query(`DELETE FROM patient_vitals WHERE admission_id=$1`, [admissionId]);
+        await pool.query(`DELETE FROM admission WHERE admission_id=$1`, [admissionId]);
+      }
+      if (bedId != null) await pool.query(`UPDATE bed SET status='vacant' WHERE bed_id=$1`, [bedId]);
+    } catch {
+      /* best-effort */
+    }
+    await pool.end();
+  }
+}
+
 const main = async () => {
   console.log(`Scenario suite against ${BASE}\n=============================`);
 
@@ -268,6 +342,7 @@ const main = async () => {
   // --- WRITE / INTEGRITY SCENARIOS (self-cleaning, local DB only) ---
   await scenarioAuditOnSensitiveAction(recept);
   await scenarioConcurrencyOversell();
+  await scenarioIpdLifecycle(admin);
 
   console.log("=============================");
   console.log(`Scenarios: ${passed} passed, ${failed} failed`);

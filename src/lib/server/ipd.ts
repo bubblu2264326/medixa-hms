@@ -270,15 +270,17 @@ export async function chartMedicationAdministration(client: IpdRunner, input: Ma
     }
   }
 
+  const administeredDt = input.action === "given" ? new Date() : null;
   const ins = await client.query(
     `INSERT INTO medication_administration
        (med_order_id, scheduled_dt, action, administered_dt, administered_by_staff_id, dose_given, route, reason, notes)
-     VALUES ($1, $2, $3, CASE WHEN $3 = 'given' THEN now() ELSE NULL END, $4, $5, $6, $7, $8)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
      RETURNING mar_id`,
     [
       input.medOrderId,
       input.scheduledDt ?? null,
       input.action,
+      administeredDt,
       input.administeredByStaffId ?? null,
       input.doseGiven ?? null,
       input.route ?? null,
