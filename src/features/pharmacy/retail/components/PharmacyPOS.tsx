@@ -1369,7 +1369,7 @@ const PharmacyPOS: React.FC = () => {
           <div className={`flex flex-col gap-4 xl:flex-row xl:justify-between ${posMode === 'RETURN' && selectedInvoice ? 'xl:items-start' : 'xl:items-center'}`}>
             <div className="flex items-center gap-3 shrink-0">
               <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                <div className="p-2 bg-indigo-500 text-white rounded-xl shadow-lg shadow-indigo-500/20">
+                <div className="p-2 bg-primary text-white rounded-xl shadow-lg ">
                   <Layout size={18} />
                 </div>
                                 {posMode === 'SALE' ? 'Medicine Entry' : 'Return Entry'}
@@ -1464,12 +1464,12 @@ const PharmacyPOS: React.FC = () => {
                     }}
                     onBlur={() => window.setTimeout(() => setShowInvoiceResults(false), 150)}
                     placeholder={selectedInvoice ? 'Invoice loaded' : 'Search invoice # or patient name'}
-                    className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-12 pr-12 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-indigo-300 focus:ring-4 focus:ring-indigo-500/10"
+                    className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-12 pr-12 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-ring focus:ring-4 focus:ring-ring/20"
                   />
 
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
                     {isInvoiceSearching && !selectedInvoice ? (
-                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-ring border-t-transparent" />
                     ) : null}
 
                     {selectedInvoice ? (
@@ -1498,7 +1498,7 @@ const PharmacyPOS: React.FC = () => {
                           onClick={() => {
                             void handleInvoiceSelected(invoice);
                           }}
-                          className={`flex w-full items-center justify-between rounded-xl px-4 py-3 text-left transition ${highlightedInvoiceIndex === index ? 'bg-indigo-50' : 'hover:bg-slate-50'
+                          className={`flex w-full items-center justify-between rounded-xl px-4 py-3 text-left transition ${highlightedInvoiceIndex === index ? 'bg-primary/10' : 'hover:bg-slate-50'
                             }`}
                         >
                           <div className="min-w-0">
@@ -1509,7 +1509,7 @@ const PharmacyPOS: React.FC = () => {
                           </div>
                           <div className="shrink-0 text-right">
                             <div className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">Total</div>
-                            <div className="mt-0.5 text-sm font-black text-indigo-700">{formatCurrency(invoice.totalAmount)}</div>
+                            <div className="mt-0.5 text-sm font-black text-primary">{formatCurrency(invoice.totalAmount)}</div>
                           </div>
                         </button>
                       ))}
@@ -1522,7 +1522,7 @@ const PharmacyPOS: React.FC = () => {
                     <span className={`${invoiceChipBaseClass} border-emerald-200 bg-emerald-50 text-emerald-700`}>
                       Items Disc: {formatCurrency(Number(loadedInvoicePayment.itemsDiscount ?? 0))}
                     </span>
-                    <span className={`${invoiceChipBaseClass} border-indigo-200 bg-indigo-50 text-indigo-700`}>
+                    <span className={`${invoiceChipBaseClass} border-primary/30 bg-primary/10 text-primary`}>
                       Bill Disc: {Number(loadedInvoicePayment.adjustmentPercent ?? 0)}% ({formatCurrency(Number(loadedInvoicePayment.adjustment ?? 0))})
                     </span>
                     <span className={`${invoiceChipBaseClass} border-slate-200 bg-white text-slate-700`}>
@@ -1578,7 +1578,7 @@ const PharmacyPOS: React.FC = () => {
 
               <button
                 onClick={toggleFullscreen}
-                className="p-2 bg-slate-100/80 hover:bg-indigo-50 text-slate-500 hover:text-indigo-600 rounded-xl transition-all border border-slate-200/50"
+                className="p-2 bg-slate-100/80 hover:bg-primary/10 text-slate-500 hover:text-primary rounded-xl transition-all border border-slate-200/50"
                 title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
               >
                 {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
@@ -1614,7 +1614,7 @@ const PharmacyPOS: React.FC = () => {
 
           {/* Fields Row - All in one horizontal line */}
           <div className={`flex flex-wrap lg:flex-nowrap items-end gap-3 p-4 rounded-2xl border transition-all duration-500 ${itemSearched
-            ? (posMode === 'SALE' ? 'bg-indigo-50/30 border-indigo-100' : 'bg-rose-50/30 border-rose-100')
+            ? (posMode === 'SALE' ? 'bg-primary/10/30 border-primary/20' : 'bg-rose-50/30 border-rose-100')
             : 'bg-slate-50/50 border-slate-100 border-dashed opacity-60'
             }`}>
             <div className="w-28 shrink-0">
@@ -1663,14 +1663,14 @@ const PharmacyPOS: React.FC = () => {
 
             {/* Matched Medicine Info */}
             {itemSearched && (
-              <div className="flex-1 min-w-[160px] p-2 bg-white rounded-xl border border-indigo-100 shadow-sm flex items-center gap-3">
+              <div className="flex-1 min-w-[160px] p-2 bg-white rounded-xl border border-primary/20 shadow-sm flex items-center gap-3">
                 <div className="flex-1 min-w-0">
                   <p className="text-[10px] text-slate-400 font-medium leading-tight">Match</p>
-                  <p className="text-sm font-bold text-indigo-600 truncate">{itemSearched.brand_name}</p>
+                  <p className="text-sm font-bold text-primary truncate">{itemSearched.brand_name}</p>
                 </div>
                 {itemSearched.batch_number && (
                   <div className="flex flex-col items-end shrink-0">
-                    <span className="text-[10px] font-mono bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded">
+                    <span className="text-[10px] font-mono bg-primary/10 text-primary px-1.5 py-0.5 rounded">
                       LOT: {itemSearched.batch_number}
                     </span>
                     {itemSearched.batch_code ? (

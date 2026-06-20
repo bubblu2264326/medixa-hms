@@ -46,11 +46,11 @@ export const DiscountInput = React.forwardRef<HTMLInputElement, DiscountInputPro
 
   return (
     <div className="flex flex-col gap-1.5 flex-1 relative group">
-      <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.15em] px-0.5">
+      <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.15em] px-0.5">
         {label}
       </label>
 
-      <div className="flex items-stretch bg-white border-2 border-slate-200/60 rounded-2xl overflow-hidden focus-within:border-emerald-500/50 focus-within:shadow-[0_4px_20px_rgba(16,185,129,0.1)] transition-all">
+      <div className="flex items-stretch bg-white border-2 border-slate-200/60 rounded-md overflow-hidden focus-within:border-emerald-500/50 focus-within:shadow-[0_4px_20px_rgba(16,185,129,0.1)] transition-all">
         <button
           type="button"
           onClick={decrement}
@@ -68,7 +68,7 @@ export const DiscountInput = React.forwardRef<HTMLInputElement, DiscountInputPro
           max={max}
           step="1"
           placeholder="0"
-          className="w-full text-center py-3 text-[16px] font-black text-emerald-600 outline-none
+          className="w-full text-center py-3 text-[16px] font-semibold text-emerald-600 outline-none
                    [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none placeholder:text-slate-300"
         />
         <span className="flex items-center px-2 bg-slate-50 text-emerald-400 font-bold text-sm select-none border-l border-slate-200">
