@@ -38,6 +38,14 @@ const TARGETS = [
   { route: "/admin", label: "06-admin", user: "ADM001" },
   { route: "/ipd", label: "07-ipd", user: "ADM001" },
   { route: "/attendance/kiosk", label: "08-attendance", user: null },
+  // pharmacy sub-tabs (URL-driven via ?tab=)
+  { route: "/pharmacy?tab=purchases", label: "ph-purchases", user: "STF002" },
+  { route: "/pharmacy?tab=transactions", label: "ph-transactions", user: "STF002" },
+  { route: "/pharmacy?tab=addParty", label: "ph-parties", user: "STF002" },
+  { route: "/pharmacy?tab=purchaseReturn", label: "ph-preturn", user: "STF002" },
+  { route: "/pharmacy?tab=medicines", label: "ph-products", user: "STF002" },
+  { route: "/pharmacy?tab=reports", label: "ph-reports", user: "STF002" },
+  { route: "/pharmacy?tab=settings", label: "ph-settings", user: "STF002" },
 ];
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: false });
