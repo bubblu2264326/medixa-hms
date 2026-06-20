@@ -7,7 +7,7 @@ export default function PastVisits() {
 
   if (!visits.length && !previousPrescriptions.length && !previousLabOrders.length && !loading) {
     return (
-      <div className="h-full flex items-center justify-center rounded-[2rem] border border-dashed border-slate-300 bg-white/60 text-slate-500">
+      <div className="h-full flex items-center justify-center rounded-lg border border-dashed border-border bg-card text-muted-foreground">
         Select a patient to review visit history and previous prescriptions.
       </div>
     );
@@ -15,23 +15,23 @@ export default function PastVisits() {
 
   return (
     <div className="space-y-5">
-      <section className="rounded-[2rem] border border-white/70 bg-white/85 p-6 shadow-[0_18px_50px_rgba(15,23,42,0.05)]">
+      <section className="rounded-lg border border-border bg-card p-6 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Patient-wide history
             </p>
-            <h2 className="mt-2 text-xl font-black text-slate-800">Patient Visit History</h2>
-            <p className="text-sm text-slate-500">Historical visits across all treating doctors for this patient.</p>
+            <h2 className="mt-2 text-xl font-semibold tracking-tight text-foreground">Patient Visit History</h2>
+            <p className="text-sm text-muted-foreground">Historical visits across all treating doctors for this patient.</p>
           </div>
-          {loading && <span className="text-sm text-slate-400">Loading...</span>}
+          {loading && <span className="text-sm text-muted-foreground">Loading...</span>}
         </div>
 
-        <div className="overflow-hidden rounded-[1.75rem] border border-slate-200">
+        <div className="overflow-hidden rounded-lg border border-border">
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
-              <thead className="bg-slate-50/90">
-                <tr className="text-left text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">
+              <thead className="bg-muted">
+                <tr className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   <th className="px-4 py-3">Visit</th>
                   <th className="px-4 py-3">Clinic No</th>
                   <th className="px-4 py-3">Type</th>
@@ -43,22 +43,22 @@ export default function PastVisits() {
               <tbody>
                 {visits.length > 0 ? (
                   visits.map((visit) => (
-                    <tr key={visit.visit_id} className="border-t border-slate-100">
-                      <td className="px-4 py-4 text-slate-700 font-medium">{visit.visit_timestamp}</td>
-                      <td className="px-4 py-4 text-slate-700">#{visit.clinic_number ?? "-"}</td>
-                      <td className="px-4 py-4 text-slate-700">{visit.visit_type}</td>
+                    <tr key={visit.visit_id} className="border-t border-border">
+                      <td className="px-4 py-4 text-foreground font-medium">{visit.visit_timestamp}</td>
+                      <td className="px-4 py-4 text-foreground font-mono tabular-nums">#{visit.clinic_number ?? "-"}</td>
+                      <td className="px-4 py-4 text-foreground">{visit.visit_type}</td>
                       <td className="px-4 py-4">
-                        <span className="px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-bold">
+                        <span className="px-2.5 py-1 rounded-md bg-muted text-muted-foreground text-xs font-semibold">
                           {visit.status}
                         </span>
                       </td>
-                      <td className="px-4 py-4 text-slate-600">{visit.reason || "-"}</td>
-                      <td className="px-4 py-4 text-slate-600">{visit.doctor_name}</td>
+                      <td className="px-4 py-4 text-muted-foreground">{visit.reason || "-"}</td>
+                      <td className="px-4 py-4 text-muted-foreground">{visit.doctor_name}</td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={6} className="px-4 py-10 text-center text-slate-400">
+                    <td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">
                       No historical visits available.
                     </td>
                   </tr>
@@ -69,20 +69,20 @@ export default function PastVisits() {
         </div>
       </section>
 
-      <section className="rounded-[2rem] border border-white/70 bg-white/85 p-6 shadow-[0_18px_50px_rgba(15,23,42,0.05)]">
+      <section className="rounded-lg border border-border bg-card p-6 shadow-sm">
         <div className="mb-4">
-          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Patient-wide history
           </p>
-          <h2 className="mt-2 text-xl font-black text-slate-800">Patient Prescription History</h2>
-          <p className="text-sm text-slate-500">Persisted prescription lines from all treating doctors for this patient.</p>
+          <h2 className="mt-2 text-xl font-semibold tracking-tight text-foreground">Patient Prescription History</h2>
+          <p className="text-sm text-muted-foreground">Persisted prescription lines from all treating doctors for this patient.</p>
         </div>
 
-        <div className="overflow-hidden rounded-[1.75rem] border border-slate-200">
+        <div className="overflow-hidden rounded-lg border border-border">
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
-              <thead className="bg-slate-50/90">
-                <tr className="text-left text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">
+              <thead className="bg-muted">
+                <tr className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   <th className="px-4 py-3">Date</th>
                   <th className="px-4 py-3">Medicine</th>
                   <th className="px-4 py-3">Dose</th>
@@ -98,25 +98,25 @@ export default function PastVisits() {
                   previousPrescriptions.map((prescription) => (
                     <tr
                       key={`${prescription.prescription_id}-${prescription.order_date}-${prescription.brand_name}`}
-                      className="border-t border-slate-100"
+                      className="border-t border-border"
                     >
-                      <td className="px-4 py-4 text-slate-700 font-medium">{prescription.order_date}</td>
-                      <td className="px-4 py-4 text-slate-700">
+                      <td className="px-4 py-4 text-foreground font-medium">{prescription.order_date}</td>
+                      <td className="px-4 py-4 text-foreground">
                         {prescription.generic_name} / {prescription.brand_name}
                       </td>
-                      <td className="px-4 py-4 text-slate-600">
+                      <td className="px-4 py-4 text-muted-foreground">
                         {prescription.dosage || "-"}
                       </td>
-                      <td className="px-4 py-4 text-slate-600">{prescription.frequency}</td>
-                      <td className="px-4 py-4 text-slate-600">{prescription.duration}</td>
-                      <td className="px-4 py-4 text-slate-600">{prescription.prescribed_quantity}</td>
-                      <td className="px-4 py-4 text-slate-600">{prescription.prescribed_by || "-"}</td>
-                      <td className="px-4 py-4 text-slate-600">{prescription.instructions || "-"}</td>
+                      <td className="px-4 py-4 text-muted-foreground">{prescription.frequency}</td>
+                      <td className="px-4 py-4 text-muted-foreground">{prescription.duration}</td>
+                      <td className="px-4 py-4 text-muted-foreground font-mono tabular-nums">{prescription.prescribed_quantity}</td>
+                      <td className="px-4 py-4 text-muted-foreground">{prescription.prescribed_by || "-"}</td>
+                      <td className="px-4 py-4 text-muted-foreground">{prescription.instructions || "-"}</td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={8} className="px-4 py-10 text-center text-slate-400">
+                    <td colSpan={8} className="px-4 py-10 text-center text-muted-foreground">
                       No prescription history available.
                     </td>
                   </tr>
@@ -127,22 +127,22 @@ export default function PastVisits() {
         </div>
       </section>
 
-      <section className="rounded-[2rem] border border-white/70 bg-white/85 p-6 shadow-[0_18px_50px_rgba(15,23,42,0.05)]">
+      <section className="rounded-lg border border-border bg-card p-6 shadow-sm">
         <div className="mb-4">
-          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Patient-wide history
           </p>
-          <h2 className="mt-2 text-xl font-black text-slate-800">Patient Lab History</h2>
-          <p className="text-sm text-slate-500">
+          <h2 className="mt-2 text-xl font-semibold tracking-tight text-foreground">Patient Lab History</h2>
+          <p className="text-sm text-muted-foreground">
             Persisted lab requests from all treating doctors for this patient.
           </p>
         </div>
 
-        <div className="overflow-hidden rounded-[1.75rem] border border-slate-200">
+        <div className="overflow-hidden rounded-lg border border-border">
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
-              <thead className="bg-slate-50/90">
-                <tr className="text-left text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">
+              <thead className="bg-muted">
+                <tr className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   <th className="px-4 py-3">Date</th>
                   <th className="px-4 py-3">Test</th>
                   <th className="px-4 py-3">Category</th>
@@ -154,18 +154,18 @@ export default function PastVisits() {
               <tbody>
                 {previousLabOrders.length > 0 ? (
                   previousLabOrders.map((order) => (
-                    <tr key={order.order_id} className="border-t border-slate-100">
-                      <td className="px-4 py-4 text-slate-700 font-medium">{order.order_date}</td>
-                      <td className="px-4 py-4 text-slate-700">{order.test_name}</td>
-                      <td className="px-4 py-4 text-slate-600">{order.category}</td>
-                      <td className="px-4 py-4 text-slate-600">{order.urgency || "-"}</td>
-                      <td className="px-4 py-4 text-slate-600">{order.status}</td>
-                      <td className="px-4 py-4 text-slate-600">{order.ordered_by || "-"}</td>
+                    <tr key={order.order_id} className="border-t border-border">
+                      <td className="px-4 py-4 text-foreground font-medium">{order.order_date}</td>
+                      <td className="px-4 py-4 text-foreground">{order.test_name}</td>
+                      <td className="px-4 py-4 text-muted-foreground">{order.category}</td>
+                      <td className="px-4 py-4 text-muted-foreground">{order.urgency || "-"}</td>
+                      <td className="px-4 py-4 text-muted-foreground">{order.status}</td>
+                      <td className="px-4 py-4 text-muted-foreground">{order.ordered_by || "-"}</td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={6} className="px-4 py-10 text-center text-slate-400">
+                    <td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">
                       No lab order history available.
                     </td>
                   </tr>

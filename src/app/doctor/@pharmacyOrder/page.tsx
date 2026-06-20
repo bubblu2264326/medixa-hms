@@ -9,7 +9,7 @@ export default function PharmacyPage() {
 
   return (
     <div className="space-y-4">
-      <div className="px-1 text-sm text-slate-500">
+      <div className="px-1 text-sm text-muted-foreground">
         {patientId
           ? "Review recent prescriptions, search medicines, then prescribe from the live order table."
           : "Select a patient from the queue to begin prescribing."}

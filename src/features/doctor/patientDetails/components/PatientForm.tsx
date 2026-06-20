@@ -78,9 +78,9 @@ function IdentityChip({
   if (!hasValue(value)) return null;
 
   return (
-    <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700">
-      <Icon size={14} className="text-slate-400" />
-      <span className="font-bold text-slate-500">{label}</span>
+    <div className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground">
+      <Icon size={14} className="text-muted-foreground" aria-hidden />
+      <span className="font-semibold text-muted-foreground">{label}</span>
       <span className="font-semibold">{value}</span>
     </div>
   );
@@ -94,9 +94,9 @@ function MetricCard({
   value: string | number | null | undefined;
 }) {
   return (
-    <div className="rounded-[1.35rem] border border-slate-200 bg-white px-4 py-3">
-      <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">{label}</div>
-      <div className="mt-2 text-base font-black tracking-tight text-slate-900">
+    <div className="rounded-md border border-border bg-card px-4 py-3">
+      <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className="mt-2 text-base font-semibold tracking-tight text-foreground">
         {formatValue(value)}
       </div>
     </div>
@@ -113,9 +113,9 @@ function SummaryField({
   if (!hasValue(value)) return null;
 
   return (
-    <div className="rounded-[1rem] border border-slate-200 bg-white px-4 py-3">
-      <div className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">{label}</div>
-      <div className="mt-2 text-sm font-semibold leading-6 text-slate-700">{value}</div>
+    <div className="rounded-md border border-border bg-card px-4 py-3">
+      <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className="mt-2 text-sm font-semibold leading-6 text-foreground">{value}</div>
     </div>
   );
 }
@@ -133,7 +133,7 @@ function QuickAction({
     <button
       type="button"
       onClick={onClick}
-      className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 transition hover:border-slate-300 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+      className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-4 py-3 text-sm font-semibold text-foreground transition hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
       <Icon size={16} />
       {label}
@@ -166,26 +166,26 @@ function WomenHealthPanel({
   ].filter(Boolean) as string[];
 
   return (
-    <section className="mt-6 rounded-[1.75rem] border border-slate-200 bg-white p-5">
+    <section className="mt-6 rounded-lg border border-border bg-card p-5">
       <details className="group" open={highSignal.length > 0}>
         <summary className="flex cursor-pointer list-none items-start justify-between gap-4">
           <div className="flex items-start gap-3">
-            <div className="mt-0.5 rounded-2xl bg-rose-50 p-2 text-rose-600">
-              <HeartPulse size={18} />
+            <div className="mt-0.5 rounded-md bg-primary/10 p-2 text-primary">
+              <HeartPulse size={18} aria-hidden />
             </div>
             <div>
-              <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Women&apos;s Health
               </p>
-              <h3 className="mt-1 text-lg font-black tracking-tight text-slate-900">
+              <h3 className="mt-1 text-lg font-semibold tracking-tight text-foreground">
                 Reception intake summary
               </h3>
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 text-sm text-muted-foreground">
                 High-signal OB/GYN context captured during reception intake. Expand for more detail.
               </p>
             </div>
           </div>
-          <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">
+          <span className="rounded-md border border-border bg-muted px-3 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             {highSignal.length > 0 ? "Available" : "Recorded"}
           </span>
         </summary>
@@ -195,7 +195,7 @@ function WomenHealthPanel({
             {highSignal.map((item) => (
               <span
                 key={item}
-                className="rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-bold text-rose-700"
+                className="rounded-md border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary"
               >
                 {item}
               </span>
@@ -254,25 +254,25 @@ function WomenHealthSection<T extends MenstrualHistorySummary | ObstetricHistory
 }) {
   if (!data) {
     return (
-      <div className="rounded-[1.35rem] border border-dashed border-slate-200 bg-slate-50/70 px-4 py-6 text-sm text-slate-400">
+      <div className="rounded-md border border-dashed border-border bg-muted/50 px-4 py-6 text-sm text-muted-foreground">
         No {title.toLowerCase()} intake recorded for this patient.
       </div>
     );
   }
 
   return (
-    <div className="rounded-[1.35rem] border border-slate-200 bg-slate-50/70 p-4">
-      <div className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">{title}</div>
+    <div className="rounded-md border border-border bg-muted/50 p-4">
+      <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{title}</div>
       <div className="mt-3 space-y-3">{children}</div>
     </div>
   );
 }
 
 const SEVERITY_TONE: Record<string, string> = {
-  severe: "border-rose-200 bg-rose-50 text-rose-700",
-  moderate: "border-amber-200 bg-amber-50 text-amber-700",
-  mild: "border-emerald-200 bg-emerald-50 text-emerald-700",
-  unknown: "border-slate-200 bg-slate-50 text-slate-600",
+  severe: "border-destructive/30 bg-destructive/10 text-destructive",
+  moderate: "border-warning/50 bg-warning/15 text-warning-foreground",
+  mild: "border-success/30 bg-success/10 text-success",
+  unknown: "border-border bg-muted text-muted-foreground",
 };
 
 function severityTone(severity: string | null | undefined) {
@@ -307,16 +307,16 @@ function AllergiesPanel({
   };
 
   return (
-    <section className="mt-6 rounded-[1.75rem] border border-rose-100 bg-white p-5">
+    <section className="mt-6 rounded-lg border border-destructive/20 bg-card p-5">
       <div className="flex items-center gap-2">
-        <div className="rounded-2xl bg-rose-50 p-2 text-rose-600">
-          <AlertTriangle size={18} />
+        <div className="rounded-md bg-destructive/10 p-2 text-destructive">
+          <AlertTriangle size={18} aria-hidden />
         </div>
         <div>
-          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Known Allergies
           </p>
-          <h3 className="mt-1 text-lg font-black tracking-tight text-slate-900">
+          <h3 className="mt-1 text-lg font-semibold tracking-tight text-foreground">
             Active allergy register for this patient
           </h3>
         </div>
@@ -327,15 +327,15 @@ function AllergiesPanel({
           allergies.map((item) => (
             <div
               key={item.allergy_id}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-[1.1rem] border border-slate-200 bg-slate-50/70 px-4 py-3"
+              className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-border bg-muted/50 px-4 py-3"
             >
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-sm font-black tracking-tight text-slate-900">
+                  <span className="text-sm font-semibold tracking-tight text-foreground">
                     {item.allergen}
                   </span>
                   <span
-                    className={`rounded-full border px-2.5 py-0.5 text-[10px] font-black uppercase tracking-[0.14em] ${severityTone(
+                    className={`rounded-md border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${severityTone(
                       item.severity
                     )}`}
                   >
@@ -343,10 +343,10 @@ function AllergiesPanel({
                   </span>
                 </div>
                 {item.reaction?.trim() && (
-                  <div className="mt-1 text-sm text-slate-600">Reaction: {item.reaction}</div>
+                  <div className="mt-1 text-sm text-muted-foreground">Reaction: {item.reaction}</div>
                 )}
                 {item.noted_at && (
-                  <div className="mt-1 text-xs text-slate-400">
+                  <div className="mt-1 text-xs text-muted-foreground">
                     Noted {formatDateInTimezone(item.noted_at, DEFAULT_TIMEZONE)}
                   </div>
                 )}
@@ -356,24 +356,24 @@ function AllergiesPanel({
                   type="button"
                   onClick={() => onRemove(item.allergy_id)}
                   disabled={isSaving}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-rose-100 bg-rose-50 text-rose-600 transition hover:bg-rose-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-destructive/20 bg-destructive/10 text-destructive transition hover:bg-destructive/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                   aria-label={`Remove allergy ${item.allergen}`}
                 >
-                  <Trash2 size={14} />
+                  <Trash2 size={14} aria-hidden />
                 </button>
               )}
             </div>
           ))
         ) : (
-          <div className="rounded-[1.1rem] border border-dashed border-slate-200 bg-slate-50/70 px-4 py-6 text-center text-sm text-slate-400">
+          <div className="rounded-md border border-dashed border-border bg-muted/50 px-4 py-6 text-center text-sm text-muted-foreground">
             No allergies recorded for this patient yet.
           </div>
         )}
       </div>
 
       {canEdit && (
-        <div className="mt-4 rounded-[1.35rem] border border-slate-200 bg-slate-50/60 p-4">
-          <div className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">
+        <div className="mt-4 rounded-md border border-border bg-muted/50 p-4">
+          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Add Allergy
           </div>
           <div className="mt-3 grid gap-3 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1.2fr)]">
@@ -407,9 +407,9 @@ function AllergiesPanel({
               type="button"
               onClick={handleAdd}
               disabled={isSaving || !allergen.trim()}
-              className="h-10 rounded-xl px-4 font-bold"
+              className="h-10 rounded-md px-4 font-semibold"
             >
-              <Plus size={16} className="mr-1" />
+              <Plus size={16} className="mr-1" aria-hidden />
               {isSaving ? "Saving..." : "Add Allergy"}
             </Button>
           </div>
@@ -469,7 +469,7 @@ export default function PatientForm() {
 
   if (!patient && !isLoading) {
     return (
-      <div className="flex h-full items-center justify-center rounded-[2rem] border border-dashed border-slate-300 bg-white/60 text-slate-500">
+      <div className="flex h-full items-center justify-center rounded-lg border border-dashed border-border bg-card text-muted-foreground">
         Select a patient from your queue to review the chosen visit.
       </div>
     );
@@ -478,45 +478,45 @@ export default function PatientForm() {
   return (
     <div className="relative h-full">
       <div
-        className={`h-full rounded-[2rem] border border-white/70 bg-white/85 p-6 shadow-[0_18px_50px_rgba(15,23,42,0.05)] transition-opacity duration-200 xl:p-8 ${
+        className={`h-full rounded-lg border border-border bg-card p-6 shadow-sm transition-opacity duration-200 xl:p-8 ${
           isLoading ? "opacity-70" : "opacity-100"
         }`}
       >
         {isLoading && (
-          <div className="mb-4 flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
-            <Loader2 size={16} className="animate-spin" />
+          <div className="mb-4 flex items-center gap-3 rounded-md border border-primary/20 bg-primary/10 px-4 py-3 text-sm font-semibold text-primary">
+            <Loader2 size={16} className="animate-spin" aria-hidden />
             <span aria-live="polite">Loading selected patient data...</span>
           </div>
         )}
 
-        <div className="rounded-[1.75rem] border border-emerald-100 bg-[linear-gradient(135deg,rgba(236,253,245,0.95),rgba(255,255,255,0.96))] p-5 shadow-[0_20px_50px_rgba(16,185,129,0.08)]">
+        <div className="rounded-lg border border-border bg-muted/40 p-5 shadow-sm">
           <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
             <div className="min-w-0">
-              <p className="text-[11px] font-black uppercase tracking-[0.22em] text-emerald-700">
+              <p className="text-xs font-semibold uppercase tracking-wide text-primary">
                 Patient Context Summary
               </p>
               <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
-                <h2 className="text-3xl font-black tracking-tight text-slate-950">
+                <h2 className="text-3xl font-semibold tracking-tight text-foreground">
                   {patient?.patient_name}
                 </h2>
-                <span className="text-sm font-semibold text-slate-500">{patientLabel}</span>
-                <span className="text-sm text-slate-300">|</span>
-                <span className="text-sm font-semibold text-slate-600">ID {patient?.patient_id}</span>
-                <span className="text-sm text-slate-300">|</span>
-                <span className="text-sm font-semibold text-slate-600">
+                <span className="text-sm font-semibold text-muted-foreground">{patientLabel}</span>
+                <span className="text-sm text-border">|</span>
+                <span className="text-sm font-semibold text-muted-foreground font-mono tabular-nums">ID {patient?.patient_id}</span>
+                <span className="text-sm text-border">|</span>
+                <span className="text-sm font-semibold text-muted-foreground font-mono tabular-nums">
                   Visit #{visit?.clinic_number ?? visit?.visit_id}
                 </span>
                 <span
-                  className={`rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] ${
+                  className={`rounded-md px-3 py-1 text-xs font-semibold uppercase tracking-wide ${
                     visit?.visit_type === "Emergency"
-                      ? "bg-rose-100 text-rose-700"
-                      : "bg-sky-100 text-sky-700"
+                      ? "bg-destructive/10 text-destructive"
+                      : "bg-info/10 text-info"
                   }`}
                 >
                   {visit?.visit_type ?? "Visit"}
                 </span>
               </div>
-              <p className="mt-3 max-w-3xl text-sm text-slate-600">
+              <p className="mt-3 max-w-3xl text-sm text-muted-foreground">
                 Reception intake distilled for the doctor: identity, current visit, vitals, and
                 relevant women&apos;s health context before clinical action.
               </p>
@@ -524,17 +524,17 @@ export default function PatientForm() {
 
             <div className="flex flex-col items-start gap-3 xl:items-end">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">
+                <span className="rounded-md border border-border bg-card px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   {doctor?.doctor_name ?? "Doctor"}
                 </span>
                 {visit && (
                   <span
-                    className={`rounded-full px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.2em] ${
+                    className={`rounded-md px-3 py-1.5 text-xs font-semibold uppercase tracking-wide ${
                       isCancelled
-                        ? "bg-rose-100 text-rose-700"
+                        ? "bg-destructive/10 text-destructive"
                         : isSeen
-                          ? "bg-emerald-600 text-white"
-                          : "bg-amber-100 text-amber-700"
+                          ? "bg-success text-success-foreground"
+                          : "bg-warning/15 text-warning-foreground"
                     }`}
                   >
                     {isCancelled ? "Cancelled" : isSeen ? "Seen By Doctor" : "Waiting"}
@@ -547,15 +547,16 @@ export default function PatientForm() {
                   type="button"
                   onClick={markVisitSeen}
                   disabled={!visit || isSaving || isSeen || !isActionable}
-                  className="h-11 rounded-2xl px-5 font-bold"
+                  className="h-11 rounded-md px-5 font-semibold"
                 >
                   {isSeen ? "Already Seen" : !isActionable ? "Visit Locked" : "Mark As Seen"}
                 </Button>
                 <Button
                   type="button"
+                  variant="outline"
                   onClick={reopenVisit}
                   disabled={!visit || isSaving || isCancelled || visit?.status === "waiting"}
-                  className="h-11 rounded-2xl border border-slate-300 bg-white px-5 font-bold text-slate-700 hover:bg-slate-50"
+                  className="h-11 rounded-md px-5 font-semibold"
                 >
                   Reopen Encounter
                 </Button>
@@ -563,21 +564,22 @@ export default function PatientForm() {
                   type="button"
                   onClick={cancelVisit}
                   disabled={!visit || isSaving || isCancelled || visit?.status === "dispensing"}
-                  className="h-11 rounded-2xl border border-rose-300 bg-rose-50 px-5 font-bold text-rose-700 hover:bg-rose-100"
+                  className="h-11 rounded-md border border-destructive/30 bg-destructive/10 px-5 font-semibold text-destructive hover:bg-destructive/15"
                 >
                   Cancel Encounter
                 </Button>
                 <Button
                   type="button"
+                  variant="outline"
                   onClick={softDeleteVisit}
                   disabled={!visit || isSaving || !canSoftDeleteVisit}
-                  className="h-11 rounded-2xl border border-slate-300 bg-white px-5 font-bold text-slate-700 hover:bg-slate-50"
+                  className="h-11 rounded-md px-5 font-semibold"
                 >
                   Soft Delete
                 </Button>
               </div>
               {!canSoftDeleteVisit && capabilities?.lockReason && (
-                <p className="max-w-xl text-xs font-semibold text-amber-700">
+                <p className="max-w-xl text-xs font-semibold text-warning-foreground">
                   {capabilities.lockReason}
                 </p>
               )}
@@ -586,19 +588,19 @@ export default function PatientForm() {
         </div>
 
         {error && (
-          <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <div className="mb-6 rounded-md border border-warning/50 bg-warning/15 px-4 py-3 text-sm text-warning-foreground">
             {error}
           </div>
         )}
 
-        <section className="mt-6 rounded-[1.75rem] border border-slate-200 bg-white p-5">
+        <section className="mt-6 rounded-lg border border-border bg-card p-5">
           <div className="flex items-center gap-2">
-            <ShieldCheck size={18} className="text-emerald-600" />
+            <ShieldCheck size={18} className="text-primary" aria-hidden />
             <div>
-              <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Identity
               </p>
-              <h3 className="mt-1 text-lg font-black tracking-tight text-slate-900">
+              <h3 className="mt-1 text-lg font-semibold tracking-tight text-foreground">
                 Core patient details from reception
               </h3>
             </div>
@@ -611,46 +613,46 @@ export default function PatientForm() {
         </section>
 
         <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.55fr)_minmax(320px,0.95fr)]">
-          <section className="rounded-[1.75rem] border border-slate-200 bg-white p-5">
+          <section className="rounded-lg border border-border bg-card p-5">
             <div className="flex items-center gap-2">
-              <ClipboardList size={18} className="text-emerald-600" />
+              <ClipboardList size={18} className="text-primary" aria-hidden />
               <div>
-                <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Active Visit
                 </p>
-                <h3 className="mt-1 text-lg font-black tracking-tight text-slate-900">
+                <h3 className="mt-1 text-lg font-semibold tracking-tight text-foreground">
                   What is happening right now
                 </h3>
               </div>
             </div>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
-              <div className="rounded-[1.35rem] border border-slate-200 bg-slate-50/80 px-4 py-4">
-                <div className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">
+              <div className="rounded-md border border-border bg-muted/50 px-4 py-4">
+                <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Presenting Complaint
                 </div>
-                <div className="mt-2 text-sm font-semibold leading-6 text-slate-700">
+                <div className="mt-2 text-sm font-semibold leading-6 text-foreground">
                   {encounterNote?.reception_complaint?.trim() ||
                     visit?.reason?.trim() ||
                     "No presenting complaint recorded yet."}
                 </div>
               </div>
-              <div className="rounded-[1.35rem] border border-slate-200 bg-slate-50/80 px-4 py-4">
-                <div className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">
+              <div className="rounded-md border border-border bg-muted/50 px-4 py-4">
+                <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Visit Metadata
                 </div>
-                <div className="mt-2 text-sm font-semibold leading-6 text-slate-700">
+                <div className="mt-2 text-sm font-semibold leading-6 text-foreground">
                   Doctor: {visit?.doctor_name || doctor?.doctor_name || "Unassigned"}
                 </div>
-                <div className="mt-1 text-sm text-slate-600">
+                <div className="mt-1 text-sm text-muted-foreground">
                   {visit?.visit_timestamp
                     ? `Logged ${formatVisitLabel(visit.visit_timestamp)}`
                     : "Current visit time unavailable."}
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                  <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1 font-bold text-slate-600">
+                  <span className="rounded-md border border-border bg-card px-2.5 py-1 font-semibold text-muted-foreground">
                     Clinic #{visit?.clinic_number ?? "-"}
                   </span>
-                  <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1 font-bold text-slate-600">
+                  <span className="rounded-md border border-border bg-card px-2.5 py-1 font-semibold text-muted-foreground">
                     {visit?.visit_type ?? "Visit type unavailable"}
                   </span>
                 </div>
@@ -660,7 +662,7 @@ export default function PatientForm() {
             <div className="mt-5">
               <label
                 htmlFor="visit-reason-note"
-                className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-500"
+                className="text-xs font-semibold uppercase tracking-wide text-muted-foreground"
               >
                 Doctor Intake Note
               </label>
@@ -669,7 +671,7 @@ export default function PatientForm() {
                 value={doctorNoteDraft}
                 onChange={(event) => setDoctorNoteDraft(event.target.value)}
                 rows={4}
-                className="mt-2 w-full rounded-[1.5rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10"
+                className="mt-2 w-full rounded-md border border-input bg-background px-4 py-3 text-sm text-foreground shadow-sm outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
                 placeholder="Write the doctor encounter note without overwriting reception intake"
               />
               <div className="mt-3 flex justify-end">
@@ -677,7 +679,7 @@ export default function PatientForm() {
                   type="button"
                   onClick={saveDoctorNote}
                   disabled={!visit || isSaving || !isActionable}
-                  className="h-11 rounded-2xl px-5 font-bold"
+                  className="h-11 rounded-md px-5 font-semibold"
                 >
                   {isSaving ? "Saving..." : "Save Note"}
                 </Button>
@@ -685,14 +687,14 @@ export default function PatientForm() {
             </div>
           </section>
 
-          <section className="rounded-[1.75rem] border border-slate-200 bg-slate-50/70 p-5">
+          <section className="rounded-lg border border-border bg-muted/50 p-5">
             <div className="flex items-center gap-2">
-              <Stethoscope size={18} className="text-emerald-600" />
+              <Stethoscope size={18} className="text-primary" aria-hidden />
               <div>
-                <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Vitals
                 </p>
-                <h3 className="mt-1 text-lg font-black tracking-tight text-slate-900">
+                <h3 className="mt-1 text-lg font-semibold tracking-tight text-foreground">
                   Current-visit clinical snapshot
                 </h3>
               </div>
@@ -705,7 +707,7 @@ export default function PatientForm() {
               <MetricCard label="Weight" value={vitals?.weight} />
               <MetricCard label="Height" value={vitals?.height} />
             </div>
-            <p className="mt-4 text-xs leading-5 text-slate-500">
+            <p className="mt-4 text-xs leading-5 text-muted-foreground">
               These vitals are loaded by visit. Missing values stay non-blocking so the doctor still
               gets the rest of the context summary.
             </p>
@@ -723,15 +725,15 @@ export default function PatientForm() {
         />
 
         <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-          <section className="rounded-[1.75rem] border border-slate-200 bg-white p-5">
+          <section className="rounded-lg border border-border bg-card p-5">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <History size={18} className="text-emerald-600" />
+                <History size={18} className="text-primary" aria-hidden />
                 <div>
-                  <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     Previous Visits
                   </p>
-                  <h3 className="mt-1 text-lg font-black tracking-tight text-slate-900">
+                  <h3 className="mt-1 text-lg font-semibold tracking-tight text-foreground">
                     Recent clinical context
                   </h3>
                 </div>
@@ -739,7 +741,7 @@ export default function PatientForm() {
               <button
                 type="button"
                 onClick={() => switchTab("pastVisits")}
-                className="text-sm font-bold text-emerald-700 transition hover:text-emerald-800"
+                className="text-sm font-semibold text-primary transition hover:text-primary/80"
               >
                 View full history
               </button>
@@ -750,45 +752,45 @@ export default function PatientForm() {
                 recentVisits.map((pastVisit) => (
                   <article
                     key={pastVisit.visit_id}
-                    className="rounded-[1.35rem] border border-slate-200 bg-slate-50/80 px-4 py-4"
+                    className="rounded-md border border-border bg-muted/50 px-4 py-4"
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="text-sm font-black text-slate-900">
+                      <div className="text-sm font-semibold text-foreground">
                         {formatVisitLabel(pastVisit.visit_timestamp)}
                       </div>
-                      <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">
-                        <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1">
+                      <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        <span className="rounded-md border border-border bg-card px-2.5 py-1">
                           {pastVisit.visit_type}
                         </span>
-                        <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1">
+                        <span className="rounded-md border border-border bg-card px-2.5 py-1">
                           {pastVisit.status}
                         </span>
                       </div>
                     </div>
-                    <div className="mt-2 text-sm text-slate-700">
+                    <div className="mt-2 text-sm text-foreground">
                       {pastVisit.reason?.trim() || "No reason captured for this visit."}
                     </div>
-                    <div className="mt-3 text-xs text-slate-500">
+                    <div className="mt-3 text-xs text-muted-foreground">
                       Clinic #{pastVisit.clinic_number ?? "-"} · {pastVisit.doctor_name}
                     </div>
                   </article>
                 ))
               ) : (
-                <div className="rounded-[1.35rem] border border-dashed border-slate-200 bg-slate-50/70 px-4 py-8 text-center text-sm text-slate-400">
+                <div className="rounded-md border border-dashed border-border bg-muted/50 px-4 py-8 text-center text-sm text-muted-foreground">
                   No previous visits are available for this doctor-patient context yet.
                 </div>
               )}
             </div>
           </section>
 
-          <section className="rounded-[1.75rem] border border-slate-200 bg-white p-5">
+          <section className="rounded-lg border border-border bg-card p-5">
             <div className="flex items-center gap-2">
-              <Pill size={18} className="text-emerald-600" />
+              <Pill size={18} className="text-primary" aria-hidden />
               <div>
-                <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Medication History
                 </p>
-                <h3 className="mt-1 text-lg font-black tracking-tight text-slate-900">
+                <h3 className="mt-1 text-lg font-semibold tracking-tight text-foreground">
                   Recent prescriptions
                 </h3>
               </div>
@@ -799,30 +801,30 @@ export default function PatientForm() {
                 recentPrescriptions.map((item, index) => (
                   <article
                     key={`${item.prescription_id}-${item.order_date}-${index}`}
-                    className="rounded-[1.35rem] border border-slate-200 bg-slate-50/80 px-4 py-4"
+                    className="rounded-md border border-border bg-muted/50 px-4 py-4"
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="text-sm font-black text-slate-900">{item.brand_name}</div>
-                      <div className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
+                      <div className="text-sm font-semibold text-foreground">{item.brand_name}</div>
+                      <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                         {item.order_date}
                       </div>
                     </div>
-                    <div className="mt-1 text-sm text-slate-600">{item.generic_name}</div>
-                    <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-500">
-                      <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1">
+                    <div className="mt-1 text-sm text-muted-foreground">{item.generic_name}</div>
+                    <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                      <span className="rounded-md border border-border bg-card px-2.5 py-1">
                         {item.dosage || "Dose not captured"}
                       </span>
-                      <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1">
+                      <span className="rounded-md border border-border bg-card px-2.5 py-1">
                         {item.frequency}
                       </span>
-                      <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1">
+                      <span className="rounded-md border border-border bg-card px-2.5 py-1">
                         {item.duration}
                       </span>
                     </div>
                   </article>
                 ))
               ) : (
-                <div className="rounded-[1.35rem] border border-dashed border-slate-200 bg-slate-50/70 px-4 py-8 text-center text-sm text-slate-400">
+                <div className="rounded-md border border-dashed border-border bg-muted/50 px-4 py-8 text-center text-sm text-muted-foreground">
                   No recent prescriptions are available yet.
                 </div>
               )}
@@ -830,14 +832,14 @@ export default function PatientForm() {
           </section>
         </div>
 
-        <section className="mt-6 rounded-[1.75rem] border border-slate-200 bg-white p-5">
+        <section className="mt-6 rounded-lg border border-border bg-card p-5">
           <div className="flex items-center gap-2">
-            <FlaskConical size={18} className="text-emerald-600" />
+            <FlaskConical size={18} className="text-primary" aria-hidden />
             <div>
-              <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Quick Actions
               </p>
-              <h3 className="mt-1 text-lg font-black tracking-tight text-slate-900">
+              <h3 className="mt-1 text-lg font-semibold tracking-tight text-foreground">
                 Move into the next clinical step
               </h3>
             </div>
@@ -851,7 +853,7 @@ export default function PatientForm() {
       </div>
 
       {isLoading && (
-        <div className="pointer-events-none absolute inset-0 z-10 rounded-[2rem] bg-white/35 backdrop-blur-[1px]" />
+        <div className="pointer-events-none absolute inset-0 z-10 rounded-lg bg-background/35" />
       )}
     </div>
   );

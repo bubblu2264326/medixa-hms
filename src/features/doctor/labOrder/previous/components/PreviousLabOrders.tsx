@@ -115,10 +115,10 @@ export default function PreviousLabOrders() {
 
   const normalizeStatus = (value: string) => {
     const normalized = value.toLowerCase();
-    if (normalized.includes("pending")) return "bg-amber-100 text-amber-700";
-    if (normalized.includes("done") || normalized.includes("completed")) return "bg-emerald-100 text-emerald-700";
-    if (normalized.includes("cancel")) return "bg-rose-100 text-rose-700";
-    return "bg-slate-100 text-slate-600";
+    if (normalized.includes("pending")) return "bg-warning/15 text-warning-foreground";
+    if (normalized.includes("done") || normalized.includes("completed")) return "bg-success/10 text-success";
+    if (normalized.includes("cancel")) return "bg-destructive/10 text-destructive";
+    return "bg-muted text-muted-foreground";
   };
 
   const formatDate = (value?: string) => {
@@ -131,14 +131,14 @@ export default function PreviousLabOrders() {
   };
 
   return (
-    <section className="rounded-[1.35rem] border border-white/70 bg-white/85 p-3 shadow-[0_14px_34px_rgba(15,23,42,0.05)]">
-      <div className="flex flex-col gap-2 rounded-[1rem] border border-slate-200 bg-slate-50/70 px-3 py-2.5">
+    <section className="rounded-lg border border-border bg-card p-3 shadow-sm">
+      <div className="flex flex-col gap-2 rounded-md border border-border bg-muted/50 px-3 py-2.5">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-2">
-            <h3 className="text-lg font-black tracking-tight text-slate-900">
+            <h3 className="text-lg font-semibold tracking-tight text-foreground">
               Patient Lab History
             </h3>
-            <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[10px] font-bold text-slate-600 whitespace-nowrap">
+            <span className="rounded-md border border-border bg-card px-2 py-0.5 text-[10px] font-semibold font-mono tabular-nums text-muted-foreground whitespace-nowrap">
               {patientId ? `${filteredLabOrders.length}/${previousData.length}` : "Waiting"}
             </span>
           </div>
@@ -148,36 +148,36 @@ export default function PreviousLabOrders() {
               type="button"
               onClick={openFullHistory}
               disabled={!patientId}
-              className="inline-flex h-8 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex h-8 items-center justify-center rounded-md border border-border bg-card px-3 text-xs font-semibold text-muted-foreground transition hover:bg-accent hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
             >
               View Full History
             </button>
           </div>
         </div>
 
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-muted-foreground">
           Patient-wide history (all treating doctors)
         </p>
 
         {patientId && previousData.length > 0 && (
           <div className="grid gap-1.5 lg:grid-cols-[minmax(220px,1fr)_160px_140px_auto_auto]">
             <label className="relative">
-              <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
-                <Search size={15} />
+              <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">
+                <Search size={15} aria-hidden />
               </span>
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
                 placeholder="Search test, doctor, visit, date..."
-                className="h-8 w-full rounded-md border border-slate-200 bg-white pl-8 pr-2 text-xs text-slate-700 outline-none transition focus:border-emerald-300 focus:ring-2 focus:ring-emerald-500/10"
+                className="h-8 w-full rounded-md border border-input bg-background pl-8 pr-2 text-xs text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
               />
             </label>
 
             <select
               value={doctorFilter}
               onChange={(event) => setDoctorFilter(event.target.value)}
-              className="h-8 rounded-md border border-slate-200 bg-white px-2 text-xs text-slate-700 outline-none transition focus:border-emerald-300 focus:ring-2 focus:ring-emerald-500/10"
+              className="h-8 rounded-md border border-input bg-background px-2 text-xs text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
             >
               <option value="all">All doctors</option>
               {doctorOptions.map((doctor) => (
@@ -190,7 +190,7 @@ export default function PreviousLabOrders() {
             <select
               value={visitFilter}
               onChange={(event) => setVisitFilter(event.target.value)}
-              className="h-8 rounded-md border border-slate-200 bg-white px-2 text-xs text-slate-700 outline-none transition focus:border-emerald-300 focus:ring-2 focus:ring-emerald-500/10"
+              className="h-8 rounded-md border border-input bg-background px-2 text-xs text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
             >
               <option value="all">All visits</option>
               {visitOptions.map((visitId) => (
@@ -200,16 +200,16 @@ export default function PreviousLabOrders() {
               ))}
             </select>
 
-            <div className="flex items-center gap-1 rounded-md border border-slate-200 bg-white p-1">
+            <div className="flex items-center gap-1 rounded-md border border-input bg-background p-1">
               {(["all", "7d", "30d", "90d", "custom"] as const).map((preset) => (
                 <button
                   key={preset}
                   type="button"
                   onClick={() => setDatePreset(preset)}
-                  className={`rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] transition ${
+                  className={`rounded-md px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide transition ${
                     datePreset === preset
-                      ? "bg-emerald-600 text-white"
-                      : "text-slate-600 hover:bg-slate-100"
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-accent"
                   }`}
                 >
                   {preset}
@@ -220,9 +220,9 @@ export default function PreviousLabOrders() {
             <button
               type="button"
               onClick={clearFilters}
-              className="inline-flex h-8 items-center justify-center gap-1.5 rounded-md border border-slate-200 bg-white px-2.5 text-[10px] font-bold uppercase tracking-[0.08em] text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+              className="inline-flex h-8 items-center justify-center gap-1.5 rounded-md border border-input bg-background px-2.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground transition hover:bg-accent hover:text-foreground"
             >
-              <X size={12} />
+              <X size={12} aria-hidden />
               Clear
             </button>
           </div>
@@ -234,14 +234,14 @@ export default function PreviousLabOrders() {
               type="date"
               value={fromDate}
               onChange={(event) => setFromDate(event.target.value)}
-              className="h-8 rounded-md border border-slate-200 bg-white px-2 text-xs text-slate-700 outline-none transition focus:border-emerald-300 focus:ring-2 focus:ring-emerald-500/10"
+              className="h-8 rounded-md border border-input bg-background px-2 text-xs text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
               aria-label="From date"
             />
             <input
               type="date"
               value={toDate}
               onChange={(event) => setToDate(event.target.value)}
-              className="h-8 rounded-md border border-slate-200 bg-white px-2 text-xs text-slate-700 outline-none transition focus:border-emerald-300 focus:ring-2 focus:ring-emerald-500/10"
+              className="h-8 rounded-md border border-input bg-background px-2 text-xs text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
               aria-label="To date"
             />
           </div>
@@ -250,25 +250,25 @@ export default function PreviousLabOrders() {
 
       <div id="previous-lab-orders-panel" className="mt-2.5">
         {!patientId ? (
-          <div className="flex min-h-[8rem] flex-col items-center justify-center gap-3 rounded-[1.5rem] border border-dashed border-slate-200 bg-slate-50/70 px-6 text-center">
-            <History size={22} className="text-slate-300" />
+          <div className="flex min-h-[8rem] flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border bg-muted/50 px-6 text-center">
+            <History size={22} className="text-muted-foreground" aria-hidden />
             <div>
-              <h4 className="text-base font-black tracking-tight text-slate-900">No patient selected</h4>
-              <p className="mt-1 text-sm text-slate-500">
+              <h4 className="text-base font-semibold tracking-tight text-foreground">No patient selected</h4>
+              <p className="mt-1 text-sm text-muted-foreground">
                 Choose a patient from the queue to review prior lab orders.
               </p>
             </div>
           </div>
         ) : loading ? (
-          <div className="flex min-h-[8rem] items-center justify-center rounded-[1.5rem] border border-slate-100 bg-slate-50/70 text-sm font-medium text-slate-500">
+          <div className="flex min-h-[8rem] items-center justify-center rounded-lg border border-border bg-muted/50 text-sm font-medium text-muted-foreground">
             Loading lab history...
           </div>
         ) : groupedFilteredHistory.length > 0 ? (
-          <div className="overflow-hidden rounded-[1rem] border border-slate-200 bg-white">
+          <div className="overflow-hidden rounded-lg border border-border bg-card">
             <div className="max-h-[34rem] overflow-auto">
               <table className="min-w-full text-sm">
-                <thead className="sticky top-0 z-10 bg-slate-50">
-                  <tr className="text-left text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">
+                <thead className="sticky top-0 z-10 bg-muted">
+                  <tr className="text-left text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                     <th className="px-3 py-2">Date/Time</th>
                     <th className="px-3 py-2">Visit ID</th>
                     <th className="px-3 py-2">Test</th>
@@ -278,7 +278,7 @@ export default function PreviousLabOrders() {
                     <th className="px-3 py-2">Price</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white">
+                <tbody className="bg-card">
                   {groupedFilteredHistory.map((group) => {
                     const tintClass = getVisitColor(group.visitId);
 
@@ -287,7 +287,7 @@ export default function PreviousLabOrders() {
                         <tr className={`border-t ${tintClass}`}>
                           <td
                             colSpan={7}
-                            className="px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.14em] text-slate-600"
+                            className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground"
                           >
                             Visit #{group.visitId} · {formatDate(group.items[0]?.visit_timestamp || group.items[0]?.order_date)}
                           </td>
@@ -296,21 +296,21 @@ export default function PreviousLabOrders() {
                         {group.items.map((item, index) => (
                           <tr
                             key={String(item.order_id ?? `${group.visitId}-${index}`)}
-                            className="border-t border-slate-100 text-xs"
+                            className="border-t border-border text-xs"
                           >
-                            <td className="px-3 py-2 font-medium text-slate-700 whitespace-nowrap">
+                            <td className="px-3 py-2 font-medium text-foreground whitespace-nowrap">
                               {formatDate(item.visit_timestamp || item.order_date)}
                             </td>
-                            <td className="px-3 py-2 text-slate-600 whitespace-nowrap">#{item.visit_id}</td>
-                            <td className="px-3 py-2 font-semibold text-slate-700">{item.test_name || "-"}</td>
-                            <td className="px-3 py-2 text-slate-600">{item.category || "-"}</td>
+                            <td className="px-3 py-2 text-muted-foreground whitespace-nowrap font-mono tabular-nums">#{item.visit_id}</td>
+                            <td className="px-3 py-2 font-semibold text-foreground">{item.test_name || "-"}</td>
+                            <td className="px-3 py-2 text-muted-foreground">{item.category || "-"}</td>
                             <td className="px-3 py-2">
-                              <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${normalizeStatus(item.status || "")}`}>
+                              <span className={`rounded-md px-2 py-0.5 text-[10px] font-semibold ${normalizeStatus(item.status || "")}`}>
                                 {item.status || "-"}
                               </span>
                             </td>
-                            <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{item.ordered_by || "-"}</td>
-                            <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{formatPrice(Number(item.price ?? 0))}</td>
+                            <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">{item.ordered_by || "-"}</td>
+                            <td className="px-3 py-2 text-muted-foreground whitespace-nowrap font-mono tabular-nums">{formatPrice(Number(item.price ?? 0))}</td>
                           </tr>
                         ))}
                       </Fragment>
@@ -321,7 +321,7 @@ export default function PreviousLabOrders() {
             </div>
           </div>
         ) : (
-          <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50/70 px-4 py-8 text-center text-sm text-slate-400">
+          <div className="rounded-lg border border-border bg-muted/50 px-4 py-8 text-center text-sm text-muted-foreground">
             No lab rows match your current filters.
           </div>
         )}

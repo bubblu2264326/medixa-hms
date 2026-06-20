@@ -9,7 +9,7 @@ export default function LabOrderPage() {
 
   return (
     <div className="space-y-4">
-      <div className="px-1 text-sm text-slate-500">
+      <div className="px-1 text-sm text-muted-foreground">
         {patientId
           ? "Review recent lab orders, search tests, then submit from the live order table."
           : "Select a patient from the queue to begin ordering tests."}
