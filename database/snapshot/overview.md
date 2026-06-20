@@ -1,8 +1,8 @@
 # DB Snapshot — overview
 
-Generated: 2026-06-20T14:21:31.563Z
+Generated: 2026-06-20T14:27:27.979Z
 
-- Tables: 108
+- Tables: 109
 - Views: 6
 - Functions/Procedures: 15
 - Triggers: 17
@@ -76,6 +76,7 @@ Generated: 2026-06-20T14:21:31.563Z
 | medicine_purchase_detail | 21 |
 | medicine_transaction | 128 |
 | menstrual_history | 1 |
+| notification_outbox | 0 |
 | nursing_note | 0 |
 | obstetric_history | 1 |
 | para_details | 1 |

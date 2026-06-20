@@ -4,6 +4,7 @@ import type { PoolClient } from "pg";
 import { AuthError, getAuthenticatedUser, requireRoles } from "@/src/lib/server/auth";
 import { resolveActorStaffId } from "@/src/lib/server/actor";
 import { logAuditEvent } from "@/src/lib/server/audit";
+import { enqueueNotification } from "@/src/lib/server/notifications";
 
 const BOOK_ROLES = ["admin", "super_admin", "receptionist", "front_desk", "doctor"];
 
@@ -71,6 +72,21 @@ export async function POST(req: NextRequest) {
       },
       client
     );
+
+    // best-effort: queue a WhatsApp reminder to the patient (no-op without a gateway)
+    try {
+      const pc = await client.query(`select contact_number from patient where patient_id = $1`, [patientId]);
+      await enqueueNotification(client, {
+        channel: "whatsapp",
+        recipient: pc.rows[0]?.contact_number,
+        template: "appointment_booked",
+        payload: { appointment_id: inserted.rows[0].appointment_id, scheduled_at: scheduledAt, doctor_id: doctorId },
+        relatedEntity: `appointment:${inserted.rows[0].appointment_id}`,
+      });
+    } catch (e) {
+      console.warn("appointment reminder enqueue failed", e);
+    }
+
     return NextResponse.json({ success: true, appointment_id: inserted.rows[0].appointment_id }, { status: 201 });
   } catch (err) {
     if (err instanceof AuthError) return NextResponse.json({ error: err.message }, { status: err.status });

@@ -160,6 +160,9 @@
 | public | medicine_transaction | medicine_transaction_pkey | CREATE UNIQUE INDEX medicine_transaction_pkey ON public.medicine_transaction USING btree (txn_id) |
 | public | menstrual_history | menstrual_history_pkey | CREATE UNIQUE INDEX menstrual_history_pkey ON public.menstrual_history USING btree (menstrual_history_id) |
 | public | menstrual_history | uq_menstrual_history_patient_id | CREATE UNIQUE INDEX uq_menstrual_history_patient_id ON public.menstrual_history USING btree (patient_id) |
+| public | notification_outbox | idx_notif_created | CREATE INDEX idx_notif_created ON public.notification_outbox USING btree (created_at DESC) |
+| public | notification_outbox | idx_notif_status | CREATE INDEX idx_notif_status ON public.notification_outbox USING btree (status) WHERE ((status)::text = 'queued'::text) |
+| public | notification_outbox | notification_outbox_pkey | CREATE UNIQUE INDEX notification_outbox_pkey ON public.notification_outbox USING btree (notification_id) |
 | public | nursing_note | idx_nursing_note_admission | CREATE INDEX idx_nursing_note_admission ON public.nursing_note USING btree (admission_id) |
 | public | nursing_note | nursing_note_pkey | CREATE UNIQUE INDEX nursing_note_pkey ON public.nursing_note USING btree (note_id) |
 | public | obstetric_history | obstetric_history_pkey | CREATE UNIQUE INDEX obstetric_history_pkey ON public.obstetric_history USING btree (obstetric_history_id) |

@@ -29,6 +29,7 @@ describe("appointments API", () => {
     releaseMock.mockReset();
     queryMock.mockReset();
     connectMock.mockResolvedValue({ query: clientQueryMock, release: releaseMock });
+    clientQueryMock.mockResolvedValue({ rows: [] }); // default for trailing reads (reminder enqueue)
   });
 
   it("books a slot -> 201", async () => {

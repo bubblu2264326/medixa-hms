@@ -3422,6 +3422,58 @@ _(none)_
 
 
 
+## notification_outbox
+
+### Columns
+
+| table_name | column_name | data_type | udt_name | is_nullable | column_default | character_maximum_length |
+| --- | --- | --- | --- | --- | --- | --- |
+| notification_outbox | notification_id | integer | int4 | NO | nextval('notification_outbox_notification_id_seq'::regclass) |  |
+| notification_outbox | channel | character varying | varchar | NO |  | 15 |
+| notification_outbox | recipient | character varying | varchar | NO |  | 120 |
+| notification_outbox | template | character varying | varchar | NO |  | 60 |
+| notification_outbox | payload | jsonb | jsonb | YES |  |  |
+| notification_outbox | status | character varying | varchar | NO | 'queued'::character varying | 12 |
+| notification_outbox | related_entity | character varying | varchar | YES |  | 80 |
+| notification_outbox | error | text | text | YES |  |  |
+| notification_outbox | attempts | integer | int4 | NO | 0 |  |
+| notification_outbox | created_at | timestamp without time zone | timestamp | NO | CURRENT_TIMESTAMP |  |
+| notification_outbox | sent_at | timestamp without time zone | timestamp | YES |  |  |
+
+
+### Primary key
+
+| table_name | column_name | constraint_name |
+| --- | --- | --- |
+| notification_outbox | notification_id | notification_outbox_pkey |
+
+
+### Foreign keys
+
+_(none)_
+
+
+### Unique constraints
+
+_(none)_
+
+
+### Check constraints
+
+| table_name | constraint_name | check_clause |
+| --- | --- | --- |
+| notification_outbox | ck_notif_channel | ((channel)::text = ANY ((ARRAY['sms'::character varying, 'whatsapp'::character varying, 'email'::character varying])::text[])) |
+| notification_outbox | ck_notif_status | ((status)::text = ANY ((ARRAY['queued'::character varying, 'sent'::character varying, 'failed'::character varying])::text[])) |
+| notification_outbox | notification_outbox_attempts_not_null | attempts IS NOT NULL |
+| notification_outbox | notification_outbox_channel_not_null | channel IS NOT NULL |
+| notification_outbox | notification_outbox_created_at_not_null | created_at IS NOT NULL |
+| notification_outbox | notification_outbox_notification_id_not_null | notification_id IS NOT NULL |
+| notification_outbox | notification_outbox_recipient_not_null | recipient IS NOT NULL |
+| notification_outbox | notification_outbox_status_not_null | status IS NOT NULL |
+| notification_outbox | notification_outbox_template_not_null | template IS NOT NULL |
+
+
+
 ## nursing_note
 
 ### Columns
