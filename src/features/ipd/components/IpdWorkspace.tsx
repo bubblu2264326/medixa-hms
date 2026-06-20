@@ -109,18 +109,18 @@ export default function IpdWorkspace() {
   });
 
   const bedColor = (s: string) =>
-    s === "vacant" ? "border-emerald-200 bg-emerald-50" :
-    s === "occupied" ? "border-sky-200 bg-sky-50" :
-    "border-amber-200 bg-amber-50";
+    s === "vacant" ? "border-success/30 bg-success/10" :
+    s === "occupied" ? "border-info/20 bg-info/10" :
+    "border-warning/40 bg-warning/15";
 
   return (
     <div className="space-y-5">
-      {msg && <div className="rounded-xl border border-sky-200 bg-sky-50 px-4 py-2 text-sm font-semibold text-sky-800">{msg}</div>}
+      {msg && <div className="rounded-md border border-info/20 bg-info/10 px-4 py-2 text-sm font-medium text-info">{msg}</div>}
 
       <div className="flex gap-2">
         {(["admissions", "beds"] as const).map((t) => (
           <button key={t} onClick={() => setTab(t)}
-            className={`rounded-xl px-4 py-2 text-sm font-black uppercase tracking-wide ${tab === t ? "bg-sky-600 text-white" : "bg-white text-slate-600 border border-slate-200"}`}>
+            className={`rounded-md px-4 py-2 text-sm font-semibold ${tab === t ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground border border-border"}`}>
             {t === "admissions" ? "Admissions" : "Bed Board"}
           </button>
         ))}
@@ -129,95 +129,95 @@ export default function IpdWorkspace() {
       {tab === "beds" && (
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           {beds.map((b) => (
-            <div key={b.bed_id} className={`rounded-2xl border p-3 ${bedColor(b.status)}`}>
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">{b.ward_name} · {b.room_number}</p>
-              <p className="text-base font-black text-slate-800">Bed {b.bed_number}</p>
-              <p className="text-xs font-bold uppercase text-slate-600">{b.status} · {money(b.daily_rate)}/day</p>
+            <div key={b.bed_id} className={`rounded-lg border p-3 ${bedColor(b.status)}`}>
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{b.ward_name} · {b.room_number}</p>
+              <p className="text-base font-semibold text-foreground">Bed {b.bed_number}</p>
+              <p className="text-xs font-medium uppercase text-muted-foreground">{b.status} · {money(b.daily_rate)}/day</p>
               {b.patient_name ? (
-                <button onClick={() => b.admission_id && loadDetail(b.admission_id)} className="mt-2 text-xs font-bold text-sky-700 underline">
+                <button onClick={() => b.admission_id && loadDetail(b.admission_id)} className="mt-2 text-xs font-semibold text-info underline">
                   {b.patient_name} ({b.admission_no})
                 </button>
               ) : (
-                <button onClick={() => admit(b)} disabled={busy} className="mt-2 rounded-lg bg-emerald-600 px-3 py-1 text-xs font-black text-white disabled:opacity-60">Admit</button>
+                <button onClick={() => admit(b)} disabled={busy} className="mt-2 rounded-md bg-success px-3 py-1 text-xs font-semibold text-success-foreground disabled:opacity-60">Admit</button>
               )}
             </div>
           ))}
-          {beds.length === 0 && <p className="text-sm text-slate-500">No beds configured. Create wards/rooms/beds in Admin.</p>}
+          {beds.length === 0 && <p className="text-sm text-muted-foreground">No beds configured. Create wards/rooms/beds in Admin.</p>}
         </div>
       )}
 
       {tab === "admissions" && (
-        <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
+        <div className="overflow-x-auto rounded-lg border border-border bg-card">
           <table className="min-w-full text-sm">
-            <thead className="bg-slate-50 text-left text-[11px] font-black uppercase tracking-wider text-slate-500">
+            <thead className="bg-muted text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               <tr><th className="px-4 py-3">Admission</th><th className="px-4 py-3">Patient</th><th className="px-4 py-3">Bed</th><th className="px-4 py-3">Doctor</th><th className="px-4 py-3">Balance</th><th className="px-4 py-3"></th></tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-border">
               {admissions.map((a) => (
                 <tr key={a.admission_id}>
-                  <td className="px-4 py-3 font-bold text-slate-800">{a.admission_no}</td>
+                  <td className="px-4 py-3 font-semibold text-foreground">{a.admission_no}</td>
                   <td className="px-4 py-3">{a.patient_name}</td>
                   <td className="px-4 py-3">{a.ward_name ? `${a.ward_name} · ${a.bed_number}` : "—"}</td>
                   <td className="px-4 py-3">{a.doctor_name || "—"}</td>
-                  <td className="px-4 py-3 font-bold">{money(a.balance_due)}</td>
-                  <td className="px-4 py-3"><button onClick={() => loadDetail(a.admission_id)} className="rounded-lg bg-sky-600 px-3 py-1 text-xs font-black text-white">Open</button></td>
+                  <td className="px-4 py-3 font-semibold font-mono tabular-nums">{money(a.balance_due)}</td>
+                  <td className="px-4 py-3"><button onClick={() => loadDetail(a.admission_id)} className="rounded-md bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">Open</button></td>
                 </tr>
               ))}
-              {admissions.length === 0 && <tr><td colSpan={6} className="px-4 py-6 text-center text-slate-500">No active admissions.</td></tr>}
+              {admissions.length === 0 && <tr><td colSpan={6} className="px-4 py-6 text-center text-muted-foreground">No active admissions.</td></tr>}
             </tbody>
           </table>
         </div>
       )}
 
       {detail && selected && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-5">
+        <div className="rounded-lg border border-border bg-card p-5">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-black text-slate-800">{detail.admission.admission_no} — {detail.admission.patient_name}</h2>
-              <p className="text-xs font-semibold text-slate-500">{detail.admission.ward_name || "—"} · Bed {detail.admission.bed_number || "—"} · {detail.admission.status}</p>
+              <h2 className="text-lg font-semibold text-foreground">{detail.admission.admission_no} — {detail.admission.patient_name}</h2>
+              <p className="text-xs font-medium text-muted-foreground">{detail.admission.ward_name || "—"} · Bed {detail.admission.bed_number || "—"} · {detail.admission.status}</p>
             </div>
-            <button onClick={() => { setSelected(null); setDetail(null); }} className="text-sm font-bold text-slate-500">Close</button>
+            <button onClick={() => { setSelected(null); setDetail(null); }} className="text-sm font-semibold text-muted-foreground">Close</button>
           </div>
 
           <div className="mt-4 grid gap-3 md:grid-cols-3">
-            <div className="rounded-xl border border-slate-100 bg-slate-50 p-3"><p className="text-[10px] font-black uppercase text-slate-500">Charges</p><p className="text-lg font-black">{money(detail.bill?.total_charges)}</p></div>
-            <div className="rounded-xl border border-slate-100 bg-slate-50 p-3"><p className="text-[10px] font-black uppercase text-slate-500">Advances</p><p className="text-lg font-black">{money(detail.bill?.total_advances)}</p></div>
-            <div className="rounded-xl border border-slate-100 bg-slate-50 p-3"><p className="text-[10px] font-black uppercase text-slate-500">Balance Due</p><p className="text-lg font-black">{money(detail.bill?.balance_due)}</p></div>
+            <div className="rounded-md border border-border bg-muted p-3"><p className="text-[10px] font-semibold uppercase text-muted-foreground">Charges</p><p className="text-lg font-semibold font-mono tabular-nums text-foreground">{money(detail.bill?.total_charges)}</p></div>
+            <div className="rounded-md border border-border bg-muted p-3"><p className="text-[10px] font-semibold uppercase text-muted-foreground">Advances</p><p className="text-lg font-semibold font-mono tabular-nums text-success">{money(detail.bill?.total_advances)}</p></div>
+            <div className="rounded-md border border-border bg-muted p-3"><p className="text-[10px] font-semibold uppercase text-muted-foreground">Balance Due</p><p className="text-lg font-semibold font-mono tabular-nums text-warning-foreground">{money(detail.bill?.balance_due)}</p></div>
           </div>
 
           {detail.admission.status === "admitted" && (
             <div className="mt-4 flex flex-wrap gap-2">
-              <button onClick={() => addAdvance(selected)} disabled={busy} className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-black text-white disabled:opacity-60">Add Advance</button>
-              <button onClick={() => placeOrder(selected)} disabled={busy} className="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-black text-white disabled:opacity-60">Place Medication Order</button>
-              <button onClick={() => discharge(selected)} disabled={busy} className="rounded-lg bg-rose-600 px-3 py-2 text-xs font-black text-white disabled:opacity-60">Discharge</button>
+              <button onClick={() => addAdvance(selected)} disabled={busy} className="rounded-md bg-success px-3 py-2 text-xs font-semibold text-success-foreground disabled:opacity-60">Add Advance</button>
+              <button onClick={() => placeOrder(selected)} disabled={busy} className="rounded-md bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60">Place Medication Order</button>
+              <button onClick={() => discharge(selected)} disabled={busy} className="rounded-md bg-destructive px-3 py-2 text-xs font-semibold text-white disabled:opacity-60">Discharge</button>
             </div>
           )}
 
           <div className="mt-5 grid gap-5 md:grid-cols-2">
             <div>
-              <h3 className="text-sm font-black uppercase tracking-wide text-slate-600">Orders</h3>
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Orders</h3>
               <ul className="mt-2 space-y-1 text-sm">
                 {orders.map((o) => (
-                  <li key={o.order_id} className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2">
-                    <span>{o.order_type === "medication" ? (o.drug_name || "medication") : o.order_type} <span className="text-xs text-slate-400">({o.status})</span></span>
+                  <li key={o.order_id} className="flex items-center justify-between rounded-md border border-border px-3 py-2">
+                    <span>{o.order_type === "medication" ? (o.drug_name || "medication") : o.order_type} <span className="text-xs text-muted-foreground">({o.status})</span></span>
                     {o.med_order_id && detail.admission.status === "admitted" && o.status === "active" && (
-                      <button onClick={() => chartGiven(o.med_order_id as number, selected)} disabled={busy} className="rounded bg-sky-600 px-2 py-1 text-[11px] font-black text-white disabled:opacity-60">Chart Given</button>
+                      <button onClick={() => chartGiven(o.med_order_id as number, selected)} disabled={busy} className="rounded-md bg-primary px-2 py-1 text-[11px] font-semibold text-primary-foreground disabled:opacity-60">Chart Given</button>
                     )}
                   </li>
                 ))}
-                {orders.length === 0 && <li className="text-slate-400">No orders.</li>}
+                {orders.length === 0 && <li className="text-muted-foreground">No orders.</li>}
               </ul>
             </div>
             <div>
-              <h3 className="text-sm font-black uppercase tracking-wide text-slate-600">MAR</h3>
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">MAR</h3>
               <ul className="mt-2 space-y-1 text-sm">
                 {mar.map((m) => (
-                  <li key={m.mar_id} className="rounded-lg border border-slate-100 px-3 py-2">
-                    <span className="font-bold">{m.drug_name}</span> — {m.action}
-                    {m.administered_by_name ? <span className="text-xs text-slate-400"> by {m.administered_by_name}</span> : null}
+                  <li key={m.mar_id} className="rounded-md border border-border px-3 py-2">
+                    <span className="font-semibold">{m.drug_name}</span> — {m.action}
+                    {m.administered_by_name ? <span className="text-xs text-muted-foreground"> by {m.administered_by_name}</span> : null}
                   </li>
                 ))}
-                {mar.length === 0 && <li className="text-slate-400">No administrations charted.</li>}
+                {mar.length === 0 && <li className="text-muted-foreground">No administrations charted.</li>}
               </ul>
             </div>
           </div>

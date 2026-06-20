@@ -128,9 +128,9 @@ const dt = (value: string | null, timeZone: string) => {
 };
 
 const statusPill = (status: string) => {
-  if (status === "Paid") return "bg-emerald-100 text-emerald-700";
-  if (status === "Partial") return "bg-amber-100 text-amber-700";
-  return "bg-rose-100 text-rose-700";
+  if (status === "Paid") return "bg-success/10 text-success";
+  if (status === "Partial") return "bg-warning/15 text-warning-foreground";
+  return "bg-destructive/10 text-destructive";
 };
 
 function safeJson<T>(value: unknown): T {
@@ -457,15 +457,15 @@ export default function CashierWorkspace() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-3xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+      <div className="rounded-lg border border-border bg-card px-4 py-3 shadow-sm">
         <div className="flex flex-wrap items-center gap-2">
           {tabs.map((tab) => (
             <button
               key={tab.id}
-              className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-bold transition ${
+              className={`inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-semibold transition ${
                 activeTab === tab.id
-                  ? "bg-slate-900 text-white"
-                  : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground hover:bg-accent"
               }`}
               onClick={() => {
                 setActiveTab(tab.id);
@@ -482,41 +482,41 @@ export default function CashierWorkspace() {
         </div>
       </div>
 
-      {error ? <Card className="rounded-2xl border border-rose-200 bg-rose-50 text-rose-700">{error}</Card> : null}
+      {error ? <Card className="rounded-lg border border-destructive/30 bg-destructive/10 text-destructive">{error}</Card> : null}
       {notice ? (
-        <Card className="rounded-2xl border border-emerald-200 bg-emerald-50 text-emerald-700">{notice}</Card>
+        <Card className="rounded-lg border border-success/30 bg-success/10 text-success">{notice}</Card>
       ) : null}
 
       {activeTab === "worklist" ? (
-        <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50">
+        <Card className="rounded-lg shadow-sm">
           <div className="mb-4 flex items-center gap-2">
-            <ListFilter className="h-5 w-5 text-slate-700" />
-            <h2 className="text-lg font-black uppercase tracking-wide text-slate-800">Cashier Worklist</h2>
+            <ListFilter className="h-5 w-5 text-muted-foreground" />
+            <h2 className="text-lg font-semibold tracking-tight text-foreground">Cashier Worklist</h2>
           </div>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
-            <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="patient name" value={worklistFilters.patient} onChange={(e) => setWorklistFilters((p) => ({ ...p, patient: e.target.value }))} />
-            <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="visit id" value={worklistFilters.visitId} onChange={(e) => setWorklistFilters((p) => ({ ...p, visitId: e.target.value }))} />
-            <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="bill id" value={worklistFilters.billId} onChange={(e) => setWorklistFilters((p) => ({ ...p, billId: e.target.value }))} />
-            <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="phone" value={worklistFilters.phone} onChange={(e) => setWorklistFilters((p) => ({ ...p, phone: e.target.value }))} />
-            <select className="rounded-xl border border-slate-200 px-3 py-2 text-sm" value={worklistFilters.status} onChange={(e) => setWorklistFilters((p) => ({ ...p, status: e.target.value }))}>
+            <input className="rounded-md border border-input px-3 py-2 text-sm" placeholder="patient name" value={worklistFilters.patient} onChange={(e) => setWorklistFilters((p) => ({ ...p, patient: e.target.value }))} />
+            <input className="rounded-md border border-input px-3 py-2 text-sm" placeholder="visit id" value={worklistFilters.visitId} onChange={(e) => setWorklistFilters((p) => ({ ...p, visitId: e.target.value }))} />
+            <input className="rounded-md border border-input px-3 py-2 text-sm" placeholder="bill id" value={worklistFilters.billId} onChange={(e) => setWorklistFilters((p) => ({ ...p, billId: e.target.value }))} />
+            <input className="rounded-md border border-input px-3 py-2 text-sm" placeholder="phone" value={worklistFilters.phone} onChange={(e) => setWorklistFilters((p) => ({ ...p, phone: e.target.value }))} />
+            <select className="rounded-md border border-input px-3 py-2 text-sm" value={worklistFilters.status} onChange={(e) => setWorklistFilters((p) => ({ ...p, status: e.target.value }))}>
               <option value="">all status</option>
               <option value="Unpaid">Unpaid</option>
               <option value="Partial">Partial</option>
               <option value="Paid">Paid</option>
             </select>
-            <select className="rounded-xl border border-slate-200 px-3 py-2 text-sm" value={worklistFilters.agingBucket} onChange={(e) => setWorklistFilters((p) => ({ ...p, agingBucket: e.target.value }))}>
+            <select className="rounded-md border border-input px-3 py-2 text-sm" value={worklistFilters.agingBucket} onChange={(e) => setWorklistFilters((p) => ({ ...p, agingBucket: e.target.value }))}>
               <option value="">all aging</option>
               <option value="7+">7+</option>
               <option value="30+">30+</option>
               <option value="60+">60+</option>
             </select>
-            <select className="rounded-xl border border-slate-200 px-3 py-2 text-sm" value={worklistFilters.sortBy} onChange={(e) => setWorklistFilters((p) => ({ ...p, sortBy: e.target.value }))}>
+            <select className="rounded-md border border-input px-3 py-2 text-sm" value={worklistFilters.sortBy} onChange={(e) => setWorklistFilters((p) => ({ ...p, sortBy: e.target.value }))}>
               <option value="dueScore">due score</option>
               <option value="dueAmount">due amount</option>
               <option value="patientName">patient name</option>
               <option value="recency">recency</option>
             </select>
-            <Button className="rounded-xl bg-slate-900 text-white hover:bg-black" onClick={loadWorklist} isLoading={globalLoading}>
+            <Button className="rounded-md" onClick={loadWorklist} isLoading={globalLoading}>
               <Search className="mr-2 h-4 w-4" />
               Search
             </Button>
@@ -524,7 +524,7 @@ export default function CashierWorkspace() {
           <div className="mt-5 overflow-x-auto">
             <table className="min-w-full text-sm">
               <thead>
-                <tr className="border-b border-slate-100 text-left text-xs font-black uppercase tracking-wider text-slate-500">
+                <tr className="border-b border-border text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   <th className="px-2 py-2">Bill</th>
                   <th className="px-2 py-2">Patient</th>
                   <th className="px-2 py-2">Due</th>
@@ -537,24 +537,24 @@ export default function CashierWorkspace() {
               <tbody>
                 {worklist.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-2 py-6 text-center text-slate-500">No matching bills.</td>
+                    <td colSpan={7} className="px-2 py-6 text-center text-muted-foreground">No matching bills.</td>
                   </tr>
                 ) : (
                   worklist.map((row) => (
-                    <tr key={row.billId} className="border-b border-slate-50">
-                      <td className="px-2 py-2 font-semibold">#{row.billId}</td>
+                    <tr key={row.billId} className="border-b border-border">
+                      <td className="px-2 py-2 font-semibold font-mono tabular-nums">#{row.billId}</td>
                       <td className="px-2 py-2">{row.patientName}</td>
-                      <td className="px-2 py-2 text-rose-700">{fmt(row.dueAmount)}</td>
-                      <td className="px-2 py-2">{row.overdueDays} days</td>
-                      <td className="px-2 py-2">{row.dueScore.toFixed(2)}</td>
+                      <td className="px-2 py-2 font-mono tabular-nums text-warning-foreground">{fmt(row.dueAmount)}</td>
+                      <td className="px-2 py-2 font-mono tabular-nums">{row.overdueDays} days</td>
+                      <td className="px-2 py-2 font-mono tabular-nums">{row.dueScore.toFixed(2)}</td>
                       <td className="px-2 py-2">
-                        <span className={`rounded-full px-2 py-1 text-[10px] font-black uppercase tracking-wider ${statusPill(row.paymentStatus)}`}>
+                        <span className={`rounded-md px-2 py-1 text-[10px] font-semibold uppercase tracking-wide ${statusPill(row.paymentStatus)}`}>
                           {row.paymentStatus}
                         </span>
                       </td>
                       <td className="px-2 py-2">
                         <Button
-                          className="rounded-lg bg-emerald-600 px-3 py-1 text-xs text-white hover:bg-emerald-700"
+                          className="rounded-md px-3 py-1 text-xs"
                           onClick={async () => {
                             await loadBillById(row.billId);
                             setActiveTab("settle");
@@ -574,11 +574,11 @@ export default function CashierWorkspace() {
 
       {activeTab === "settle" ? (
         <div className="space-y-5">
-          <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50">
+          <Card className="rounded-lg shadow-sm">
             <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-              <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="Visit ID" value={visitIdInput} onChange={(e) => setVisitIdInput(e.target.value)} />
-              <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="Bill ID" value={billIdInput} onChange={(e) => setBillIdInput(e.target.value)} />
-              <Button className="rounded-xl bg-slate-900 text-white hover:bg-black" onClick={loadBillContext} isLoading={globalLoading}>
+              <input className="rounded-md border border-input px-3 py-2 text-sm" placeholder="Visit ID" value={visitIdInput} onChange={(e) => setVisitIdInput(e.target.value)} />
+              <input className="rounded-md border border-input px-3 py-2 text-sm" placeholder="Bill ID" value={billIdInput} onChange={(e) => setBillIdInput(e.target.value)} />
+              <Button className="rounded-md" onClick={loadBillContext} isLoading={globalLoading}>
                 <Search className="mr-2 h-4 w-4" />
                 Load Bill Context
               </Button>
@@ -588,55 +588,55 @@ export default function CashierWorkspace() {
           {selectedBill ? (
             <>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-                <Card className="rounded-2xl border-none shadow-md"><p className="text-xs text-slate-500">Patient</p><p className="text-lg font-black">{selectedBill.bill.patientName}</p></Card>
-                <Card className="rounded-2xl border-none shadow-md"><p className="text-xs text-slate-500">Total</p><p className="text-lg font-black">{fmt(selectedBill.bill.totalAmount)}</p></Card>
-                <Card className="rounded-2xl border-none shadow-md"><p className="text-xs text-slate-500">Paid</p><p className="text-lg font-black text-emerald-700">{fmt(selectedBill.bill.paidAmount)}</p></Card>
-                <Card className="rounded-2xl border-none shadow-md"><p className="text-xs text-slate-500">Due</p><p className="text-lg font-black text-rose-700">{fmt(selectedBill.bill.dueAmount)}</p></Card>
+                <Card className="rounded-lg shadow-sm"><p className="text-xs text-muted-foreground">Patient</p><p className="text-lg font-semibold text-foreground">{selectedBill.bill.patientName}</p></Card>
+                <Card className="rounded-lg shadow-sm"><p className="text-xs text-muted-foreground">Total</p><p className="text-lg font-semibold font-mono tabular-nums text-foreground">{fmt(selectedBill.bill.totalAmount)}</p></Card>
+                <Card className="rounded-lg shadow-sm"><p className="text-xs text-muted-foreground">Paid</p><p className="text-lg font-semibold font-mono tabular-nums text-success">{fmt(selectedBill.bill.paidAmount)}</p></Card>
+                <Card className="rounded-lg shadow-sm"><p className="text-xs text-muted-foreground">Due</p><p className="text-lg font-semibold font-mono tabular-nums text-warning-foreground">{fmt(selectedBill.bill.dueAmount)}</p></Card>
               </div>
 
-              <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50">
+              <Card className="rounded-lg shadow-sm">
                 <div className="mb-3 flex items-center gap-2">
-                  <ReceiptText className="h-5 w-5 text-slate-700" />
-                  <h3 className="text-lg font-black uppercase tracking-wide text-slate-800">Source Breakdown</h3>
+                  <ReceiptText className="h-5 w-5 text-muted-foreground" />
+                  <h3 className="text-lg font-semibold tracking-tight text-foreground">Source Breakdown</h3>
                 </div>
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                   {groupedLines.length === 0 ? (
-                    <p className="text-sm text-slate-500">No source lines available.</p>
+                    <p className="text-sm text-muted-foreground">No source lines available.</p>
                   ) : (
                     groupedLines.map(([source, amount]) => (
-                      <div key={source} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-                        <p className="text-xs font-black uppercase tracking-wide text-slate-500">{source}</p>
-                        <p className="mt-1 text-base font-black text-slate-800">{fmt(amount)}</p>
+                      <div key={source} className="rounded-md border border-border bg-muted px-3 py-2">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{source}</p>
+                        <p className="mt-1 text-base font-semibold font-mono tabular-nums text-foreground">{fmt(amount)}</p>
                       </div>
                     ))
                   )}
                 </div>
               </Card>
 
-              <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50">
-                <h3 className="mb-3 text-lg font-black uppercase tracking-wide text-slate-800">Settle / Hold</h3>
+              <Card className="rounded-lg shadow-sm">
+                <h3 className="mb-3 text-lg font-semibold tracking-tight text-foreground">Settle / Hold</h3>
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                  <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm" type="number" min={0} max={Math.max(dueAmount, 0)} value={settleAmount} onChange={(e) => setSettleAmount(e.target.value)} placeholder="amount" />
-                  <select className="rounded-xl border border-slate-200 px-3 py-2 text-sm" value={paymentType} onChange={(e) => setPaymentType(e.target.value as (typeof PAYMENT_TYPES)[number])}>
+                  <input className="rounded-md border border-input px-3 py-2 text-sm font-mono tabular-nums" type="number" min={0} max={Math.max(dueAmount, 0)} value={settleAmount} onChange={(e) => setSettleAmount(e.target.value)} placeholder="amount" />
+                  <select className="rounded-md border border-input px-3 py-2 text-sm" value={paymentType} onChange={(e) => setPaymentType(e.target.value as (typeof PAYMENT_TYPES)[number])}>
                     {PAYMENT_TYPES.map((pt) => <option key={pt} value={pt}>{pt}</option>)}
                   </select>
-                  <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="payment reference" value={paymentReference} onChange={(e) => setPaymentReference(e.target.value)} />
-                  <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="notes" value={notes} onChange={(e) => setNotes(e.target.value)} />
+                  <input className="rounded-md border border-input px-3 py-2 text-sm" placeholder="payment reference" value={paymentReference} onChange={(e) => setPaymentReference(e.target.value)} />
+                  <input className="rounded-md border border-input px-3 py-2 text-sm" placeholder="notes" value={notes} onChange={(e) => setNotes(e.target.value)} />
                 </div>
                 <div className="mt-4 flex flex-wrap gap-2">
-                  <Button className="rounded-xl bg-emerald-600 text-white hover:bg-emerald-700" onClick={settleNow} isLoading={globalLoading} disabled={dueAmount <= 0}>
+                  <Button className="rounded-md bg-success text-success-foreground hover:bg-success/90" onClick={settleNow} isLoading={globalLoading} disabled={dueAmount <= 0}>
                     <CreditCard className="mr-2 h-4 w-4" />
                     Settle Now
                   </Button>
-                  <Button className="rounded-xl bg-amber-500 text-white hover:bg-amber-600" onClick={saveDraft} isLoading={globalLoading}>
+                  <Button className="rounded-md bg-warning text-warning-foreground hover:bg-warning/90" onClick={saveDraft} isLoading={globalLoading}>
                     <Clock3 className="mr-2 h-4 w-4" />
                     Hold as Draft
                   </Button>
-                  <Button className="rounded-xl" variant="outline" onClick={() => { setActiveTab("history"); loadHistory(); }}>
+                  <Button className="rounded-md" variant="outline" onClick={() => { setActiveTab("history"); loadHistory(); }}>
                     View History
                   </Button>
                   <Button
-                    className="rounded-xl"
+                    className="rounded-md"
                     variant="outline"
                     disabled={!selectedBill.paymentHistory[0]?.receiptNo}
                     onClick={() => {
@@ -655,37 +655,37 @@ export default function CashierWorkspace() {
       ) : null}
 
       {activeTab === "history" ? (
-        <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50">
+        <Card className="rounded-lg shadow-sm">
           <div className="mb-4 flex items-center gap-2">
-            <History className="h-5 w-5 text-slate-700" />
-            <h2 className="text-lg font-black uppercase tracking-wide text-slate-800">Payment History</h2>
+            <History className="h-5 w-5 text-muted-foreground" />
+            <h2 className="text-lg font-semibold tracking-tight text-foreground">Payment History</h2>
           </div>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
-            <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="bill id" value={historyFilters.billId} onChange={(e) => setHistoryFilters((p) => ({ ...p, billId: e.target.value }))} />
-            <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="patient" value={historyFilters.patient} onChange={(e) => setHistoryFilters((p) => ({ ...p, patient: e.target.value }))} />
-            <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="reference" value={historyFilters.reference} onChange={(e) => setHistoryFilters((p) => ({ ...p, reference: e.target.value }))} />
-            <Button className="rounded-xl bg-slate-900 text-white hover:bg-black" onClick={loadHistory} isLoading={globalLoading}>Load History</Button>
+            <input className="rounded-md border border-input px-3 py-2 text-sm" placeholder="bill id" value={historyFilters.billId} onChange={(e) => setHistoryFilters((p) => ({ ...p, billId: e.target.value }))} />
+            <input className="rounded-md border border-input px-3 py-2 text-sm" placeholder="patient" value={historyFilters.patient} onChange={(e) => setHistoryFilters((p) => ({ ...p, patient: e.target.value }))} />
+            <input className="rounded-md border border-input px-3 py-2 text-sm" placeholder="reference" value={historyFilters.reference} onChange={(e) => setHistoryFilters((p) => ({ ...p, reference: e.target.value }))} />
+            <Button className="rounded-md" onClick={loadHistory} isLoading={globalLoading}>Load History</Button>
           </div>
           <div className="mt-5 space-y-3">
             {historyItems.length === 0 ? (
-              <p className="text-sm text-slate-500">No transactions found.</p>
+              <p className="text-sm text-muted-foreground">No transactions found.</p>
             ) : (
               historyItems.map((row) => (
-                <div key={row.cashierPaymentTxnId} className="rounded-xl border border-slate-200 px-3 py-3">
+                <div key={row.cashierPaymentTxnId} className="rounded-md border border-border px-3 py-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
-                      <p className="text-sm font-black text-slate-800">Txn #{row.cashierPaymentTxnId} • Bill #{row.billId}</p>
-                      <p className="text-xs text-slate-500">{row.patientName || "Unknown"} • {dt(row.createdAt, systemTimezone)} • {row.txnType}</p>
+                      <p className="text-sm font-semibold text-foreground">Txn #{row.cashierPaymentTxnId} • Bill #{row.billId}</p>
+                      <p className="text-xs text-muted-foreground">{row.patientName || "Unknown"} • {dt(row.createdAt, systemTimezone)} • {row.txnType}</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className={`rounded-full px-2 py-1 text-[10px] font-black uppercase tracking-wider ${row.txnType === "payment" ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>{row.txnType}</span>
-                      <p className="text-sm font-black">{fmt(row.amount)}</p>
+                      <span className={`rounded-md px-2 py-1 text-[10px] font-semibold uppercase tracking-wide ${row.txnType === "payment" ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"}`}>{row.txnType}</span>
+                      <p className={`text-sm font-semibold font-mono tabular-nums ${row.txnType === "payment" ? "text-success" : "text-destructive"}`}>{fmt(row.amount)}</p>
                     </div>
                   </div>
                   {row.txnType === "payment" ? (
                     <div className="mt-3 flex flex-wrap gap-2">
                       <Button
-                        className="rounded-lg bg-amber-500 px-3 py-1 text-xs text-white hover:bg-amber-600"
+                        className="rounded-md bg-warning px-3 py-1 text-xs text-warning-foreground hover:bg-warning/90"
                         onClick={() => {
                           setCorrectingTxnId(row.cashierPaymentTxnId);
                           setCorrectionForm((p) => ({ ...p, replacementAmount: String(Math.max(row.amount, 0)) }));
@@ -694,7 +694,7 @@ export default function CashierWorkspace() {
                         Correct Payment
                       </Button>
                       {row.receiptNo ? (
-                        <Button className="rounded-lg px-3 py-1 text-xs" variant="outline" onClick={() => window.open(`/api/cashier/receipt/${row.cashierPaymentTxnId}`, "_blank")}>Open Receipt</Button>
+                        <Button className="rounded-md px-3 py-1 text-xs" variant="outline" onClick={() => window.open(`/api/cashier/receipt/${row.cashierPaymentTxnId}`, "_blank")}>Open Receipt</Button>
                       ) : null}
                     </div>
                   ) : null}
@@ -704,20 +704,20 @@ export default function CashierWorkspace() {
           </div>
 
           {correctingTxnId ? (
-            <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4">
-              <p className="text-sm font-black text-amber-800">Correction Wizard: Reverse + Repost</p>
+            <div className="mt-5 rounded-lg border border-warning/40 bg-warning/15 p-4">
+              <p className="text-sm font-semibold text-warning-foreground">Correction Wizard: Reverse + Repost</p>
               <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
-                <input className="rounded-xl border border-amber-200 px-3 py-2 text-sm" placeholder="reason code" value={correctionForm.reasonCode} onChange={(e) => setCorrectionForm((p) => ({ ...p, reasonCode: e.target.value }))} />
-                <input className="rounded-xl border border-amber-200 px-3 py-2 text-sm" placeholder="replacement amount" type="number" value={correctionForm.replacementAmount} onChange={(e) => setCorrectionForm((p) => ({ ...p, replacementAmount: e.target.value }))} />
-                <select className="rounded-xl border border-amber-200 px-3 py-2 text-sm" value={correctionForm.replacementPaymentType} onChange={(e) => setCorrectionForm((p) => ({ ...p, replacementPaymentType: e.target.value }))}>
+                <input className="rounded-md border border-input px-3 py-2 text-sm" placeholder="reason code" value={correctionForm.reasonCode} onChange={(e) => setCorrectionForm((p) => ({ ...p, reasonCode: e.target.value }))} />
+                <input className="rounded-md border border-input px-3 py-2 text-sm font-mono tabular-nums" placeholder="replacement amount" type="number" value={correctionForm.replacementAmount} onChange={(e) => setCorrectionForm((p) => ({ ...p, replacementAmount: e.target.value }))} />
+                <select className="rounded-md border border-input px-3 py-2 text-sm" value={correctionForm.replacementPaymentType} onChange={(e) => setCorrectionForm((p) => ({ ...p, replacementPaymentType: e.target.value }))}>
                   {PAYMENT_TYPES.map((pt) => <option key={pt} value={pt}>{pt}</option>)}
                 </select>
-                <input className="rounded-xl border border-amber-200 px-3 py-2 text-sm" placeholder="replacement reference" value={correctionForm.replacementReference} onChange={(e) => setCorrectionForm((p) => ({ ...p, replacementReference: e.target.value }))} />
-                <input className="rounded-xl border border-amber-200 px-3 py-2 text-sm md:col-span-2" placeholder="reason note" value={correctionForm.reasonNote} onChange={(e) => setCorrectionForm((p) => ({ ...p, reasonNote: e.target.value }))} />
+                <input className="rounded-md border border-input px-3 py-2 text-sm" placeholder="replacement reference" value={correctionForm.replacementReference} onChange={(e) => setCorrectionForm((p) => ({ ...p, replacementReference: e.target.value }))} />
+                <input className="rounded-md border border-input px-3 py-2 text-sm md:col-span-2" placeholder="reason note" value={correctionForm.reasonNote} onChange={(e) => setCorrectionForm((p) => ({ ...p, reasonNote: e.target.value }))} />
               </div>
               <div className="mt-3 flex gap-2">
-                <Button className="rounded-xl bg-amber-600 text-white hover:bg-amber-700" onClick={runCorrection} isLoading={globalLoading}>Confirm Correction</Button>
-                <Button className="rounded-xl" variant="outline" onClick={() => setCorrectingTxnId(null)}>Cancel</Button>
+                <Button className="rounded-md bg-warning text-warning-foreground hover:bg-warning/90" onClick={runCorrection} isLoading={globalLoading}>Confirm Correction</Button>
+                <Button className="rounded-md" variant="outline" onClick={() => setCorrectingTxnId(null)}>Cancel</Button>
               </div>
             </div>
           ) : null}
@@ -725,38 +725,38 @@ export default function CashierWorkspace() {
       ) : null}
 
       {activeTab === "drafts" ? (
-        <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50">
+        <Card className="rounded-lg shadow-sm">
           <div className="mb-4 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <FileClock className="h-5 w-5 text-slate-700" />
-              <h2 className="text-lg font-black uppercase tracking-wide text-slate-800">Draft Hold / Load</h2>
+              <FileClock className="h-5 w-5 text-muted-foreground" />
+              <h2 className="text-lg font-semibold tracking-tight text-foreground">Draft Hold / Load</h2>
             </div>
             <div className="flex items-center gap-2">
-              <select className="rounded-xl border border-slate-200 px-3 py-2 text-sm" value={draftStatus} onChange={(e) => setDraftStatus(e.target.value)}>
+              <select className="rounded-md border border-input px-3 py-2 text-sm" value={draftStatus} onChange={(e) => setDraftStatus(e.target.value)}>
                 <option value="open">open</option>
                 <option value="applied">applied</option>
                 <option value="cancelled">cancelled</option>
                 <option value="all">all</option>
               </select>
-              <Button className="rounded-xl bg-slate-900 text-white hover:bg-black" onClick={loadDrafts} isLoading={globalLoading}>Refresh</Button>
+              <Button className="rounded-md" onClick={loadDrafts} isLoading={globalLoading}>Refresh</Button>
             </div>
           </div>
           <div className="space-y-3">
             {drafts.length === 0 ? (
-              <p className="text-sm text-slate-500">No drafts in this view.</p>
+              <p className="text-sm text-muted-foreground">No drafts in this view.</p>
             ) : (
               drafts.map((draft) => (
-                <div key={draft.cashierSettlementDraftId} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 px-3 py-3">
+                <div key={draft.cashierSettlementDraftId} className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-border px-3 py-3">
                   <div>
-                    <p className="text-sm font-black">Draft #{draft.cashierSettlementDraftId} • Bill #{draft.billId}</p>
-                    <p className="text-xs text-slate-500">{draft.patientName || "Unknown"} • {draft.paymentType} • {fmt(draft.amount)} • {dt(draft.updatedAt, systemTimezone)}</p>
+                    <p className="text-sm font-semibold text-foreground">Draft #{draft.cashierSettlementDraftId} • Bill #{draft.billId}</p>
+                    <p className="text-xs text-muted-foreground">{draft.patientName || "Unknown"} • {draft.paymentType} • {fmt(draft.amount)} • {dt(draft.updatedAt, systemTimezone)}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-slate-700">{draft.draftStatus}</span>
+                    <span className="rounded-md bg-muted px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{draft.draftStatus}</span>
                     {draft.draftStatus === "open" ? (
                       <>
-                        <Button className="rounded-lg bg-emerald-600 px-3 py-1 text-xs text-white hover:bg-emerald-700" onClick={() => applyDraftAction(draft.cashierSettlementDraftId, "apply")}>Apply</Button>
-                        <Button className="rounded-lg bg-rose-600 px-3 py-1 text-xs text-white hover:bg-rose-700" onClick={() => applyDraftAction(draft.cashierSettlementDraftId, "cancel")}>Cancel</Button>
+                        <Button className="rounded-md bg-success px-3 py-1 text-xs text-success-foreground hover:bg-success/90" onClick={() => applyDraftAction(draft.cashierSettlementDraftId, "apply")}>Apply</Button>
+                        <Button className="rounded-md bg-destructive px-3 py-1 text-xs text-white hover:bg-destructive/90" onClick={() => applyDraftAction(draft.cashierSettlementDraftId, "cancel")}>Cancel</Button>
                       </>
                     ) : null}
                   </div>
@@ -768,39 +768,39 @@ export default function CashierWorkspace() {
       ) : null}
 
       {activeTab === "overdue" ? (
-        <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50">
+        <Card className="rounded-lg shadow-sm">
           <div className="mb-4 flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5 text-amber-600" />
-            <h2 className="text-lg font-black uppercase tracking-wide text-slate-800">Overdue Intelligence</h2>
+            <AlertTriangle className="h-5 w-5 text-warning-foreground" />
+            <h2 className="text-lg font-semibold tracking-tight text-foreground">Overdue Intelligence</h2>
           </div>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-            <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="patient name" value={overdueFilter.patient} onChange={(e) => setOverdueFilter((p) => ({ ...p, patient: e.target.value }))} />
-            <select className="rounded-xl border border-slate-200 px-3 py-2 text-sm" value={overdueFilter.bucket} onChange={(e) => setOverdueFilter((p) => ({ ...p, bucket: e.target.value }))}>
+            <input className="rounded-md border border-input px-3 py-2 text-sm" placeholder="patient name" value={overdueFilter.patient} onChange={(e) => setOverdueFilter((p) => ({ ...p, patient: e.target.value }))} />
+            <select className="rounded-md border border-input px-3 py-2 text-sm" value={overdueFilter.bucket} onChange={(e) => setOverdueFilter((p) => ({ ...p, bucket: e.target.value }))}>
               <option value="">all buckets</option>
               <option value="7+">7+</option>
               <option value="30+">30+</option>
               <option value="60+">60+</option>
             </select>
-            <Button className="rounded-xl bg-slate-900 text-white hover:bg-black" onClick={loadOverdue} isLoading={globalLoading}>Rank Dues</Button>
+            <Button className="rounded-md" onClick={loadOverdue} isLoading={globalLoading}>Rank Dues</Button>
           </div>
 
           <div className="mt-5 space-y-3">
             {overdueRows.length === 0 ? (
-              <p className="text-sm text-slate-500">No overdue rows found.</p>
+              <p className="text-sm text-muted-foreground">No overdue rows found.</p>
             ) : (
               overdueRows.map((row) => (
-                <div key={row.billId} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 px-3 py-3">
+                <div key={row.billId} className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-border px-3 py-3">
                   <div>
-                    <p className="text-sm font-black text-slate-800">Bill #{row.billId} • {row.patientName}</p>
-                    <p className="text-xs text-slate-500">Overdue {row.overdueDays} days • Bucket {row.agingBucket}</p>
+                    <p className="text-sm font-semibold text-foreground">Bill #{row.billId} • {row.patientName}</p>
+                    <p className="text-xs text-muted-foreground">Overdue {row.overdueDays} days • Bucket {row.agingBucket}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    {row.overdueDays >= 60 ? <span className="rounded-full bg-rose-100 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-rose-700">60+ Alert</span> : null}
-                    {row.overdueDays >= 30 && row.overdueDays < 60 ? <span className="rounded-full bg-amber-100 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-amber-700">30+ Alert</span> : null}
-                    {row.overdueDays >= 7 && row.overdueDays < 30 ? <span className="rounded-full bg-blue-100 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-blue-700">7+ Alert</span> : null}
-                    <p className="text-sm font-black text-rose-700">{fmt(row.dueAmount)}</p>
-                    <p className="rounded-lg bg-slate-100 px-2 py-1 text-xs font-black text-slate-700">score {row.riskScore.toFixed(2)}</p>
-                    <Button className="rounded-lg bg-emerald-600 px-3 py-1 text-xs text-white hover:bg-emerald-700" onClick={async () => { await loadBillById(row.billId); setActiveTab("settle"); }}>
+                    {row.overdueDays >= 60 ? <span className="rounded-md bg-destructive/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-destructive">60+ Alert</span> : null}
+                    {row.overdueDays >= 30 && row.overdueDays < 60 ? <span className="rounded-md bg-warning/15 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-warning-foreground">30+ Alert</span> : null}
+                    {row.overdueDays >= 7 && row.overdueDays < 30 ? <span className="rounded-md bg-info/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-info">7+ Alert</span> : null}
+                    <p className="text-sm font-semibold font-mono tabular-nums text-warning-foreground">{fmt(row.dueAmount)}</p>
+                    <p className="rounded-md bg-muted px-2 py-1 text-xs font-semibold font-mono tabular-nums text-muted-foreground">score {row.riskScore.toFixed(2)}</p>
+                    <Button className="rounded-md bg-success px-3 py-1 text-xs text-success-foreground hover:bg-success/90" onClick={async () => { await loadBillById(row.billId); setActiveTab("settle"); }}>
                       Follow Up
                     </Button>
                   </div>
@@ -812,15 +812,15 @@ export default function CashierWorkspace() {
       ) : null}
 
       {globalLoading ? (
-        <div className="fixed bottom-6 right-6 inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-xs font-black uppercase tracking-wider text-white shadow-lg">
+        <div className="fixed bottom-6 right-6 inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-wide text-primary-foreground shadow-md">
           <Loader2 className="h-4 w-4 animate-spin" />
           syncing cashier data
         </div>
       ) : null}
 
-      <Card className="rounded-2xl border border-slate-200 bg-slate-50 text-slate-600">
-        <div className="flex flex-wrap items-center gap-3 text-xs font-semibold">
-          <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+      <Card className="rounded-lg border border-border bg-muted text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-3 text-xs font-medium">
+          <CheckCircle2 className="h-4 w-4 text-success" />
           Immutable financial control active: history updates use reverse + repost only.
         </div>
       </Card>

@@ -27,15 +27,15 @@ function IpdHeaderUser() {
 
   return (
     <div className="flex items-center gap-3">
-      <div className="hidden items-center gap-3 rounded-2xl border border-sky-100 bg-sky-50/70 px-3 py-2 md:flex">
-        <div className="rounded-xl border border-sky-100 bg-white p-2 shadow-sm">
-          <UserRound className="h-4 w-4 text-sky-600" />
+      <div className="hidden items-center gap-3 rounded-md border border-border bg-muted px-3 py-2 md:flex">
+        <div className="rounded-md border border-border bg-card p-2 shadow-sm">
+          <UserRound className="h-4 w-4 text-info" />
         </div>
         <div className="min-w-[9rem]">
-          <p className="text-sm font-black leading-none text-slate-800">
+          <p className="text-sm font-semibold leading-none text-foreground">
             {loading ? "Loading..." : user?.name || "Unknown User"}
           </p>
-          <p className="mt-1 text-[10px] font-black uppercase tracking-[0.2em] text-sky-600">
+          <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
             {loading ? "SESSION" : user?.role || "No Role"}
           </p>
         </div>
@@ -52,7 +52,7 @@ function IpdHeaderUser() {
             router.refresh();
           }
         }}
-        className="inline-flex h-11 items-center gap-2 rounded-2xl border border-rose-200 bg-white px-4 text-sm font-black text-rose-600 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-70"
+        className="inline-flex h-11 items-center gap-2 rounded-md border border-destructive/30 bg-card px-4 text-sm font-medium text-destructive transition hover:bg-destructive/10 disabled:cursor-not-allowed disabled:opacity-70"
         disabled={loggingOut}
       >
         <LogOut className="h-4 w-4" />
@@ -64,19 +64,19 @@ function IpdHeaderUser() {
 
 export default function IpdLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 text-slate-900">
-      <header className="sticky top-0 z-20 border-b border-slate-200/90 bg-white/95 backdrop-blur">
+    <div className="min-h-screen bg-background text-foreground">
+      <header className="sticky top-0 z-20 border-b border-border bg-card">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4">
           <div className="flex items-center gap-3">
-            <div className="rounded-2xl border border-sky-100 bg-sky-50 p-2 shadow-sm">
+            <div className="rounded-md border border-info/20 bg-info/10 p-2 shadow-sm">
               <Image src="/logo.png" alt="Clinic logo" width={28} height={28} />
             </div>
             <div>
-              <p className="text-[11px] font-black uppercase tracking-[0.22em] text-sky-700">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-info">
                 In-Patient Department
               </p>
-              <h1 className="text-lg font-black uppercase tracking-[0.12em] text-slate-800">IPD Workspace</h1>
-              <p className="text-xs font-semibold text-slate-500">Beds, admissions, nursing &amp; inpatient billing</p>
+              <h1 className="text-lg font-semibold tracking-tight text-foreground">IPD Workspace</h1>
+              <p className="text-xs font-medium text-muted-foreground">Beds, admissions, nursing &amp; inpatient billing</p>
             </div>
           </div>
           <IpdHeaderUser />

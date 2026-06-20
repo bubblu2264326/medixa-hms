@@ -53,24 +53,24 @@ function CashierHeaderUser() {
 
   return (
     <div className="flex items-center gap-3">
-      <div className="hidden items-center gap-3 rounded-2xl border border-indigo-100 bg-indigo-50/70 px-3 py-2 md:flex">
-        <div className="rounded-xl border border-indigo-100 bg-white p-2 shadow-sm">
-          <UserRound className="h-4 w-4 text-indigo-600" />
+      <div className="hidden items-center gap-3 rounded-md border border-border bg-muted px-3 py-2 md:flex">
+        <div className="rounded-md border border-border bg-card p-2 shadow-sm">
+          <UserRound className="h-4 w-4 text-primary" />
         </div>
         <div className="min-w-[9rem]">
-          <p className="text-sm font-black leading-none text-slate-800">
+          <p className="text-sm font-semibold leading-none text-foreground">
             {loading ? "Loading..." : user?.name || "Unknown User"}
           </p>
-          <p className="mt-1 text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600">
+          <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
             {loading ? "SESSION" : user?.role || "No Role"}
           </p>
         </div>
       </div>
       <div
-        className={`hidden rounded-2xl px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] md:block ${
+        className={`hidden rounded-md px-3 py-2 text-[10px] font-semibold uppercase tracking-wide md:block ${
           shift
-            ? "border border-emerald-200 bg-emerald-50 text-emerald-700"
-            : "border border-amber-200 bg-amber-50 text-amber-700"
+            ? "border border-success/30 bg-success/10 text-success"
+            : "border border-warning/40 bg-warning/15 text-warning-foreground"
         }`}
       >
         {shift ? "Shift Open" : "No Open Shift"}
@@ -88,7 +88,7 @@ function CashierHeaderUser() {
             router.refresh();
           }
         }}
-        className="inline-flex h-11 items-center gap-2 rounded-2xl border border-rose-200 bg-white px-4 text-sm font-black text-rose-600 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-70"
+        className="inline-flex h-11 items-center gap-2 rounded-md border border-destructive/30 bg-card px-4 text-sm font-medium text-destructive transition hover:bg-destructive/10 disabled:cursor-not-allowed disabled:opacity-70"
         disabled={loggingOut}
       >
         <LogOut className="h-4 w-4" />
@@ -100,21 +100,21 @@ function CashierHeaderUser() {
 
 export default function CashierLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 text-slate-900">
-      <header className="sticky top-0 z-20 border-b border-slate-200/90 bg-white/95 backdrop-blur">
+    <div className="min-h-screen bg-background text-foreground">
+      <header className="sticky top-0 z-20 border-b border-border bg-card">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4">
           <div className="flex items-center gap-3">
-            <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-2 shadow-sm">
+            <div className="rounded-md border border-primary/20 bg-primary/10 p-2 shadow-sm">
               <Image src="/logo.png" alt="Fouzia Ishaq Clinic logo" width={28} height={28} />
             </div>
             <div>
-              <p className="text-[11px] font-black uppercase tracking-[0.22em] text-emerald-700">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-primary">
                 Fouzia Ishaq Clinic
               </p>
-              <h1 className="text-lg font-black uppercase tracking-[0.12em] text-slate-800">
+              <h1 className="text-lg font-semibold tracking-tight text-foreground">
                 Cashier Workspace
               </h1>
-              <p className="text-xs font-semibold text-slate-500">
+              <p className="text-xs font-medium text-muted-foreground">
                 Visit settlement and cashier operations
               </p>
             </div>
