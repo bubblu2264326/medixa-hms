@@ -51,3 +51,6 @@ agents/
 *.sql.gz
 /backups/
 .env.supabase
+
+# UX screenshot harness artifacts
+ux-shots/
