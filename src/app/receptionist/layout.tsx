@@ -11,6 +11,7 @@ import { SharedSearch } from "@/src/components/reception/SharedSearch";
 export default function Receptionist({
   queue,
   queueManagement,
+  appointments,
   patientRegistration,
   patientVitals,
   clinicalDetails,
@@ -18,6 +19,7 @@ export default function Receptionist({
 }: {
   queue: React.ReactNode;
   queueManagement: React.ReactNode;
+  appointments: React.ReactNode;
   patientRegistration: React.ReactNode;
   patientVitals: React.ReactNode;
   clinicalDetails: React.ReactNode;
@@ -87,6 +89,7 @@ export default function Receptionist({
             <nav className="flex items-center gap-1 p-1 bg-slate-200/50 backdrop-blur-sm rounded-2xl w-fit border border-slate-200/50 shrink-0">
               {[
                 { id: "queue", label: "Queue", icon: "📋" },
+                { id: "appointments", label: "Appointments", icon: "📅" },
                 { id: "patientRegistration", label: "Register", icon: "👤" },
                 { id: "patientVitals", label: "Vitals", icon: "🌡️" },
                 { id: "clinicalDetails", label: "Clinical", icon: "🩺" },
@@ -144,6 +147,7 @@ export default function Receptionist({
             <div className="absolute inset-0 overflow-auto p-4 custom-scrollbar">
               <div className="animate-in fade-in zoom-in-95 duration-300 h-full">
                 {selectedTab === "queue" && queueManagement}
+                {selectedTab === "appointments" && appointments}
                 {selectedTab === "patientRegistration" && patientRegistration}
                 {selectedTab === "patientVitals" && patientVitals}
                 {selectedTab === "clinicalDetails" && clinicalDetails}

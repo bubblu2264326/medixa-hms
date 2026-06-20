@@ -31,3 +31,24 @@ export type LabResult={
   entered_by:number;
   verified_by:number;
 }
+
+// One row of the result-entry payload posted to /api/lab/results.
+export type ResultInput = {
+  parameter_id: number;
+  result_value: string;
+  technician_notes?: string;
+};
+
+// Critical-value alert returned by the server after entry.
+export type CriticalAlert = {
+  parameter: string;
+  value: string;
+};
+
+// The pending order the result-entry panel is driven from.
+export type ActiveOrder = {
+  orderId: number;
+  testId: number;
+  testName?: string;
+  patientName?: string;
+};
