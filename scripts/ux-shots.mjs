@@ -46,6 +46,15 @@ const TARGETS = [
   { route: "/pharmacy?tab=medicines", label: "ph-products", user: "STF002" },
   { route: "/pharmacy?tab=reports", label: "ph-reports", user: "STF002" },
   { route: "/pharmacy?tab=settings", label: "ph-settings", user: "STF002" },
+  // admin sub-pages (URL-routed)
+  { route: "/admin/staff", label: "ad-staff", user: "ADM001" },
+  { route: "/admin/payroll", label: "ad-payroll", user: "ADM001" },
+  { route: "/admin/financials", label: "ad-financials", user: "ADM001" },
+  { route: "/admin/inventory", label: "ad-inventory", user: "ADM001" },
+  { route: "/admin/audit", label: "ad-audit", user: "ADM001" },
+  { route: "/admin/narcotics", label: "ad-narcotics", user: "ADM001" },
+  { route: "/admin/attendance", label: "ad-attendance", user: "ADM001" },
+  { route: "/admin/patients", label: "ad-patients", user: "ADM001" },
   // reception sub-tabs (client-state — reach via button clicks)
   { route: "/receptionist", label: "rc-appointments", user: "SCN_RECEP", clicks: ["Appointments"] },
   { route: "/receptionist", label: "rc-register", user: "SCN_RECEP", clicks: ["Register"] },
