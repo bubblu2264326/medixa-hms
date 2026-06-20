@@ -280,13 +280,13 @@ function severityTone(severity: string | null | undefined) {
 }
 
 function AllergiesPanel({
-  allergies,
+  allergies = [],
   isSaving,
   canEdit,
   onAdd,
   onRemove,
 }: {
-  allergies: PatientAllergy[];
+  allergies?: PatientAllergy[];
   isSaving: boolean;
   canEdit: boolean;
   onAdd: (input: { allergen: string; severity: AllergySeverity; reaction?: string }) => Promise<boolean>;

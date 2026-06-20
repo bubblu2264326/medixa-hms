@@ -7,7 +7,15 @@ Running state of the autonomous completion build. Newest entries at the bottom. 
 - **Mode:** autonomous, Git-checkpointed; combined leftovers + FE↔BE↔DB sync, then full IPD, then HR/Admin UX, then gap-fill.
 - **Owner decisions:** cash-refund (M3); full IPD v1; granular RBAC via existing permission tables; PR to `main` per phase.
 - **Gate baseline (start):** build ✅ · tsc ✅ 0 · tests ✅ 138/138 · lint ✅ 0 errors · scenario suite ✅ 16/16 · invariants ✅ 8/8.
-- **Gate (current):** build ✅ · tsc ✅ 0 · tests ✅ **181/181** · lint ✅ 0 errors · scenario suite ✅ **22/22** · invariants ✅ **11/11** · schema **110 tables / 6 views**. All 4 phases addressed — see [COMPLETION_REPORT.md](COMPLETION_REPORT.md). Deferred (env/UX): external gateway/PRAL live-wiring, new-feature UIs + admin UI polish, advanced lab QC.
+- **Gate (current):** build ✅ · tsc ✅ 0 · tests ✅ **181/181** · lint ✅ 0 errors · scenario suite ✅ **22/22** · invariants ✅ **11/11** · schema **110 tables / 6 views**. All 4 phases addressed — see [COMPLETION_REPORT.md](COMPLETION_REPORT.md). Deferred (env/UX): external gateway/PRAL live-wiring, admin/HR UI polish, advanced lab QC.
+
+## Frontend for new features (parallel git-worktree fan-out)
+- **FE·1 — new-feature screens built in 3 parallel worktrees** (one Claude per scoped terminal; see [[worktree-parallel-orchestration]]). Branches merged into `feat/hms-completion` with **zero conflicts** (disjoint file boundaries):
+  - `feat/hms-fe-admin` — read-only admin screens: notifications outbox, FBR queue, narcotics register + Sidebar nav (4 files).
+  - `feat/hms-fe-recep-lab` — reception **appointments** (booking + day list, 409 clash inline) + **lab result entry/sign-off** (order-driven, critical-value banner) (12 files).
+  - `feat/hms-fe-doctor` — patient **allergies** panel + non-blocking **Rx allergy-warning** banner (8 files).
+- **Orchestrator caught 1 integration regression the isolated worktrees missed:** the doctor branch's `AllergiesPanel` did `allergies.length` and crashed `patient-overview.test.tsx` (existing component test mocks `usePatientForm` without the new field). Worktrees verified tsc/lint/build but not the test suite — the integrated verify caught it; fixed by defaulting the prop to `[]` (defensive; doesn't weaken the test). **Lesson:** future worktree `/goal`s must include `pnpm test` in the per-slice gate, not just build/tsc/lint.
+- Integrated verify after merge: build ✅ · tsc ✅ 0 · tests ✅ **181/181** · lint ✅ 0 · scenario suite ✅ 22/22 · invariants ✅ 11/11. Commit: _(below)_.
 
 ## Phase checklist
 - [x] **Phase 1** — Sync + leftovers. ✅ FE↔BE call-layer sync verified (relative-fetch sweep + FE→route audit, 0 real 404s).
