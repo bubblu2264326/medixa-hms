@@ -10,7 +10,7 @@
 
 ## Autonomous operating rules (user is AWAY — cannot approve gates)
 1. **Dedicated branch only.** Never commit to `main`. Never force-push. Never touch Supabase.
-2. **Checkpoint cadence:** after every green unit (a phase, or one module within a stage) → build + typecheck + lint + tests, then **commit and push**. Each unit = one independent, reviewable commit.
+2. **Checkpoint cadence:** after every green unit (a phase, or one module within a stage) → build + typecheck + lint + tests, then **commit and push**. Each unit = one independent, reviewable commit. **Push command (MUST pin the account — `gh` active account can drift to `tools-aidapt` and 404 this PRIVATE repo):** `gh auth switch --user bubblu2264326 && git push`. Author identity for this repo is `bubblu2264326 <k224291@nu.edu.pk>` (set via `git config user.*`).
 3. **Structural ≠ behavioral.** Never mix a move/rename with a logic change in one commit.
 4. **Ambiguity rule (replaces "ask the human"):** if intended behavior is unclear, make the **smallest reversible change**, mark it `TODO(review)` in code, log it under "Decisions made unattended" in `REFACTOR_PROGRESS.md`, and continue. **Never** make an irreversible choice unattended.
 5. **Forbidden unattended:** dropping/altering columns that lose data, deleting tables/rows, force-push, editing `.env*`, committing secrets or the binary `.dump`, anything touching production/Supabase.

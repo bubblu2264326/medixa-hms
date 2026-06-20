@@ -21,6 +21,7 @@ Authoritative running state of the HMS stabilization effort. Newest entries at t
 - 2026-06-20 — DB restore strategy: committed plain-SQL seed `db/seed/hms-seed-base.sql` (synthetic data, verified `@example.com`) as the base restore point; DB versioning via forward+rollback migrations. Chose plain SQL over the binary `.dump` (reviewable, diffable; binary dumps stay gitignored).
 - 2026-06-20 — Baseline commit includes pre-existing (not-by-me) working-tree changes: `database/db.ts` (local/cloud SSL switch — lets it connect to local Postgres w/o SSL), `scripts/introspect-db.mjs` (2 lines), `.gitignore` (added `*.dump`/`backups/`/`.env.supabase`). Reviewed `db.ts` diff — benign. Included so the tree is clean for autonomous work.
 - 2026-06-20 — Excluded from commits (as all session): `hms-*.dump` (binary), `.claude/` (settings + other-client brain), `.env*` (secrets).
+- 2026-06-20 — **Push reliability gotcha:** the `gh` active account drifted from `bubblu2264326` back to `tools-aidapt`, causing `git push` → "Repository not found" (404 on the private repo). Fix: every push MUST run `gh auth switch --user bubblu2264326` first. Baked into REFACTOR_PLAN.md rule 2. The loop must never push without pinning the account.
 
 ## Known issues carried in from the audit (the work queue)
 See `audit/README.md` for the full P0/P1/P2 punch-list. Headlines:
