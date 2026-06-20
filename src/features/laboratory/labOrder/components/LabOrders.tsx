@@ -1,11 +1,15 @@
 "use client";
+import { useState } from "react";
 import { useLabOrders } from "../hooks/useLaborders";
 import { GroupedPatientOrders, OrderItem } from "../types";
 import { formatDateInTimezone, getDateInputInTimezone } from "@/src/lib/timezone/client";
 import { useSystemTimezone } from "@/src/lib/timezone/useSystemTimezone";
+import LabResult from "@/src/features/laboratory/labResult/components/LabResult";
+import type { ActiveOrder } from "@/src/features/laboratory/labResult/types";
 
 export default function LabOrders() {
   const systemTimezone = useSystemTimezone();
+  const [activeOrder, setActiveOrder] = useState<ActiveOrder | null>(null);
   const {
     orders,
     loading,
@@ -153,14 +157,21 @@ export default function LabOrders() {
                           </div>
 
                           {/* Action Buttons */}
-                          {/* <div className="flex gap-3 pt-4">
-                            <button className="px-4 py-2 text-red-600 font-medium hover:bg-red-50 rounded transition-colors">
-                              Reject Lab Request
+                          <div className="flex gap-3 pt-4">
+                            <button
+                              onClick={() =>
+                                setActiveOrder({
+                                  orderId: test.order_id,
+                                  testId: test.test_id,
+                                  testName: test.test_name,
+                                  patientName: order.patient_name,
+                                })
+                              }
+                              className="px-4 py-2 bg-teal-600 text-white font-medium rounded hover:bg-teal-700 transition-colors"
+                            >
+                              Enter Results
                             </button>
-                            <button className="px-4 py-2 bg-teal-600 text-white font-medium rounded hover:bg-teal-700 transition-colors">
-                              Accept Lab Request
-                            </button>
-                          </div> */}
+                          </div>
                         </div>
                       </td>
                     </tr>
@@ -170,6 +181,21 @@ export default function LabOrders() {
           </tbody>
         </table>
       </div>
+
+      {/* Result-entry modal driven by the selected pending order */}
+      {activeOrder && (
+        <div
+          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4 md:p-8"
+          onClick={() => setActiveOrder(null)}
+        >
+          <div
+            className="w-full max-w-3xl rounded-2xl bg-white p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <LabResult order={activeOrder} onDone={() => setActiveOrder(null)} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
