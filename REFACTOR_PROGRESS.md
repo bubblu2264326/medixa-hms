@@ -4,9 +4,9 @@ Authoritative running state of the HMS stabilization effort. Newest entries at t
 
 ## Status
 - **Branch:** `refactor/hms-stabilization`
-- **Current phase:** **Stage A module hardening COMPLETE** (all 8 modules: DB integrity + backend auth/audit). Patient/Pharmacy/Billing/Lab/Doctor/Queue/HR/Admin ✅. **Now: Stage B (integration chains).** Deferred (tracked): frontend correctness, fuller per-module tests, `TODO(review)` policy items.
+- **Current phase:** **Stages A + B + C COMPLETE — refactor goal met.** Stage A (all 8 modules: DB integrity + backend auth/audit) ✅; Stage B + C (integration chains + live-server scenario suite, all 5 invariants proven) ✅. See [REFACTOR_REPORT.md](REFACTOR_REPORT.md) for the closing summary. Deferred (tracked, non-blocking): frontend correctness (UI pass), fuller per-module tests, `TODO(review)` policy items, optional v3 full HTTP happy-chain.
 - **Mode:** autonomous, Git-checkpointed (user away). Commit + push every green unit.
-- **Live gate status (after P1·U3):** build ✅ · typecheck ✅ 0 errors · tests ✅ 124/124 · lint ✅ **0 errors** + 54 warnings (warnings = mostly react-hooks/exhaustive-deps + unused vars; non-blocking, deferred).
+- **Live gate status (final):** build ✅ · typecheck ✅ 0 errors · tests ✅ **138/138** · lint ✅ **0 errors** + 48 warnings (non-blocking) · scenario suite ✅ **16/16** · DB invariants ✅ **8/8**.
 
 ## Baseline (recorded 2026-06-20, before Phase 1 edits)
 | Gate | State |
@@ -21,10 +21,10 @@ Authoritative running state of the HMS stabilization effort. Newest entries at t
 ## Phase checklist
 - [x] **Phase 0** — Discovery (done before this branch; see `audit/project-map.md` + `audit/README.md`).
 - [x] **Phase 1** — Foundation. ✅ RBAC foundation (U4–U6), ✅ audit foundation (U7), ✅ tooling/quality green (U1–U3). **Structure:** assessed — the repo is already module-organized (`src/app/api/<domain>` ↔ `src/lib/server/<domain>` ↔ `src/features/<role>`); no large reorg warranted (avoid churn). Naming/import standardization folded into per-module Stage A passes where it adds real value.
-- [ ] **Stage A** — Patient/EMR · RBAC/Audit verify · Pharmacy/Inventory · Billing · Lab · Doctor · Queue · HR · Admin.
-- [ ] **Stage B** — Integration chains.
-- [ ] **Stage C** — Curl scenario assault + DB invariant asserts.
-- [ ] **Final** — Closing report.
+- [x] **Stage A** — Patient/EMR · RBAC/Audit verify · Pharmacy/Inventory · Billing · Lab · Doctor · Queue · HR · Admin. ✅
+- [x] **Stage B** — Integration chains. ✅ (cross-module consistency proven by the 8 DB invariants on real app-generated data + the active stock-chain concurrency proof; SC·1/SC·4.)
+- [x] **Stage C** — Curl scenario assault + DB invariant asserts. ✅ (16/16 scenarios + 8/8 invariants against a live prod build; SC·3/SC·4.)
+- [x] **Final** — Closing report → [REFACTOR_REPORT.md](REFACTOR_REPORT.md). ✅
 
 ## Decisions made unattended
 *(Per the ambiguity rule — log every non-obvious or behavior-affecting choice made without the user, for later review.)*
