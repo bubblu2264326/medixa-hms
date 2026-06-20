@@ -291,35 +291,35 @@ export default function RosterPage() {
     <div className="space-y-6 py-4">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-slate-800 uppercase tracking-tight">Shift Roster</h1>
-          <p className="text-sm text-slate-500 font-semibold mt-1">Shift templates and daily assignments by staff.</p>
+          <h1 className="text-2xl font-semibold text-foreground tracking-tight">Shift Roster</h1>
+          <p className="text-sm text-muted-foreground font-medium mt-1">Shift templates and daily assignments by staff.</p>
         </div>
         <Button
           onClick={() => setIsTemplateModalOpen(true)}
-          className="h-10 rounded-xl bg-slate-900 hover:bg-black text-white text-xs font-black uppercase tracking-widest px-4"
+          className="h-10 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold px-4"
         >
           <Plus className="w-4 h-4 mr-2" /> Create Template
         </Button>
       </div>
 
       {error ? (
-        <Card className="border border-red-100 bg-red-50 p-4 rounded-2xl">
-          <p className="text-sm font-semibold text-red-700">{error}</p>
+        <Card className="border border-destructive/20 bg-destructive/10 p-4 rounded-lg">
+          <p className="text-sm font-medium text-destructive">{error}</p>
         </Card>
       ) : null}
 
       {resultMessage ? (
-        <Card className="border border-emerald-100 bg-emerald-50 p-4 rounded-2xl">
-          <p className="text-sm font-semibold text-emerald-700">{resultMessage}</p>
+        <Card className="border border-success/20 bg-success/10 p-4 rounded-lg">
+          <p className="text-sm font-medium text-success">{resultMessage}</p>
         </Card>
       ) : null}
 
-      <Card className="rounded-2xl border border-slate-100 p-4 space-y-4">
-        <h2 className="text-sm font-black uppercase tracking-widest text-slate-500">Assign Shift</h2>
+      <Card className="rounded-lg border border-border p-4 space-y-4">
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Assign Shift</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-2">
           <select
-            className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+            className="h-10 rounded-md border border-input px-3 text-sm"
             value={newAssign.staff_id ? `${newAssign.account_type}:${newAssign.staff_id}` : ""}
             onChange={(e) => {
               const [nextAccountType, nextPersonId] = e.target.value.split(":");
@@ -341,7 +341,7 @@ export default function RosterPage() {
           </select>
 
           <select
-            className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+            className="h-10 rounded-md border border-input px-3 text-sm"
             value={newAssign.shift_template_id}
             onChange={(e) => setNewAssign((p) => ({ ...p, shift_template_id: e.target.value }))}
           >
@@ -355,7 +355,7 @@ export default function RosterPage() {
 
           <input
             type="date"
-            className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+            className="h-10 rounded-md border border-input px-3 text-sm"
             value={newAssign.fromDate}
             onChange={(e) => {
               const nextFrom = e.target.value;
@@ -371,7 +371,7 @@ export default function RosterPage() {
           />
 
           <select
-            className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+            className="h-10 rounded-md border border-input px-3 text-sm"
             value={durationOption}
             onChange={(e) => {
               const next = e.target.value as DurationOption;
@@ -395,43 +395,43 @@ export default function RosterPage() {
           {durationOption === "custom" ? (
             <input
               type="date"
-              className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+              className="h-10 rounded-md border border-input px-3 text-sm"
               value={newAssign.toDate}
               onChange={(e) => setNewAssign((p) => ({ ...p, toDate: e.target.value }))}
             />
           ) : (
             <input
               type="date"
-              className="h-10 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm cursor-not-allowed"
+              className="h-10 rounded-md border border-input bg-muted px-3 text-sm cursor-not-allowed"
               value={newAssign.toDate}
               readOnly
             />
           )}
 
           <input
-            className="h-10 rounded-xl border border-slate-200 px-3 text-sm xl:col-span-2"
+            className="h-10 rounded-md border border-input px-3 text-sm xl:col-span-2"
             placeholder="Department"
             value={newAssign.department}
             onChange={(e) => setNewAssign((p) => ({ ...p, department: e.target.value }))}
           />
 
           <input
-            className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+            className="h-10 rounded-md border border-input px-3 text-sm"
             placeholder="Ward (optional)"
             value={newAssign.ward}
             onChange={(e) => setNewAssign((p) => ({ ...p, ward: e.target.value }))}
           />
 
           <input
-            className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+            className="h-10 rounded-md border border-input px-3 text-sm"
             placeholder="Unit (optional)"
             value={newAssign.unit}
             onChange={(e) => setNewAssign((p) => ({ ...p, unit: e.target.value }))}
           />
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-          <p className="text-[11px] font-black uppercase tracking-widest text-slate-500 mb-2">Recurring Days</p>
+        <div className="rounded-md border border-border bg-muted p-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Recurring Days</p>
           <div className="flex flex-wrap gap-2">
             {WEEK_DAYS.map((day) => {
               const active = newAssign.recurringDays.includes(day.value);
@@ -447,10 +447,10 @@ export default function RosterPage() {
                         : [...prev.recurringDays, day.value].sort((a, b) => a - b),
                     }))
                   }
-                  className={`h-8 min-w-12 rounded-lg px-3 text-xs font-black uppercase tracking-wide border transition ${
+                  className={`h-8 min-w-12 rounded-md px-3 text-xs font-semibold uppercase tracking-wide border transition ${
                     active
-                      ? "bg-emerald-700 text-white border-emerald-700"
-                      : "bg-white text-slate-600 border-slate-200 hover:border-slate-300"
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-card text-foreground border-input hover:bg-accent"
                   }`}
                 >
                   {day.label}
@@ -458,11 +458,11 @@ export default function RosterPage() {
               );
             })}
           </div>
-          <p className="text-xs font-semibold text-slate-500 mt-2">Selected: {selectedWeekDaysLabel}</p>
+          <p className="text-xs font-medium text-muted-foreground mt-2">Selected: {selectedWeekDaysLabel}</p>
         </div>
 
         <div className="flex flex-wrap gap-3">
-          <label className="text-xs font-semibold text-slate-600">
+          <label className="text-xs font-medium text-foreground">
             <input
               type="checkbox"
               checked={newAssign.on_call}
@@ -471,7 +471,7 @@ export default function RosterPage() {
             />
             On-call
           </label>
-          <label className="text-xs font-semibold text-slate-600">
+          <label className="text-xs font-medium text-foreground">
             <input
               type="checkbox"
               checked={newAssign.standby}
@@ -485,23 +485,23 @@ export default function RosterPage() {
         <Button
           disabled={saving}
           onClick={assignShift}
-          className="h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black uppercase tracking-widest px-4"
+          className="h-10 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold px-4"
         >
           {saving ? "Assigning..." : "Assign Shift"}
         </Button>
       </Card>
 
-      <Card className="rounded-3xl border border-slate-100 p-5">
+      <Card className="rounded-lg border border-border p-5">
         <div className="flex gap-2 mb-3">
           <input
             type="date"
-            className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+            className="h-10 rounded-md border border-input px-3 text-sm"
             value={fromDate}
             onChange={(e) => setFromDate(e.target.value)}
           />
           <input
             type="date"
-            className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+            className="h-10 rounded-md border border-input px-3 text-sm"
             value={toDate}
             onChange={(e) => setToDate(e.target.value)}
           />
@@ -510,39 +510,39 @@ export default function RosterPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left min-w-[900px]">
             <thead>
-              <tr className="bg-slate-50/70">
-                <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Date</th>
-                <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Staff</th>
-                <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Code</th>
-                <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Role</th>
-                <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Department</th>
-                <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Shift</th>
-                <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Window</th>
-                <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Flags</th>
+              <tr className="bg-muted">
+                <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Date</th>
+                <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Staff</th>
+                <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Code</th>
+                <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Role</th>
+                <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Department</th>
+                <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Shift</th>
+                <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Window</th>
+                <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Flags</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="px-3 py-8 text-sm text-slate-500 font-semibold">Loading roster...</td>
+                  <td colSpan={8} className="px-3 py-8 text-sm text-muted-foreground font-medium">Loading roster...</td>
                 </tr>
               ) : rows.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-3 py-8 text-sm text-slate-500 font-semibold">No assignments found for selected range.</td>
+                  <td colSpan={8} className="px-3 py-8 text-sm text-muted-foreground font-medium">No assignments found for selected range.</td>
                 </tr>
               ) : (
                 rows.map((r) => (
-                  <tr key={`${r.account_type}:${r.person_id}:${r.roster_id}`} className="border-t border-slate-100">
-                    <td className="px-3 py-2 text-xs font-semibold text-slate-700">{r.roster_date}</td>
-                    <td className="px-3 py-2 text-xs font-semibold text-slate-700">{r.staff_name}</td>
-                    <td className="px-3 py-2 text-xs font-semibold text-slate-700">{r.user_code || "-"}</td>
-                    <td className="px-3 py-2 text-xs font-semibold text-slate-700">{r.role}</td>
-                    <td className="px-3 py-2 text-xs font-semibold text-slate-700">{r.department || "-"}</td>
-                    <td className="px-3 py-2 text-xs font-semibold text-slate-700">{r.shift_name} ({r.shift_code})</td>
-                    <td className="px-3 py-2 text-xs font-semibold text-slate-700">
+                  <tr key={`${r.account_type}:${r.person_id}:${r.roster_id}`} className="border-t border-border">
+                    <td className="px-3 py-2 text-xs font-medium text-foreground font-mono tabular-nums">{r.roster_date}</td>
+                    <td className="px-3 py-2 text-xs font-medium text-foreground">{r.staff_name}</td>
+                    <td className="px-3 py-2 text-xs font-medium text-foreground font-mono tabular-nums">{r.user_code || "-"}</td>
+                    <td className="px-3 py-2 text-xs font-medium text-foreground">{r.role}</td>
+                    <td className="px-3 py-2 text-xs font-medium text-foreground">{r.department || "-"}</td>
+                    <td className="px-3 py-2 text-xs font-medium text-foreground">{r.shift_name} ({r.shift_code})</td>
+                    <td className="px-3 py-2 text-xs font-medium text-foreground font-mono tabular-nums">
                       {String(r.start_time).slice(0, 5)} - {String(r.end_time).slice(0, 5)}
                     </td>
-                    <td className="px-3 py-2 text-xs font-semibold text-slate-700">
+                    <td className="px-3 py-2 text-xs font-medium text-foreground">
                       {r.on_call ? "On-call " : ""}
                       {r.standby ? "Standby" : ""}
                     </td>
@@ -561,13 +561,13 @@ export default function RosterPage() {
             if (e.target === e.currentTarget) setIsTemplateModalOpen(false);
           }}
         >
-          <Card className="w-full max-w-2xl rounded-2xl border border-slate-200 p-0 overflow-hidden">
-            <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4 bg-slate-50">
-              <h2 className="text-sm font-black uppercase tracking-widest text-slate-700">Create Shift Template</h2>
+          <Card className="w-full max-w-2xl rounded-lg border border-border p-0 overflow-hidden">
+            <div className="flex items-center justify-between border-b border-border px-5 py-4 bg-muted">
+              <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Create Shift Template</h2>
               <button
                 type="button"
                 onClick={() => setIsTemplateModalOpen(false)}
-                className="rounded-lg p-1 text-slate-500 hover:bg-slate-200 hover:text-slate-700"
+                className="rounded-md p-1 text-muted-foreground hover:bg-accent hover:text-foreground"
                 aria-label="Close template modal"
               >
                 <X className="h-4 w-4" />
@@ -577,31 +577,31 @@ export default function RosterPage() {
             <div className="space-y-3 p-5">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 <input
-                  className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+                  className="h-10 rounded-md border border-input px-3 text-sm"
                   placeholder="Shift Code"
                   value={newTemplate.shift_code}
                   onChange={(e) => setNewTemplate((p) => ({ ...p, shift_code: e.target.value.toUpperCase() }))}
                 />
                 <input
-                  className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+                  className="h-10 rounded-md border border-input px-3 text-sm"
                   placeholder="Shift Name"
                   value={newTemplate.shift_name}
                   onChange={(e) => setNewTemplate((p) => ({ ...p, shift_name: e.target.value }))}
                 />
                 <input
                   type="time"
-                  className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+                  className="h-10 rounded-md border border-input px-3 text-sm"
                   value={newTemplate.start_time}
                   onChange={(e) => setNewTemplate((p) => ({ ...p, start_time: e.target.value }))}
                 />
                 <input
                   type="time"
-                  className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+                  className="h-10 rounded-md border border-input px-3 text-sm"
                   value={newTemplate.end_time}
                   onChange={(e) => setNewTemplate((p) => ({ ...p, end_time: e.target.value }))}
                 />
                 <input
-                  className="h-10 rounded-xl border border-slate-200 px-3 text-sm md:col-span-2"
+                  className="h-10 rounded-md border border-input px-3 text-sm md:col-span-2"
                   placeholder="Department (optional)"
                   value={newTemplate.department}
                   onChange={(e) => setNewTemplate((p) => ({ ...p, department: e.target.value }))}
@@ -609,17 +609,17 @@ export default function RosterPage() {
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 border-t border-slate-100 bg-slate-50 px-5 py-3">
+            <div className="flex justify-end gap-2 border-t border-border bg-muted px-5 py-3">
               <Button
                 onClick={() => setIsTemplateModalOpen(false)}
-                className="h-10 rounded-xl bg-slate-200 text-slate-700 hover:bg-slate-300"
+                className="h-10 rounded-md bg-muted text-foreground hover:bg-accent"
               >
                 Cancel
               </Button>
               <Button
                 disabled={saving}
                 onClick={createTemplate}
-                className="h-10 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-black uppercase tracking-widest px-4"
+                className="h-10 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold px-4"
               >
                 {saving ? "Saving..." : "Add Template"}
               </Button>

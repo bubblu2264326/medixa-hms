@@ -424,44 +424,44 @@ export default function StaffAnalyticsPage() {
   return (
     <div className="space-y-6 py-4">
       <div>
-        <h1 className="text-2xl font-black text-slate-800 tracking-tight uppercase">Workforce Analytics Studio</h1>
-        <p className="text-sm text-slate-500 font-semibold mt-1">
+        <h1 className="text-2xl font-semibold text-foreground tracking-tight">Workforce Analytics Studio</h1>
+        <p className="text-sm text-muted-foreground mt-1">
           Hybrid operational + executive analytics across attendance, performance, compliance, and finance.
         </p>
       </div>
 
       {error ? (
-        <Card className="rounded-2xl border border-rose-100 bg-rose-50 p-4">
-          <p className="text-sm font-semibold text-rose-700">{error}</p>
+        <Card className="rounded-lg border border-destructive/20 bg-destructive/10 p-4">
+          <p className="text-sm font-semibold text-destructive">{error}</p>
         </Card>
       ) : null}
 
-      <Card className="rounded-3xl border border-slate-100 p-5">
-        <h2 className="text-sm font-black uppercase tracking-widest text-slate-400 mb-3">Global Filters</h2>
+      <Card className="rounded-lg border border-border p-5">
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">Global Filters</h2>
         <div className="grid grid-cols-1 md:grid-cols-4 xl:grid-cols-6 gap-2">
-          <input type="date" className="h-10 rounded-xl border border-slate-200 px-3 text-sm" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
-          <input type="date" className="h-10 rounded-xl border border-slate-200 px-3 text-sm" value={toDate} onChange={(e) => setToDate(e.target.value)} />
+          <input type="date" className="h-10 rounded-md border border-input px-3 text-sm" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
+          <input type="date" className="h-10 rounded-md border border-input px-3 text-sm" value={toDate} onChange={(e) => setToDate(e.target.value)} />
 
-          <select className="h-10 rounded-xl border border-slate-200 px-3 text-sm" value={accountType} onChange={(e) => setAccountType(e.target.value as "all" | "staff" | "doctor") }>
+          <select className="h-10 rounded-md border border-input px-3 text-sm" value={accountType} onChange={(e) => setAccountType(e.target.value as "all" | "staff" | "doctor") }>
             <option value="all">Account: Staff + Doctor</option>
             <option value="staff">Account: Staff Only</option>
             <option value="doctor">Account: Doctor Only</option>
           </select>
 
-          <select className="h-10 rounded-xl border border-slate-200 px-3 text-sm" value={roleLens} onChange={(e) => setRoleLens(e.target.value as "all" | "staff" | "doctor") }>
+          <select className="h-10 rounded-md border border-input px-3 text-sm" value={roleLens} onChange={(e) => setRoleLens(e.target.value as "all" | "staff" | "doctor") }>
             <option value="all">Role lens: Combined</option>
             <option value="staff">Role lens: Staff</option>
             <option value="doctor">Role lens: Doctor</option>
           </select>
 
-          <select className="h-10 rounded-xl border border-slate-200 px-3 text-sm" value={bucket} onChange={(e) => setBucket(e.target.value as "day" | "week" | "month") }>
+          <select className="h-10 rounded-md border border-input px-3 text-sm" value={bucket} onChange={(e) => setBucket(e.target.value as "day" | "week" | "month") }>
             <option value="week">Bucket: Weekly</option>
             <option value="day">Bucket: Daily</option>
             <option value="month">Bucket: Monthly</option>
           </select>
 
           <select
-            className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+            className="h-10 rounded-md border border-input px-3 text-sm"
             value={employeeKey}
             onChange={(e) => {
               const next = e.target.value;
@@ -483,16 +483,16 @@ export default function StaffAnalyticsPage() {
             ))}
           </select>
 
-          <input className="h-10 rounded-xl border border-slate-200 px-3 text-sm" placeholder="Department (optional)" value={department} onChange={(e) => setDepartment(e.target.value)} />
-          <input className="h-10 rounded-xl border border-slate-200 px-3 text-sm" placeholder="Facility code (optional)" value={facilityCode} onChange={(e) => setFacilityCode(e.target.value)} />
+          <input className="h-10 rounded-md border border-input px-3 text-sm" placeholder="Department (optional)" value={department} onChange={(e) => setDepartment(e.target.value)} />
+          <input className="h-10 rounded-md border border-input px-3 text-sm" placeholder="Facility code (optional)" value={facilityCode} onChange={(e) => setFacilityCode(e.target.value)} />
         </div>
 
         <div className="mt-3 flex items-center gap-2">
-          <Button disabled={loading} onClick={loadDashboard} className="h-10 rounded-xl bg-slate-900 hover:bg-black text-white text-xs font-black uppercase tracking-widest px-4">
+          <Button disabled={loading} onClick={loadDashboard} className="h-10 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold px-4">
             {loading ? "Refreshing..." : "Refresh Dashboard"}
           </Button>
           {selectedEmployee ? (
-            <p className="text-xs font-semibold text-slate-500">
+            <p className="text-xs font-semibold text-muted-foreground">
               Selected: {selectedEmployee.name} ({selectedEmployee.user_code})
             </p>
           ) : null}
@@ -500,14 +500,14 @@ export default function StaffAnalyticsPage() {
       </Card>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-black uppercase tracking-widest text-slate-400">Overview</h2>
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Overview</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-3">
-          <Card className="rounded-2xl p-3"><p className="text-[10px] font-black uppercase text-slate-400">Employees</p><p className="text-xl font-black text-slate-800">{numberValue(kpis.total_employees)}</p></Card>
-          <Card className="rounded-2xl p-3"><p className="text-[10px] font-black uppercase text-slate-400">Attendance %</p><p className="text-xl font-black text-emerald-700">{numberValue(kpis.attendance_rate_percent)}</p></Card>
-          <Card className="rounded-2xl p-3"><p className="text-[10px] font-black uppercase text-slate-400">Pending Leave</p><p className="text-xl font-black text-amber-700">{numberValue(kpis.leave_pending)}</p></Card>
-          <Card className="rounded-2xl p-3"><p className="text-[10px] font-black uppercase text-slate-400">Active Sessions</p><p className="text-xl font-black text-slate-800">{numberValue(kpis.active_sessions)}</p></Card>
-          <Card className="rounded-2xl p-3"><p className="text-[10px] font-black uppercase text-slate-400">Expired Cred</p><p className="text-xl font-black text-rose-700">{numberValue(kpis.expired_credentials)}</p></Card>
-          <Card className="rounded-2xl p-3"><p className="text-[10px] font-black uppercase text-slate-400">Expired Docs</p><p className="text-xl font-black text-rose-700">{numberValue(kpis.expired_documents)}</p></Card>
+          <Card className="rounded-lg p-3"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Employees</p><p className="text-xl font-semibold text-foreground font-mono tabular-nums">{numberValue(kpis.total_employees)}</p></Card>
+          <Card className="rounded-lg p-3"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Attendance %</p><p className="text-xl font-semibold text-success font-mono tabular-nums">{numberValue(kpis.attendance_rate_percent)}</p></Card>
+          <Card className="rounded-lg p-3"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Pending Leave</p><p className="text-xl font-semibold text-warning-foreground font-mono tabular-nums">{numberValue(kpis.leave_pending)}</p></Card>
+          <Card className="rounded-lg p-3"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Active Sessions</p><p className="text-xl font-semibold text-foreground font-mono tabular-nums">{numberValue(kpis.active_sessions)}</p></Card>
+          <Card className="rounded-lg p-3"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Expired Cred</p><p className="text-xl font-semibold text-destructive font-mono tabular-nums">{numberValue(kpis.expired_credentials)}</p></Card>
+          <Card className="rounded-lg p-3"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Expired Docs</p><p className="text-xl font-semibold text-destructive font-mono tabular-nums">{numberValue(kpis.expired_documents)}</p></Card>
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
@@ -540,14 +540,14 @@ export default function StaffAnalyticsPage() {
           />
         </div>
 
-        <Card className="rounded-2xl border border-slate-100 p-4">
-          <h3 className="text-xs font-black uppercase tracking-wider text-slate-500 mb-2">Operational Alerts</h3>
+        <Card className="rounded-lg border border-border p-4">
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Operational Alerts</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-2">
             {(payload?.overview?.alerts ?? []).map((alert) => (
-              <div key={alert.id} className="rounded-xl border border-slate-100 p-3 bg-slate-50/70">
-                <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">{alert.title}</p>
-                <p className="text-lg font-black text-slate-800">{alert.count}</p>
-                <p className="text-[11px] font-semibold text-slate-500">{alert.description}</p>
+              <div key={alert.id} className="rounded-md border border-border p-3 bg-muted">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{alert.title}</p>
+                <p className="text-lg font-semibold text-foreground font-mono tabular-nums">{alert.count}</p>
+                <p className="text-[11px] font-semibold text-muted-foreground">{alert.description}</p>
               </div>
             ))}
           </div>
@@ -555,10 +555,10 @@ export default function StaffAnalyticsPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-black uppercase tracking-widest text-slate-400">Performance</h2>
-        <Card className="rounded-2xl border border-slate-100 p-4">
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Performance</h2>
+        <Card className="rounded-lg border border-border p-4">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-xs font-black uppercase tracking-wider text-slate-500">Scorecard Weights</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Scorecard Weights</h3>
             <div className="flex items-center gap-2">
               <Button
                 type="button"
@@ -568,7 +568,7 @@ export default function StaffAnalyticsPage() {
                   }
                 }}
                 disabled={!defaultScoreConfig || savingScoreConfig}
-                className="h-8 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-[11px] font-black uppercase tracking-wide px-3 disabled:opacity-50"
+                className="h-8 rounded-md border border-input bg-card hover:bg-accent text-foreground text-[11px] font-semibold px-3 disabled:opacity-50"
               >
                 Reset Defaults
               </Button>
@@ -576,7 +576,7 @@ export default function StaffAnalyticsPage() {
                 type="button"
                 onClick={saveScoreConfig}
                 disabled={!scoreConfig || savingScoreConfig}
-                className="h-8 rounded-lg bg-slate-900 hover:bg-black text-white text-[11px] font-black uppercase tracking-wide px-3 disabled:opacity-50"
+                className="h-8 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground text-[11px] font-semibold px-3 disabled:opacity-50"
               >
                 {savingScoreConfig ? "Saving..." : "Save Weights"}
               </Button>
@@ -588,9 +588,9 @@ export default function StaffAnalyticsPage() {
                 const factor = scoreConfig.factors[factorKey as keyof typeof scoreConfig.factors];
                 const label = factorKey.replaceAll("_", " ");
                 return (
-                  <div key={factorKey} className="rounded-xl border border-slate-100 p-3 bg-slate-50/60">
-                    <p className="text-[10px] font-black uppercase tracking-wider text-slate-500 mb-2">{label}</p>
-                    <label className="inline-flex items-center gap-2 text-[11px] font-semibold text-slate-600 mb-2">
+                  <div key={factorKey} className="rounded-md border border-border p-3 bg-muted">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">{label}</p>
+                    <label className="inline-flex items-center gap-2 text-[11px] font-semibold text-muted-foreground mb-2">
                       <input
                         type="checkbox"
                         checked={factor.enabled}
@@ -635,13 +635,13 @@ export default function StaffAnalyticsPage() {
                       }
                       className="w-full"
                     />
-                    <p className="text-[11px] font-black text-slate-700 mt-1">{factor.weight}%</p>
+                    <p className="text-[11px] font-semibold text-foreground mt-1 font-mono tabular-nums">{factor.weight}%</p>
                   </div>
                 );
               })}
             </div>
           ) : (
-            <p className="text-xs font-semibold text-slate-500">Loading score configuration...</p>
+            <p className="text-xs font-semibold text-muted-foreground">Loading score configuration...</p>
           )}
         </Card>
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
@@ -688,12 +688,12 @@ export default function StaffAnalyticsPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-black uppercase tracking-widest text-slate-400">Finance</h2>
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Finance</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <Card className="rounded-2xl p-3"><p className="text-[10px] font-black uppercase text-slate-400">Payroll Net</p><p className="text-lg font-black text-slate-800">{numberValue(payload?.finance?.totals?.payroll_net_total).toLocaleString()}</p></Card>
-          <Card className="rounded-2xl p-3"><p className="text-[10px] font-black uppercase text-slate-400">Payroll Gross</p><p className="text-lg font-black text-slate-800">{numberValue(payload?.finance?.totals?.payroll_gross_total).toLocaleString()}</p></Card>
-          <Card className="rounded-2xl p-3"><p className="text-[10px] font-black uppercase text-slate-400">Avg Net / Employee</p><p className="text-lg font-black text-slate-800">{numberValue(payload?.finance?.totals?.avg_net_pay_per_employee).toLocaleString()}</p></Card>
-          <Card className="rounded-2xl p-3"><p className="text-[10px] font-black uppercase text-slate-400">Cost / Attendance Mark</p><p className="text-lg font-black text-slate-800">{numberValue(kpis.cost_per_attendance_mark).toLocaleString()}</p></Card>
+          <Card className="rounded-lg p-3"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Payroll Net</p><p className="text-lg font-semibold text-foreground font-mono tabular-nums">{numberValue(payload?.finance?.totals?.payroll_net_total).toLocaleString()}</p></Card>
+          <Card className="rounded-lg p-3"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Payroll Gross</p><p className="text-lg font-semibold text-foreground font-mono tabular-nums">{numberValue(payload?.finance?.totals?.payroll_gross_total).toLocaleString()}</p></Card>
+          <Card className="rounded-lg p-3"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Avg Net / Employee</p><p className="text-lg font-semibold text-foreground font-mono tabular-nums">{numberValue(payload?.finance?.totals?.avg_net_pay_per_employee).toLocaleString()}</p></Card>
+          <Card className="rounded-lg p-3"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Cost / Attendance Mark</p><p className="text-lg font-semibold text-foreground font-mono tabular-nums">{numberValue(kpis.cost_per_attendance_mark).toLocaleString()}</p></Card>
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
@@ -727,12 +727,12 @@ export default function StaffAnalyticsPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-black uppercase tracking-widest text-slate-400">Employee Explorer</h2>
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Employee Explorer</h2>
 
-        <Card className="rounded-2xl border border-slate-100 p-4">
+        <Card className="rounded-lg border border-border p-4">
           <div className="grid grid-cols-1 md:grid-cols-6 gap-2">
             <input
-              className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+              className="h-10 rounded-md border border-input px-3 text-sm"
               placeholder="Search name or code"
               value={employeeSearch}
               onChange={(e) => {
@@ -740,31 +740,31 @@ export default function StaffAnalyticsPage() {
                 setEmployeePage(1);
               }}
             />
-            <select className="h-10 rounded-xl border border-slate-200 px-3 text-sm" value={employeeSortBy} onChange={(e) => setEmployeeSortBy(e.target.value)}>
+            <select className="h-10 rounded-md border border-input px-3 text-sm" value={employeeSortBy} onChange={(e) => setEmployeeSortBy(e.target.value)}>
               <option value="score">Sort by score</option>
               <option value="attendance_marks">Sort by attendance marks</option>
               <option value="leave_pending">Sort by pending leave</option>
               <option value="payroll_net_total">Sort by payroll net</option>
               <option value="name">Sort by name</option>
             </select>
-            <select className="h-10 rounded-xl border border-slate-200 px-3 text-sm" value={employeeSortDir} onChange={(e) => setEmployeeSortDir(e.target.value as "asc" | "desc") }>
+            <select className="h-10 rounded-md border border-input px-3 text-sm" value={employeeSortDir} onChange={(e) => setEmployeeSortDir(e.target.value as "asc" | "desc") }>
               <option value="desc">High to low</option>
               <option value="asc">Low to high</option>
             </select>
-            <Button onClick={() => { loadEmployeeRows(); loadDashboard(); }} className="h-10 rounded-xl bg-slate-900 hover:bg-black text-white text-xs font-black uppercase tracking-widest px-4" disabled={loadingEmployees}>
+            <Button onClick={() => { loadEmployeeRows(); loadDashboard(); }} className="h-10 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold px-4" disabled={loadingEmployees}>
               {loadingEmployees ? "Loading..." : "Refresh Explorer"}
             </Button>
             <Button
               type="button"
               onClick={exportExplorerCsv}
-              className="h-10 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-xs font-black uppercase tracking-widest px-4"
+              className="h-10 rounded-md border border-input bg-card text-foreground hover:bg-accent text-xs font-semibold px-4"
             >
               Export CSV
             </Button>
             <Button
               type="button"
               onClick={exportExplorerPdf}
-              className="h-10 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-xs font-black uppercase tracking-widest px-4"
+              className="h-10 rounded-md border border-input bg-card text-foreground hover:bg-accent text-xs font-semibold px-4"
             >
               Export PDF
             </Button>
@@ -773,34 +773,34 @@ export default function StaffAnalyticsPage() {
           <div className="mt-3 overflow-x-auto">
             <table className="w-full min-w-[980px] text-left">
               <thead>
-                <tr className="bg-slate-50/70">
-                  <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Employee</th>
-                  <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Type</th>
-                  <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Department</th>
-                  <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Attendance</th>
-                  <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Leave Pending</th>
-                  <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Payroll Net</th>
-                  <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Score</th>
-                  <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Action</th>
+                <tr className="bg-muted">
+                  <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Employee</th>
+                  <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Type</th>
+                  <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Department</th>
+                  <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Attendance</th>
+                  <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Leave Pending</th>
+                  <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Payroll Net</th>
+                  <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Score</th>
+                  <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Action</th>
                 </tr>
               </thead>
               <tbody>
                 {(employeeRows?.items ?? []).length === 0 ? (
-                  <tr><td colSpan={8} className="px-3 py-8 text-sm font-semibold text-slate-500">No employees found for current filters.</td></tr>
+                  <tr><td colSpan={8} className="px-3 py-8 text-sm font-semibold text-muted-foreground">No employees found for current filters.</td></tr>
                 ) : (
                   (employeeRows?.items ?? []).map((row) => (
-                    <tr key={`${row.account_type}:${row.person_id}`} className="border-t border-slate-100">
-                      <td className="px-3 py-2 text-xs font-semibold text-slate-700">{row.name} ({row.user_code})</td>
-                      <td className="px-3 py-2 text-xs font-semibold text-slate-700 uppercase">{row.account_type}</td>
-                      <td className="px-3 py-2 text-xs font-semibold text-slate-700">{row.department ?? row.role}</td>
-                      <td className="px-3 py-2 text-xs font-semibold text-slate-700">{row.attendance_present_like}/{row.attendance_marks}</td>
-                      <td className="px-3 py-2 text-xs font-semibold text-amber-700">{row.leave_pending}</td>
-                      <td className="px-3 py-2 text-xs font-semibold text-slate-700">{numberValue(row.payroll_net_total).toLocaleString()}</td>
-                      <td className="px-3 py-2 text-xs font-black text-emerald-700">{numberValue(row.score).toFixed(2)}</td>
-                      <td className="px-3 py-2 text-xs font-semibold text-slate-700">
+                    <tr key={`${row.account_type}:${row.person_id}`} className="border-t border-border">
+                      <td className="px-3 py-2 text-xs font-semibold text-foreground">{row.name} ({row.user_code})</td>
+                      <td className="px-3 py-2 text-xs font-semibold text-foreground uppercase">{row.account_type}</td>
+                      <td className="px-3 py-2 text-xs font-semibold text-foreground">{row.department ?? row.role}</td>
+                      <td className="px-3 py-2 text-xs font-semibold text-foreground font-mono tabular-nums">{row.attendance_present_like}/{row.attendance_marks}</td>
+                      <td className="px-3 py-2 text-xs font-semibold text-warning-foreground font-mono tabular-nums">{row.leave_pending}</td>
+                      <td className="px-3 py-2 text-xs font-semibold text-foreground font-mono tabular-nums">{numberValue(row.payroll_net_total).toLocaleString()}</td>
+                      <td className="px-3 py-2 text-xs font-semibold text-success font-mono tabular-nums">{numberValue(row.score).toFixed(2)}</td>
+                      <td className="px-3 py-2 text-xs font-semibold text-foreground">
                         <button
                           type="button"
-                          className="rounded-lg border border-slate-200 px-2 py-1 hover:bg-slate-50"
+                          className="rounded-md border border-input px-2 py-1 hover:bg-accent"
                           onClick={() => {
                             setEmployeeKey(`${row.account_type}:${row.person_id}`);
                             setAccountType(row.account_type);
@@ -818,13 +818,13 @@ export default function StaffAnalyticsPage() {
           </div>
 
           <div className="mt-3 flex items-center justify-between">
-            <p className="text-xs font-semibold text-slate-500">
+            <p className="text-xs font-semibold text-muted-foreground">
               Page {employeeRows?.page ?? 1} of {employeeRows?.total_pages ?? 1} ({employeeRows?.total ?? 0} records)
             </p>
             <div className="flex items-center gap-2">
               <Button
                 type="button"
-                className="h-8 rounded-lg border border-slate-200 bg-white px-3 text-[11px] font-black uppercase tracking-wide text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                className="h-8 rounded-md border border-input bg-card px-3 text-[11px] font-semibold text-foreground hover:bg-accent disabled:opacity-50"
                 disabled={(employeeRows?.page ?? 1) <= 1}
                 onClick={() => setEmployeePage((p) => Math.max(1, p - 1))}
               >
@@ -832,7 +832,7 @@ export default function StaffAnalyticsPage() {
               </Button>
               <Button
                 type="button"
-                className="h-8 rounded-lg border border-slate-200 bg-white px-3 text-[11px] font-black uppercase tracking-wide text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                className="h-8 rounded-md border border-input bg-card px-3 text-[11px] font-semibold text-foreground hover:bg-accent disabled:opacity-50"
                 disabled={(employeeRows?.page ?? 1) >= (employeeRows?.total_pages ?? 1)}
                 onClick={() => setEmployeePage((p) => p + 1)}
               >
@@ -843,27 +843,27 @@ export default function StaffAnalyticsPage() {
         </Card>
 
         {payload?.employee_explorer?.selected_employee ? (
-          <Card className="rounded-2xl border border-slate-100 p-4">
-            <h3 className="text-xs font-black uppercase tracking-wider text-slate-500 mb-2">Selected Employee Drill-Down</h3>
-            <p className="text-sm font-semibold text-slate-700 mb-3">
+          <Card className="rounded-lg border border-border p-4">
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Selected Employee Drill-Down</h3>
+            <p className="text-sm font-semibold text-foreground mb-3">
               {payload.employee_explorer.selected_employee.name} ({payload.employee_explorer.selected_employee.user_code}) • Score {numberValue(payload.employee_explorer.selected_employee.score).toFixed(2)}
             </p>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
-              <div className="rounded-xl border border-slate-100 p-2 bg-slate-50/70">
-                <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Attendance %</p>
-                <p className="text-sm font-black text-emerald-700">{numberValue(payload.employee_explorer.selected_insights?.attendance_rate_percent).toFixed(2)}</p>
+              <div className="rounded-md border border-border p-2 bg-muted">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Attendance %</p>
+                <p className="text-sm font-semibold text-success font-mono tabular-nums">{numberValue(payload.employee_explorer.selected_insights?.attendance_rate_percent).toFixed(2)}</p>
               </div>
-              <div className="rounded-xl border border-slate-100 p-2 bg-slate-50/70">
-                <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Punctuality %</p>
-                <p className="text-sm font-black text-emerald-700">{numberValue(payload.employee_explorer.selected_insights?.punctuality_percent).toFixed(2)}</p>
+              <div className="rounded-md border border-border p-2 bg-muted">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Punctuality %</p>
+                <p className="text-sm font-semibold text-success font-mono tabular-nums">{numberValue(payload.employee_explorer.selected_insights?.punctuality_percent).toFixed(2)}</p>
               </div>
-              <div className="rounded-xl border border-slate-100 p-2 bg-slate-50/70">
-                <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Absence %</p>
-                <p className="text-sm font-black text-rose-700">{numberValue(payload.employee_explorer.selected_insights?.absence_percent).toFixed(2)}</p>
+              <div className="rounded-md border border-border p-2 bg-muted">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Absence %</p>
+                <p className="text-sm font-semibold text-destructive font-mono tabular-nums">{numberValue(payload.employee_explorer.selected_insights?.absence_percent).toFixed(2)}</p>
               </div>
-              <div className="rounded-xl border border-slate-100 p-2 bg-slate-50/70">
-                <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Compliance Risk</p>
-                <p className="text-sm font-black text-amber-700">{numberValue(payload.employee_explorer.selected_insights?.compliance_risk_count)}</p>
+              <div className="rounded-md border border-border p-2 bg-muted">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Compliance Risk</p>
+                <p className="text-sm font-semibold text-warning-foreground font-mono tabular-nums">{numberValue(payload.employee_explorer.selected_insights?.compliance_risk_count)}</p>
               </div>
             </div>
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
@@ -898,28 +898,28 @@ export default function StaffAnalyticsPage() {
         ) : null}
       </section>
 
-      <details className="rounded-2xl border border-slate-100 bg-white p-4">
-        <summary className="cursor-pointer text-xs font-black uppercase tracking-wider text-slate-500">Show Raw Trend Tables</summary>
+      <details className="rounded-lg border border-border bg-card p-4">
+        <summary className="cursor-pointer text-xs font-semibold uppercase tracking-wide text-muted-foreground">Show Raw Trend Tables</summary>
         <div className="mt-3 grid grid-cols-1 xl:grid-cols-2 gap-4">
-          <Card className="rounded-2xl border border-slate-100 p-3">
-            <h3 className="text-xs font-black uppercase tracking-wider text-slate-500 mb-2">Attendance Trend Rows</h3>
+          <Card className="rounded-lg border border-border p-3">
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Attendance Trend Rows</h3>
             <div className="overflow-auto max-h-72">
               <table className="w-full text-left min-w-[520px]">
                 <thead>
-                  <tr className="bg-slate-50/70">
-                    <th className="px-2 py-1 text-[10px] font-black uppercase tracking-widest text-slate-400">Bucket</th>
-                    <th className="px-2 py-1 text-[10px] font-black uppercase tracking-widest text-slate-400">Marks</th>
-                    <th className="px-2 py-1 text-[10px] font-black uppercase tracking-widest text-slate-400">Present</th>
-                    <th className="px-2 py-1 text-[10px] font-black uppercase tracking-widest text-slate-400">Rate</th>
+                  <tr className="bg-muted">
+                    <th className="px-2 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Bucket</th>
+                    <th className="px-2 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Marks</th>
+                    <th className="px-2 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Present</th>
+                    <th className="px-2 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Rate</th>
                   </tr>
                 </thead>
                 <tbody>
                   {attendancePoints.map((row) => (
-                    <tr key={`att-${row.label}`} className="border-t border-slate-100">
-                      <td className="px-2 py-1 text-xs font-semibold text-slate-700">{row.label}</td>
-                      <td className="px-2 py-1 text-xs font-semibold text-slate-700">{numberValue(row.marks)}</td>
-                      <td className="px-2 py-1 text-xs font-semibold text-slate-700">{numberValue(row.present_like)}</td>
-                      <td className="px-2 py-1 text-xs font-semibold text-slate-700">{numberValue(row.rate_percent).toFixed(2)}%</td>
+                    <tr key={`att-${row.label}`} className="border-t border-border">
+                      <td className="px-2 py-1 text-xs font-semibold text-foreground">{row.label}</td>
+                      <td className="px-2 py-1 text-xs font-semibold text-foreground font-mono tabular-nums">{numberValue(row.marks)}</td>
+                      <td className="px-2 py-1 text-xs font-semibold text-foreground font-mono tabular-nums">{numberValue(row.present_like)}</td>
+                      <td className="px-2 py-1 text-xs font-semibold text-foreground font-mono tabular-nums">{numberValue(row.rate_percent).toFixed(2)}%</td>
                     </tr>
                   ))}
                 </tbody>
@@ -927,25 +927,25 @@ export default function StaffAnalyticsPage() {
             </div>
           </Card>
 
-          <Card className="rounded-2xl border border-slate-100 p-3">
-            <h3 className="text-xs font-black uppercase tracking-wider text-slate-500 mb-2">Leave Trend Rows</h3>
+          <Card className="rounded-lg border border-border p-3">
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Leave Trend Rows</h3>
             <div className="overflow-auto max-h-72">
               <table className="w-full text-left min-w-[520px]">
                 <thead>
-                  <tr className="bg-slate-50/70">
-                    <th className="px-2 py-1 text-[10px] font-black uppercase tracking-widest text-slate-400">Bucket</th>
-                    <th className="px-2 py-1 text-[10px] font-black uppercase tracking-widest text-slate-400">Total</th>
-                    <th className="px-2 py-1 text-[10px] font-black uppercase tracking-widest text-slate-400">Pending</th>
-                    <th className="px-2 py-1 text-[10px] font-black uppercase tracking-widest text-slate-400">Approved</th>
+                  <tr className="bg-muted">
+                    <th className="px-2 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Bucket</th>
+                    <th className="px-2 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Total</th>
+                    <th className="px-2 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Pending</th>
+                    <th className="px-2 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Approved</th>
                   </tr>
                 </thead>
                 <tbody>
                   {leavePoints.map((row) => (
-                    <tr key={`leave-${row.label}`} className="border-t border-slate-100">
-                      <td className="px-2 py-1 text-xs font-semibold text-slate-700">{row.label}</td>
-                      <td className="px-2 py-1 text-xs font-semibold text-slate-700">{numberValue(row.total)}</td>
-                      <td className="px-2 py-1 text-xs font-semibold text-slate-700">{numberValue(row.pending)}</td>
-                      <td className="px-2 py-1 text-xs font-semibold text-slate-700">{numberValue(row.approved)}</td>
+                    <tr key={`leave-${row.label}`} className="border-t border-border">
+                      <td className="px-2 py-1 text-xs font-semibold text-foreground">{row.label}</td>
+                      <td className="px-2 py-1 text-xs font-semibold text-foreground font-mono tabular-nums">{numberValue(row.total)}</td>
+                      <td className="px-2 py-1 text-xs font-semibold text-foreground font-mono tabular-nums">{numberValue(row.pending)}</td>
+                      <td className="px-2 py-1 text-xs font-semibold text-foreground font-mono tabular-nums">{numberValue(row.approved)}</td>
                     </tr>
                   ))}
                 </tbody>

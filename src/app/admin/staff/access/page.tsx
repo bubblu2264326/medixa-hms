@@ -173,25 +173,25 @@ export default function StaffAccessRolesPage() {
   return (
     <div className="space-y-6 py-4">
       <div>
-        <h1 className="text-2xl font-black text-slate-800 uppercase tracking-tight">Access & Roles</h1>
-        <p className="text-sm text-slate-500 font-semibold mt-1">Action-level permission matrix by staff profile.</p>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Access & Roles</h1>
+        <p className="text-sm text-muted-foreground mt-1">Action-level permission matrix by staff profile.</p>
       </div>
 
       {error ? (
-        <Card className="border border-red-100 bg-red-50 p-4 rounded-2xl">
-          <p className="text-sm font-semibold text-red-700">{error}</p>
+        <Card className="border border-destructive/20 bg-destructive/10 p-4 rounded-lg">
+          <p className="text-sm font-medium text-destructive">{error}</p>
         </Card>
       ) : null}
 
-      <Card className="rounded-3xl border border-slate-100 p-5">
+      <Card className="rounded-lg border border-border p-5">
         <div className="flex flex-col md:flex-row gap-3 md:items-center md:justify-between mb-4">
-          <div className="flex items-center gap-2 text-slate-700">
-            <Shield className="w-4 h-4" />
-            <p className="text-sm font-semibold">Permission Matrix</p>
+          <div className="flex items-center gap-2 text-foreground">
+            <Shield className="w-4 h-4" aria-hidden />
+            <p className="text-sm font-medium">Permission Matrix</p>
           </div>
           <div className="flex items-center gap-3">
             <select
-              className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+              className="h-10 rounded-md border border-input px-3 text-sm"
               value={selectedStaffId ?? ""}
               onChange={(e) => setSelectedStaffId(Number(e.target.value))}
             >
@@ -201,25 +201,25 @@ export default function StaffAccessRolesPage() {
                 </option>
               ))}
             </select>
-            <Button onClick={save} disabled={saving || !selectedStaffId} className="bg-slate-900 hover:bg-black text-white rounded-xl px-4 h-10 text-xs font-black uppercase tracking-widest">
+            <Button onClick={save} disabled={saving || !selectedStaffId} className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-md px-4 h-10 text-xs font-semibold">
               <Save className="w-4 h-4 mr-1" /> {saving ? "Saving" : "Save"}
             </Button>
           </div>
         </div>
 
         {selectedStaff ? (
-          <p className="text-xs font-semibold text-slate-500 mb-3">
-            Editing: <span className="text-slate-700 font-bold">{selectedStaff.name}</span> ({selectedStaff.role})
+          <p className="text-xs font-medium text-muted-foreground mb-3">
+            Editing: <span className="text-foreground font-semibold">{selectedStaff.name}</span> ({selectedStaff.role})
           </p>
         ) : null}
 
         <div className="overflow-x-auto">
           <table className="w-full text-left min-w-[900px]">
             <thead>
-              <tr className="bg-slate-50/70">
-                <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Module</th>
+              <tr className="bg-muted">
+                <th className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Module</th>
                 {actions.map((action) => (
-                  <th key={action} className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center">
+                  <th key={action} className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground text-center">
                     {action}
                   </th>
                 ))}
@@ -227,18 +227,18 @@ export default function StaffAccessRolesPage() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={actions.length + 1} className="px-3 py-8 text-sm text-slate-500 font-semibold">Loading matrix…</td></tr>
+                <tr><td colSpan={actions.length + 1} className="px-3 py-8 text-sm text-muted-foreground font-medium">Loading matrix…</td></tr>
               ) : (
                 modules.map((moduleName) => (
-                  <tr key={moduleName} className="border-t border-slate-100">
-                    <td className="px-3 py-2 text-sm font-bold text-slate-700">{moduleName}</td>
+                  <tr key={moduleName} className="border-t border-border">
+                    <td className="px-3 py-2 text-sm font-semibold text-foreground">{moduleName}</td>
                     {actions.map((action) => {
                       const allowed = isAllowed(moduleName, action);
                       return (
                         <td key={`${moduleName}-${action}`} className="px-3 py-2 text-center">
                           <button
                             onClick={() => toggle(moduleName, action)}
-                            className={`w-8 h-8 rounded-lg border text-xs font-black ${allowed ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-slate-50 text-slate-500 border-slate-200"}`}
+                            className={`w-8 h-8 rounded-md border text-xs font-semibold ${allowed ? "bg-success/10 text-success border-success/20" : "bg-muted text-muted-foreground border-border"}`}
                             aria-label={`Toggle ${action} for ${moduleName}`}
                           >
                             {allowed ? "Y" : "N"}

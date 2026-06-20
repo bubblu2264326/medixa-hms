@@ -56,23 +56,23 @@ function formatTime(value: string | null, timeZone: string) {
 function statusStyle(status: string) {
     switch (status) {
         case "on_time":
-            return "bg-emerald-100 text-emerald-800";
+            return "bg-success/10 text-success";
         case "late":
-            return "bg-amber-100 text-amber-800";
+            return "bg-warning/15 text-warning-foreground";
         case "half_day":
-            return "bg-orange-100 text-orange-800";
+            return "bg-warning/15 text-warning-foreground";
         case "early_leave":
-            return "bg-yellow-100 text-yellow-800";
+            return "bg-warning/15 text-warning-foreground";
         case "overtime":
-            return "bg-blue-100 text-blue-800";
+            return "bg-info/10 text-info";
         case "unscheduled":
-            return "bg-slate-200 text-slate-700";
+            return "bg-muted text-muted-foreground";
         case "absent":
-            return "bg-rose-100 text-rose-700";
+            return "bg-destructive/10 text-destructive";
         case "leave":
-            return "bg-violet-100 text-violet-700";
+            return "bg-muted text-muted-foreground";
         default:
-            return "bg-slate-200 text-slate-700";
+            return "bg-muted text-muted-foreground";
     }
 }
 
@@ -216,113 +216,113 @@ export default function AttendancePage() {
         <div className="space-y-6">
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div>
-                    <h1 className="text-2xl font-black uppercase tracking-tight text-slate-800">Attendance & Time Tracking</h1>
-                    <p className="text-sm font-semibold text-slate-500">Roster-aware attendance with policy-based outcomes.</p>
+                    <h1 className="text-2xl font-semibold tracking-tight text-foreground">Attendance & Time Tracking</h1>
+                    <p className="text-sm font-medium text-muted-foreground">Roster-aware attendance with policy-based outcomes.</p>
                 </div>
                 <Button
                     onClick={() => {
                         setManual((prev) => ({ ...prev, date: selectedDate }));
                         setShowModal(true);
                     }}
-                    className="rounded-2xl bg-emerald-700 text-white hover:bg-emerald-800"
+                    className="rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
                 >
                     Manual Entry Override
                 </Button>
             </div>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
-                <Card className="rounded-2xl border p-4">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Staff</p>
-                    <p className="mt-1 text-2xl font-black text-slate-800">{summary.total_staff}</p>
+                <Card className="rounded-lg border border-border p-4">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Total Staff</p>
+                    <p className="mt-1 text-2xl font-semibold text-foreground font-mono tabular-nums">{summary.total_staff}</p>
                 </Card>
-                <Card className="rounded-2xl border p-4">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Present Today</p>
-                    <p className="mt-1 text-2xl font-black text-emerald-700">{summary.present_today}</p>
+                <Card className="rounded-lg border border-border p-4">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Present Today</p>
+                    <p className="mt-1 text-2xl font-semibold text-success font-mono tabular-nums">{summary.present_today}</p>
                 </Card>
-                <Card className="rounded-2xl border p-4">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Absent</p>
-                    <p className="mt-1 text-2xl font-black text-rose-700">{summary.absent}</p>
+                <Card className="rounded-lg border border-border p-4">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Absent</p>
+                    <p className="mt-1 text-2xl font-semibold text-destructive font-mono tabular-nums">{summary.absent}</p>
                 </Card>
-                <Card className="rounded-2xl border p-4">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Late / Half Day</p>
-                    <p className="mt-1 text-2xl font-black text-amber-700">{summary.late_or_half_day}</p>
+                <Card className="rounded-lg border border-border p-4">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Late / Half Day</p>
+                    <p className="mt-1 text-2xl font-semibold text-warning-foreground font-mono tabular-nums">{summary.late_or_half_day}</p>
                 </Card>
-                <Card className="rounded-2xl border p-4">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Unscheduled</p>
-                    <p className="mt-1 text-2xl font-black text-slate-700">{summary.unscheduled}</p>
+                <Card className="rounded-lg border border-border p-4">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Unscheduled</p>
+                    <p className="mt-1 text-2xl font-semibold text-foreground font-mono tabular-nums">{summary.unscheduled}</p>
                 </Card>
             </div>
 
-            <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white">
-                <div className="flex flex-col gap-3 border-b border-slate-100 p-4 md:flex-row md:items-center md:justify-between">
-                    <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 md:w-96">
-                        <Search className="h-4 w-4 text-slate-400" />
+            <div className="overflow-hidden rounded-lg border border-border bg-card">
+                <div className="flex flex-col gap-3 border-b border-border p-4 md:flex-row md:items-center md:justify-between">
+                    <div className="flex items-center gap-3 rounded-md border border-input bg-muted px-3 py-2 md:w-96">
+                        <Search className="h-4 w-4 text-muted-foreground" />
                         <input
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder="Search by name or code"
-                            className="w-full bg-transparent text-sm font-medium text-slate-700 focus:outline-none"
+                            className="w-full bg-transparent text-sm font-medium text-foreground focus:outline-none"
                         />
                     </div>
-                    <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2">
-                        <Calendar className="h-4 w-4 text-emerald-700" />
+                    <div className="flex items-center gap-2 rounded-md border border-input bg-muted px-3 py-2">
+                        <Calendar className="h-4 w-4 text-primary" />
                         <input
                             type="date"
                             value={selectedDate}
                             onChange={(e) => setSelectedDate(e.target.value)}
-                            className="bg-transparent text-sm font-semibold text-slate-700 focus:outline-none"
+                            className="bg-transparent text-sm font-medium text-foreground focus:outline-none"
                         />
                     </div>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead>
-                            <tr className="bg-slate-50">
-                                <th className="px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Staff</th>
-                                <th className="px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Derived Status</th>
-                                <th className="px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Check In</th>
-                                <th className="px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Check Out</th>
-                                <th className="px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Minutes</th>
-                                <th className="px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Note</th>
+                            <tr className="bg-muted">
+                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">Staff</th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">Derived Status</th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">Check In</th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">Check Out</th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">Minutes</th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">Note</th>
                             </tr>
                         </thead>
                         <tbody>
                             {loading ? (
                                 <tr>
-                                    <td colSpan={6} className="px-4 py-14 text-center text-sm font-semibold text-slate-400">
+                                    <td colSpan={6} className="px-4 py-14 text-center text-sm font-semibold text-muted-foreground">
                                         Loading attendance records...
                                     </td>
                                 </tr>
                             ) : filteredRecords.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="px-4 py-14 text-center text-sm font-semibold text-slate-400">
+                                    <td colSpan={6} className="px-4 py-14 text-center text-sm font-semibold text-muted-foreground">
                                         No attendance records found for this date.
                                     </td>
                                 </tr>
                             ) : (
                                 filteredRecords.map((record) => (
-                                    <tr key={record.attendance_id} className="border-t border-slate-100">
+                                    <tr key={record.attendance_id} className="border-t border-border">
                                         <td className="px-4 py-4">
-                                            <div className="font-semibold text-slate-800">{record.staff_name}</div>
-                                            <div className="text-xs font-semibold text-slate-400">{record.user_code}</div>
+                                            <div className="font-semibold text-foreground">{record.staff_name}</div>
+                                            <div className="text-xs font-medium text-muted-foreground font-mono tabular-nums">{record.user_code}</div>
                                         </td>
                                         <td className="px-4 py-4">
                                             <span
-                                                className={`inline-flex rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wider ${statusStyle(
+                                                className={`inline-flex rounded-md px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${statusStyle(
                                                     String(record.derived_status || "")
                                                 )}`}
                                             >
                                                 {String(record.derived_status || record.status).replace("_", " ")}
                                             </span>
                                         </td>
-                                        <td className="px-4 py-4 text-sm font-semibold text-slate-700">{formatTime(record.check_in_time, systemTimezone)}</td>
-                                        <td className="px-4 py-4 text-sm font-semibold text-slate-700">{formatTime(record.check_out_time, systemTimezone)}</td>
-                                        <td className="px-4 py-4 text-xs font-semibold text-slate-500">
+                                        <td className="px-4 py-4 text-sm font-medium text-foreground font-mono tabular-nums">{formatTime(record.check_in_time, systemTimezone)}</td>
+                                        <td className="px-4 py-4 text-sm font-medium text-foreground font-mono tabular-nums">{formatTime(record.check_out_time, systemTimezone)}</td>
+                                        <td className="px-4 py-4 text-xs font-medium text-muted-foreground font-mono tabular-nums">
                                             <div>Late: {record.late_minutes ?? 0}</div>
                                             <div>Early: {record.early_leave_minutes ?? 0}</div>
                                             <div>OT: {record.overtime_minutes ?? 0}</div>
                                         </td>
-                                        <td className="px-4 py-4 text-xs font-medium text-slate-500">
+                                        <td className="px-4 py-4 text-xs font-medium text-muted-foreground">
                                             {record.attendance_message || (record.is_unscheduled ? "Unscheduled shift day." : "-")}
                                         </td>
                                     </tr>
@@ -335,17 +335,17 @@ export default function AttendancePage() {
 
             {showModal ? (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4">
-                    <div className="w-full max-w-2xl rounded-[2rem] bg-white p-6 shadow-2xl">
+                    <div className="w-full max-w-2xl rounded-lg bg-card p-6 shadow-sm">
                         <div className="mb-4 flex items-center justify-between">
-                            <h2 className="text-lg font-black uppercase tracking-tight text-slate-800">Manual Attendance Override</h2>
-                            <button className="text-sm font-semibold text-slate-500" onClick={() => setShowModal(false)}>
+                            <h2 className="text-lg font-semibold tracking-tight text-foreground">Manual Attendance Override</h2>
+                            <button className="text-sm font-semibold text-muted-foreground" onClick={() => setShowModal(false)}>
                                 Close
                             </button>
                         </div>
                         <form className="space-y-4" onSubmit={handleManualSubmit}>
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div className="space-y-1">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Employee</label>
+                                    <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Employee</label>
                                     <select
                                         value={manual.staff_id}
                                         onChange={(e) => {
@@ -356,7 +356,7 @@ export default function AttendancePage() {
                                                 account_type: selected?.account_type ?? "staff",
                                             }));
                                         }}
-                                        className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium"
+                                        className="w-full rounded-md border border-input px-3 py-2 text-sm font-medium"
                                         required
                                     >
                                         <option value="">Select staff</option>
@@ -368,23 +368,23 @@ export default function AttendancePage() {
                                     </select>
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Date</label>
+                                    <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Date</label>
                                     <input
                                         type="date"
                                         value={manual.date}
                                         onChange={(e) => setManual((prev) => ({ ...prev, date: e.target.value }))}
-                                        className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium"
+                                        className="w-full rounded-md border border-input px-3 py-2 text-sm font-medium"
                                         required
                                     />
                                 </div>
                             </div>
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                                 <div className="space-y-1">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Status</label>
+                                    <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Status</label>
                                     <select
                                         value={manual.status}
                                         onChange={(e) => setManual((prev) => ({ ...prev, status: e.target.value }))}
-                                        className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium"
+                                        className="w-full rounded-md border border-input px-3 py-2 text-sm font-medium"
                                     >
                                         <option value="Present">Present</option>
                                         <option value="Absent">Absent</option>
@@ -393,36 +393,36 @@ export default function AttendancePage() {
                                     </select>
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Check In</label>
+                                    <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Check In</label>
                                     <input
                                         type="time"
                                         value={manual.check_in_time}
                                         onChange={(e) => setManual((prev) => ({ ...prev, check_in_time: e.target.value }))}
-                                        className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium"
+                                        className="w-full rounded-md border border-input px-3 py-2 text-sm font-medium"
                                     />
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Check Out</label>
+                                    <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Check Out</label>
                                     <input
                                         type="time"
                                         value={manual.check_out_time}
                                         onChange={(e) => setManual((prev) => ({ ...prev, check_out_time: e.target.value }))}
-                                        className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium"
+                                        className="w-full rounded-md border border-input px-3 py-2 text-sm font-medium"
                                     />
                                 </div>
                             </div>
                             <div className="space-y-1">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Reason (audit)</label>
+                                <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Reason (audit)</label>
                                 <input
                                     type="text"
                                     value={manual.reason}
                                     onChange={(e) => setManual((prev) => ({ ...prev, reason: e.target.value }))}
                                     placeholder="Correction reason"
-                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium"
+                                    className="w-full rounded-md border border-input px-3 py-2 text-sm font-medium"
                                 />
                             </div>
-                            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
-                                <div className="mb-1 font-black uppercase tracking-wider text-slate-500">Computed Outcome Preview</div>
+                            <div className="rounded-md border border-border bg-muted p-3 text-xs text-muted-foreground">
+                                <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Computed Outcome Preview</div>
                                 {previewLoading ? (
                                     <span>Calculating...</span>
                                 ) : preview ? (
@@ -436,13 +436,13 @@ export default function AttendancePage() {
                                 )}
                             </div>
                             <div className="flex justify-end gap-2">
-                                <Button type="button" variant="outline" className="rounded-xl" onClick={() => setShowModal(false)}>
+                                <Button type="button" variant="outline" className="rounded-md" onClick={() => setShowModal(false)}>
                                     Cancel
                                 </Button>
                                 <Button
                                     type="submit"
                                     disabled={submitting}
-                                    className="rounded-xl bg-emerald-700 text-white hover:bg-emerald-800"
+                                    className="rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
                                 >
                                     {submitting ? "Saving..." : "Save Override"}
                                 </Button>

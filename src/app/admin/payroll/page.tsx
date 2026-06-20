@@ -151,31 +151,31 @@ export default function PayrollRunsPage() {
   return (
     <div className="space-y-6 py-4">
       <div>
-        <h1 className="text-2xl font-black text-slate-800 uppercase tracking-tight">Payroll Runs</h1>
-        <p className="text-sm text-slate-500 font-semibold mt-1">
+        <h1 className="text-2xl font-semibold text-foreground tracking-tight">Payroll Runs</h1>
+        <p className="text-sm text-muted-foreground mt-1">
           Generate month-wise payroll, review lines, and finalize after validation.
         </p>
       </div>
 
       {error ? (
-        <Card className="border border-red-100 bg-red-50 p-4 rounded-2xl">
-          <p className="text-sm font-semibold text-red-700">{error}</p>
+        <Card className="border border-destructive/20 bg-destructive/10 p-4 rounded-lg">
+          <p className="text-sm font-semibold text-destructive">{error}</p>
         </Card>
       ) : null}
 
-      <Card className="rounded-3xl border border-slate-100 p-5 space-y-3">
-        <h2 className="text-sm font-black uppercase tracking-widest text-slate-500">Generate Payroll</h2>
+      <Card className="rounded-lg border border-border p-5 space-y-3">
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Generate Payroll</h2>
         <div className="flex flex-col md:flex-row gap-2 md:items-center">
           <input
             type="month"
             value={month}
             onChange={(e) => setMonth(e.target.value)}
-            className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+            className="h-10 rounded-md border border-input px-3 text-sm"
           />
           <Button
             onClick={generateRun}
             disabled={busy}
-            className="h-10 rounded-xl bg-slate-900 hover:bg-black text-white text-xs font-black uppercase tracking-widest px-4"
+            className="h-10 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold uppercase tracking-wide px-4"
           >
             {busy ? "Generating..." : "Generate / Regenerate"}
           </Button>
@@ -183,13 +183,13 @@ export default function PayrollRunsPage() {
       </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
-        <Card className="lg:col-span-2 rounded-3xl border border-slate-100 p-4">
-          <h2 className="text-sm font-black uppercase tracking-widest text-slate-500 mb-3">Runs</h2>
+        <Card className="lg:col-span-2 rounded-lg border border-border p-4">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">Runs</h2>
           <div className="space-y-2 max-h-[480px] overflow-y-auto pr-1">
             {loading && runs.length === 0 ? (
-              <p className="text-sm text-slate-500 font-semibold">Loading runs...</p>
+              <p className="text-sm text-muted-foreground font-semibold">Loading runs...</p>
             ) : runs.length === 0 ? (
-              <p className="text-sm text-slate-500 font-semibold">No payroll runs available.</p>
+              <p className="text-sm text-muted-foreground font-semibold">No payroll runs available.</p>
             ) : (
               runs.map((run) => {
                 const active = selectedRunId === Number(run.payroll_run_id);
@@ -197,15 +197,15 @@ export default function PayrollRunsPage() {
                   <button
                     key={run.payroll_run_id}
                     onClick={() => setSelectedRunId(Number(run.payroll_run_id))}
-                    className={`w-full text-left rounded-2xl border p-3 transition ${
-                      active ? "border-slate-900 bg-slate-50" : "border-slate-100 hover:border-slate-200"
+                    className={`w-full text-left rounded-md border p-3 transition ${
+                      active ? "border-primary bg-accent" : "border-border hover:border-input"
                     }`}
                   >
-                    <p className="text-xs font-black text-slate-700">
+                    <p className="text-xs font-semibold text-foreground">
                       {String(run.period_month).slice(0, 7)} · {run.status.toUpperCase()}
                     </p>
-                    <p className="text-xs font-semibold text-slate-500 mt-1">
-                      Lines: {Number(run.line_count ?? 0)} · Net: PKR {Number(run.total_net_amount ?? 0).toLocaleString()}
+                    <p className="text-xs font-semibold text-muted-foreground mt-1">
+                      Lines: <span className="font-mono tabular-nums">{Number(run.line_count ?? 0)}</span> · Net: PKR <span className="font-mono tabular-nums">{Number(run.total_net_amount ?? 0).toLocaleString()}</span>
                     </p>
                   </button>
                 );
@@ -214,11 +214,11 @@ export default function PayrollRunsPage() {
           </div>
         </Card>
 
-        <Card className="lg:col-span-3 rounded-3xl border border-slate-100 p-4 space-y-4">
+        <Card className="lg:col-span-3 rounded-lg border border-border p-4 space-y-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
             <div>
-              <h2 className="text-sm font-black uppercase tracking-widest text-slate-500">Run Details</h2>
-              <p className="text-xs font-semibold text-slate-500 mt-1">
+              <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Run Details</h2>
+              <p className="text-xs font-semibold text-muted-foreground mt-1">
                 {selectedRun ? `Status: ${selectedRun.status}` : "Select a run to view line items"}
               </p>
             </div>
@@ -227,14 +227,14 @@ export default function PayrollRunsPage() {
                 <Button
                   onClick={() => updateRun("finalize")}
                   disabled={busy || selectedRun.status !== "draft"}
-                  className="h-9 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-black uppercase tracking-widest px-3"
+                  className="h-9 rounded-md bg-success hover:bg-success/90 text-success-foreground text-[10px] font-semibold uppercase tracking-wide px-3"
                 >
                   Finalize
                 </Button>
                 <Button
                   onClick={() => updateRun("void")}
                   disabled={busy || selectedRun.status === "void"}
-                  className="h-9 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-black uppercase tracking-widest px-3"
+                  className="h-9 rounded-md bg-destructive hover:bg-destructive/90 text-white text-[10px] font-semibold uppercase tracking-wide px-3"
                 >
                   Void
                 </Button>
@@ -243,62 +243,62 @@ export default function PayrollRunsPage() {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-            <div className="rounded-xl border border-slate-100 p-2">
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Base</p>
-              <p className="text-sm font-black text-slate-800">PKR {totals.base.toLocaleString()}</p>
+            <div className="rounded-md border border-border p-2">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Base</p>
+              <p className="text-sm font-semibold text-foreground font-mono tabular-nums">PKR {totals.base.toLocaleString()}</p>
             </div>
-            <div className="rounded-xl border border-slate-100 p-2">
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Allowance</p>
-              <p className="text-sm font-black text-slate-800">PKR {totals.allowance.toLocaleString()}</p>
+            <div className="rounded-md border border-border p-2">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Allowance</p>
+              <p className="text-sm font-semibold text-foreground font-mono tabular-nums">PKR {totals.allowance.toLocaleString()}</p>
             </div>
-            <div className="rounded-xl border border-slate-100 p-2">
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Deduction</p>
-              <p className="text-sm font-black text-slate-800">PKR {totals.deduction.toLocaleString()}</p>
+            <div className="rounded-md border border-border p-2">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Deduction</p>
+              <p className="text-sm font-semibold text-foreground font-mono tabular-nums">PKR {totals.deduction.toLocaleString()}</p>
             </div>
-            <div className="rounded-xl border border-slate-100 p-2">
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Adjustment</p>
-              <p className="text-sm font-black text-slate-800">PKR {totals.adjustment.toLocaleString()}</p>
+            <div className="rounded-md border border-border p-2">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Adjustment</p>
+              <p className="text-sm font-semibold text-foreground font-mono tabular-nums">PKR {totals.adjustment.toLocaleString()}</p>
             </div>
-            <div className="rounded-xl border border-slate-900 bg-slate-900 p-2">
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-300">Net</p>
-              <p className="text-sm font-black text-white">PKR {totals.net.toLocaleString()}</p>
+            <div className="rounded-md border border-primary bg-primary p-2">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-primary-foreground/80">Net</p>
+              <p className="text-sm font-semibold text-primary-foreground font-mono tabular-nums">PKR {totals.net.toLocaleString()}</p>
             </div>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-left min-w-[860px]">
               <thead>
-                <tr className="bg-slate-50/70">
-                  <th className="px-2 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Employee</th>
-                  <th className="px-2 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Model</th>
-                  <th className="px-2 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Patients</th>
-                  <th className="px-2 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Base</th>
-                  <th className="px-2 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Allowance</th>
-                  <th className="px-2 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Deduction</th>
-                  <th className="px-2 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Adjust</th>
-                  <th className="px-2 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Net</th>
+                <tr className="bg-muted">
+                  <th className="px-2 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Employee</th>
+                  <th className="px-2 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Model</th>
+                  <th className="px-2 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Patients</th>
+                  <th className="px-2 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Base</th>
+                  <th className="px-2 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Allowance</th>
+                  <th className="px-2 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Deduction</th>
+                  <th className="px-2 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Adjust</th>
+                  <th className="px-2 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Net</th>
                 </tr>
               </thead>
               <tbody>
                 {lines.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-2 py-6 text-sm text-slate-500 font-semibold">
+                    <td colSpan={8} className="px-2 py-6 text-sm text-muted-foreground font-semibold">
                       No line items for this run.
                     </td>
                   </tr>
                 ) : (
                   lines.map((line) => (
-                    <tr key={line.payroll_line_id} className="border-t border-slate-100">
-                      <td className="px-2 py-2 text-xs font-semibold text-slate-700">
+                    <tr key={line.payroll_line_id} className="border-t border-border">
+                      <td className="px-2 py-2 text-xs font-semibold text-foreground">
                         {line.person_name || "Unknown"} ({line.user_code || "-"})
                       </td>
-                      <td className="px-2 py-2 text-xs font-semibold text-slate-700">{line.salary_model}</td>
-                      <td className="px-2 py-2 text-xs font-semibold text-slate-700">{Number(line.patient_count ?? 0)}</td>
-                      <td className="px-2 py-2 text-xs font-semibold text-slate-700">{Number(line.base_amount).toLocaleString()}</td>
-                      <td className="px-2 py-2 text-xs font-semibold text-slate-700">{Number(line.allowance_total).toLocaleString()}</td>
-                      <td className="px-2 py-2 text-xs font-semibold text-slate-700">{Number(line.deduction_total).toLocaleString()}</td>
-                      <td className="px-2 py-2 text-xs font-semibold text-slate-700">{Number(line.adjustment_total).toLocaleString()}</td>
-                      <td className="px-2 py-2 text-xs font-black text-slate-800">{Number(line.net_amount).toLocaleString()}</td>
+                      <td className="px-2 py-2 text-xs font-semibold text-foreground">{line.salary_model}</td>
+                      <td className="px-2 py-2 text-xs font-semibold text-foreground font-mono tabular-nums">{Number(line.patient_count ?? 0)}</td>
+                      <td className="px-2 py-2 text-xs font-semibold text-foreground font-mono tabular-nums">{Number(line.base_amount).toLocaleString()}</td>
+                      <td className="px-2 py-2 text-xs font-semibold text-foreground font-mono tabular-nums">{Number(line.allowance_total).toLocaleString()}</td>
+                      <td className="px-2 py-2 text-xs font-semibold text-foreground font-mono tabular-nums">{Number(line.deduction_total).toLocaleString()}</td>
+                      <td className="px-2 py-2 text-xs font-semibold text-foreground font-mono tabular-nums">{Number(line.adjustment_total).toLocaleString()}</td>
+                      <td className="px-2 py-2 text-xs font-semibold text-foreground font-mono tabular-nums">{Number(line.net_amount).toLocaleString()}</td>
                     </tr>
                   ))
                 )}

@@ -75,17 +75,16 @@ type StatCardProps = {
 const StatCard = ({ title, value, changeLabel, trend, icon: Icon, color, onClick }: StatCardProps) => (
   <Card
     onClick={onClick}
-    className={`p-6 relative overflow-hidden border-none shadow-xl shadow-slate-200/50 rounded-[2rem] ${onClick ? "cursor-pointer hover:scale-[1.01] transition-transform" : ""
+    className={`p-6 relative overflow-hidden border border-border shadow-sm rounded-lg ${onClick ? "cursor-pointer hover:bg-accent transition-colors" : ""
       }`}
   >
-    <div className={`absolute top-0 right-0 w-32 h-32 -mr-8 -mt-8 opacity-5 rounded-full ${color}`} />
     <div className="flex items-start justify-between relative z-10">
       <div className="space-y-3">
-        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{title}</p>
-        <h3 className="text-3xl font-black text-slate-800 tracking-tight">{value}</h3>
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{title}</p>
+        <h3 className="text-3xl font-semibold text-foreground tracking-tight font-mono tabular-nums">{value}</h3>
         <div className="flex items-center gap-1.5">
           <span
-            className={`flex items-center text-[10px] font-black px-2 py-0.5 rounded-full ${trend === "up" ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
+            className={`flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md ${trend === "up" ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"
               }`}
           >
             {trend === "up" ? (
@@ -95,10 +94,10 @@ const StatCard = ({ title, value, changeLabel, trend, icon: Icon, color, onClick
             )}
             {changeLabel}
           </span>
-          <span className="text-[10px] font-bold text-slate-400">live snapshot</span>
+          <span className="text-[10px] font-medium text-muted-foreground">live snapshot</span>
         </div>
       </div>
-      <div className={`p-4 rounded-2xl ${color}/10 ${color.replace("bg-", "text-")}`}>
+      <div className={`p-4 rounded-md bg-primary/10 text-primary`}>
         <Icon className="w-6 h-6" />
       </div>
     </div>
@@ -478,18 +477,18 @@ export default function AdminDashboard() {
   if (isPageBootstrapping && !data) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
-        <div className="w-12 h-12 border-4 border-slate-100 border-t-emerald-600 rounded-full animate-spin" />
+        <div className="w-12 h-12 border-4 border-muted border-t-primary rounded-full animate-spin" />
       </div>
     );
   }
 
   if (error && !data) {
     return (
-      <Card className="p-8 rounded-[2rem] border border-rose-100 bg-rose-50/40">
-        <h2 className="text-lg font-black text-rose-700 uppercase tracking-wide">Dashboard unavailable</h2>
-        <p className="text-sm font-semibold text-rose-600 mt-2">{error}</p>
+      <Card className="p-8 rounded-lg border border-destructive/20 bg-destructive/10">
+        <h2 className="text-lg font-semibold text-destructive tracking-tight">Dashboard unavailable</h2>
+        <p className="text-sm font-medium text-destructive mt-2">{error}</p>
         <Button
-          className="mt-6 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white"
+          className="mt-6 rounded-md bg-destructive hover:bg-destructive/90 text-white"
           onClick={() => loadSummary(selectedRange, "boot")}
         >
           Retry
@@ -520,16 +519,16 @@ export default function AdminDashboard() {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-800 tracking-tight uppercase">Hospital Overview</h1>
-          <p className="text-slate-500 text-sm font-semibold mt-1 flex items-center gap-2">
-            <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+          <h1 className="text-3xl font-semibold text-foreground tracking-tight">Hospital Overview</h1>
+          <p className="text-muted-foreground text-sm font-medium mt-1 flex items-center gap-2">
+            <span className="w-2 h-2 bg-success rounded-full" />
             Live operational summary
           </p>
         </div>
         <div className="flex gap-3">
           <Button
             variant="outline"
-            className="rounded-2xl border-slate-200 font-bold text-xs uppercase tracking-wider"
+            className="rounded-md border-input font-medium text-xs"
             onClick={() => {
               void loadSummary(selectedRange, "refresh");
             }}
@@ -539,7 +538,7 @@ export default function AdminDashboard() {
             Refresh
           </Button>
           <Button
-            className="bg-slate-900 hover:bg-black text-white rounded-2xl px-6 shadow-xl font-bold text-xs uppercase tracking-wider"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-md px-6 shadow-sm font-medium text-xs"
             onClick={() => router.push("/admin/audit")}
           >
             View Audit Logs
@@ -554,7 +553,7 @@ export default function AdminDashboard() {
           changeLabel={metrics.revenue > 0 ? "Cash received" : "No collections"}
           trend="up"
           icon={HandCoins}
-          color="bg-emerald-500"
+          color="bg-primary"
         />
         <StatCard
           title="Daily Patients"
@@ -562,7 +561,7 @@ export default function AdminDashboard() {
           changeLabel={metrics.dailyPatients > 0 ? "Active queue" : "No visits yet"}
           trend={metrics.dailyPatients > 0 ? "up" : "down"}
           icon={Stethoscope}
-          color="bg-blue-500"
+          color="bg-primary"
         />
         <StatCard
           title="Active Staff"
@@ -570,7 +569,7 @@ export default function AdminDashboard() {
           changeLabel={metrics.activeStaff > 0 ? "Present today" : "No check-ins"}
           trend={metrics.activeStaff > 0 ? "up" : "down"}
           icon={Users}
-          color="bg-amber-500"
+          color="bg-primary"
         />
         <StatCard
           title="Critical Low-Stock Items"
@@ -584,17 +583,17 @@ export default function AdminDashboard() {
           }
           trend={metrics.criticalLowStockCount > 5 ? "down" : "up"}
           icon={AlertCircle}
-          color="bg-violet-500"
+          color="bg-primary"
           onClick={() => router.push("/admin/inventory?focus=critical-low-stock")}
         />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <Card className="lg:col-span-2 p-8 h-[480px] flex flex-col rounded-[2.5rem] border border-slate-100/80 shadow-2xl shadow-slate-200/40">
+        <Card className="lg:col-span-2 p-8 h-[480px] flex flex-col rounded-lg border border-border shadow-sm">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight">Revenue Trends</h3>
-              <p className="text-xs font-bold text-slate-400 mt-1">
+              <h3 className="text-lg font-semibold text-foreground tracking-tight">Revenue Trends</h3>
+              <p className="text-xs font-medium text-muted-foreground mt-1">
                 {rangeLabelMap[selectedRange]} cash collected
               </p>
             </div>
@@ -605,9 +604,9 @@ export default function AdminDashboard() {
                   type="button"
                   disabled={isTrendLoading}
                   onClick={() => setSelectedRange(option.key)}
-                  className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider border transition-colors ${selectedRange === option.key
-                      ? "bg-slate-900 text-white border-slate-900"
-                      : "bg-white text-slate-500 border-slate-200 hover:border-slate-300 hover:text-slate-700"
+                  className={`px-3 py-1.5 rounded-md text-[10px] font-semibold uppercase tracking-wide border transition-colors ${selectedRange === option.key
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-card text-muted-foreground border-input hover:bg-accent hover:text-foreground"
                     } ${isTrendLoading ? "opacity-70 cursor-wait" : ""}`}
                 >
                   {option.label}
@@ -616,24 +615,24 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <div className="mb-5 rounded-2xl border border-slate-100 bg-slate-50/70 px-4 py-3">
+          <div className="mb-5 rounded-md border border-border bg-muted px-4 py-3">
             <div className="flex flex-wrap items-end gap-5">
               <div>
-                <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Total revenue (last 30 days)
                 </p>
-                <p className="mt-1 text-2xl font-black tracking-tight text-slate-900" data-testid="revenue-summary-total">
+                <p className="mt-1 text-2xl font-semibold tracking-tight text-foreground font-mono tabular-nums" data-testid="revenue-summary-total">
                   {formatCurrencyCompact(metrics.revenue)}
                 </p>
               </div>
               <div>
-                <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">% vs previous 30 days</p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">% vs previous 30 days</p>
                 <p
-                  className={`mt-1 text-sm font-black ${metrics.revenueChangePct30d === null
-                    ? "text-slate-500"
+                  className={`mt-1 text-sm font-semibold font-mono tabular-nums ${metrics.revenueChangePct30d === null
+                    ? "text-muted-foreground"
                     : metrics.revenueChangePct30d >= 0
-                      ? "text-emerald-600"
-                      : "text-rose-600"
+                      ? "text-success"
+                      : "text-destructive"
                     }`}
                   data-testid="revenue-summary-change"
                 >
@@ -645,10 +644,10 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {chartError ? <p className="text-xs font-semibold text-rose-500 mb-2">{chartError}</p> : null}
-          <div className="relative rounded-2xl border border-slate-100 bg-white shadow-sm p-4 flex-1 min-h-0">
+          {chartError ? <p className="text-xs font-medium text-destructive mb-2">{chartError}</p> : null}
+          <div className="relative rounded-md border border-border bg-card shadow-sm p-4 flex-1 min-h-0">
             {data.trend.length === 0 || (!hasNonZeroTrend && selectedRange === "7d") ? (
-              <p className="text-sm font-semibold text-slate-400 py-20 text-center">No cash collected in this range.</p>
+              <p className="text-sm font-medium text-muted-foreground py-20 text-center">No cash collected in this range.</p>
             ) : (
               <div className="h-full flex flex-col">
                 <div className="relative flex-1 min-h-[150px] pl-14 pr-2">
@@ -742,7 +741,7 @@ export default function AdminDashboard() {
                   <div className="absolute inset-0">
                     <div className="absolute left-0 top-0 bottom-0 w-12 flex flex-col justify-between py-2">
                       {yTicks.map((tick, idx) => (
-                        <span key={idx} className="text-[10px] font-bold text-slate-400">
+                        <span key={idx} className="text-[10px] font-medium text-muted-foreground font-mono tabular-nums">
                           {formatCurrencyCompact(Math.max(0, tick.value))}
                         </span>
                       ))}
@@ -770,20 +769,20 @@ export default function AdminDashboard() {
 
                   {activePoint ? (
                     <div
-                      className="absolute z-20 -translate-x-1/2 -translate-y-full bg-white rounded-xl shadow-xl border border-slate-100 px-3 py-2 min-w-[170px]"
+                      className="absolute z-20 -translate-x-1/2 -translate-y-full bg-card rounded-md shadow-sm border border-border px-3 py-2 min-w-[170px]"
                       style={{
                         left: `${activePoint.x}%`,
                         top: `${Math.max(activePoint.y - 3, 10)}%`,
                       }}
                       data-testid="trend-tooltip"
                     >
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
                         {activePoint.day} - {activePoint.date}
                       </p>
-                      <p className="text-sm font-black text-slate-800 mt-1">
+                      <p className="text-sm font-semibold text-foreground mt-1 font-mono tabular-nums">
                         {formatCurrencyCompact(Number(activePoint.value ?? 0))}
                       </p>
-                      <p className="text-[10px] font-bold text-slate-500 mt-1">
+                      <p className="text-[10px] font-medium text-muted-foreground mt-1">
                         Change:{" "}
                         {(() => {
                           const pointIndex = chartPoints.findIndex((point) => point.date === activePoint.date);
@@ -797,7 +796,7 @@ export default function AdminDashboard() {
 
                   {spikeIndexes[0] !== undefined && chartPoints[spikeIndexes[0]] ? (
                     <div
-                      className="absolute px-2 py-1 rounded-lg bg-emerald-50 border border-emerald-100 text-[10px] font-bold text-emerald-700"
+                      className="absolute px-2 py-1 rounded-md bg-success/10 border border-success/20 text-[10px] font-medium text-success"
                       style={{
                         left: `${chartPoints[spikeIndexes[0]].x}%`,
                         top: `${Math.max(chartPoints[spikeIndexes[0]].y - 11, 8)}%`,
@@ -815,7 +814,7 @@ export default function AdminDashboard() {
                     return (
                       <span
                         key={point.date}
-                        className={`text-[10px] text-center font-black uppercase tracking-widest truncate ${visible ? "text-slate-400" : "text-transparent"}`}
+                        className={`text-[10px] text-center font-medium uppercase tracking-wide truncate ${visible ? "text-muted-foreground" : "text-transparent"}`}
                         title={`${point.day} ${point.date}`}
                       >
                         {visible ? point.day : "."}
@@ -826,29 +825,29 @@ export default function AdminDashboard() {
               </div>
             )}
             {isTrendLoading ? (
-              <div className="absolute inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center rounded-2xl">
-                <div className="w-8 h-8 border-4 border-slate-100 border-t-emerald-600 rounded-full animate-spin" />
+              <div className="absolute inset-0 bg-background/70 flex items-center justify-center rounded-md">
+                <div className="w-8 h-8 border-4 border-muted border-t-primary rounded-full animate-spin" />
               </div>
             ) : null}
           </div>
         </Card>
 
-        <Card className="p-8 rounded-[2.5rem] border-none shadow-2xl shadow-slate-200/50 h-[480px] flex flex-col">
-          <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight mb-6">Pulse Feed</h3>
+        <Card className="p-8 rounded-lg border border-border shadow-sm h-[480px] flex flex-col">
+          <h3 className="text-lg font-semibold text-foreground tracking-tight mb-6">Pulse Feed</h3>
           <div className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-6" data-testid="pulse-feed-scroll">
             {data.activities.length === 0 ? (
-              <p className="text-sm font-semibold text-slate-400">No recent activity found.</p>
+              <p className="text-sm font-medium text-muted-foreground">No recent activity found.</p>
             ) : (
               data.activities.map((activity) => (
                 <div key={activity.id} className="flex items-start gap-4">
                   <div
-                    className={`p-2.5 rounded-xl shadow-sm ${activity.status === "success"
-                        ? "bg-emerald-50 text-emerald-600"
+                    className={`p-2.5 rounded-md ${activity.status === "success"
+                        ? "bg-success/10 text-success"
                         : activity.status === "warning"
-                          ? "bg-amber-50 text-amber-600"
+                          ? "bg-warning/15 text-warning-foreground"
                           : activity.status === "danger"
-                            ? "bg-rose-50 text-rose-600"
-                            : "bg-blue-50 text-blue-600"
+                            ? "bg-destructive/10 text-destructive"
+                            : "bg-info/10 text-info"
                       }`}
                   >
                     {activity.type === "attendance" ? (
@@ -864,10 +863,10 @@ export default function AdminDashboard() {
                     )}
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-bold text-slate-800 leading-none">{activity.action}</p>
-                    <p className="text-[11px] font-medium text-slate-500 mt-1">{activity.staff}</p>
+                    <p className="text-sm font-semibold text-foreground leading-none">{activity.action}</p>
+                    <p className="text-[11px] font-medium text-muted-foreground mt-1">{activity.staff}</p>
                   </div>
-                  <span className="text-[10px] font-black text-slate-400 whitespace-nowrap">
+                  <span className="text-[10px] font-medium text-muted-foreground whitespace-nowrap font-mono tabular-nums">
                     {formatTime(activity.time, systemTimezone)}
                   </span>
                 </div>
@@ -875,7 +874,7 @@ export default function AdminDashboard() {
             )}
           </div>
           <Button
-            className="w-full mt-6 shrink-0 bg-slate-50 hover:bg-slate-100 text-slate-600 py-4 rounded-2xl font-bold uppercase tracking-widest text-[11px] border-none shadow-none"
+            className="w-full mt-6 shrink-0 bg-muted hover:bg-accent text-foreground py-4 rounded-md font-medium text-[11px] border-none shadow-none"
             onClick={() => router.push("/admin/audit")}
           >
             View All Logs
@@ -885,41 +884,38 @@ export default function AdminDashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Link href="/admin/staff" className="block">
-          <Card className="p-6 bg-gradient-to-br from-emerald-600 to-teal-700 text-white rounded-[2rem] border-none shadow-xl shadow-emerald-100 flex items-center justify-between group cursor-pointer overflow-hidden">
+          <Card className="p-6 bg-primary text-primary-foreground rounded-lg border border-border shadow-sm flex items-center justify-between group cursor-pointer overflow-hidden">
             <div className="relative z-10">
-              <h4 className="text-white font-black uppercase tracking-widest text-[10px] opacity-80 mb-1">New Operation</h4>
-              <p className="text-sm font-bold">Register New Staff Member</p>
+              <h4 className="text-primary-foreground font-semibold uppercase tracking-wide text-[10px] opacity-80 mb-1">New Operation</h4>
+              <p className="text-sm font-semibold">Register New Staff Member</p>
             </div>
-            <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center relative z-10 group-hover:scale-110 transition-transform">
+            <div className="w-12 h-12 bg-primary-foreground/20 rounded-md flex items-center justify-center relative z-10">
               <Users className="w-6 h-6" />
             </div>
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-16 -mt-16" />
           </Card>
         </Link>
 
         <Link href="/admin/inventory" className="block">
-          <Card className="p-6 bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-[2rem] border-none shadow-xl shadow-blue-100 flex items-center justify-between group cursor-pointer overflow-hidden">
+          <Card className="p-6 bg-primary text-primary-foreground rounded-lg border border-border shadow-sm flex items-center justify-between group cursor-pointer overflow-hidden">
             <div className="relative z-10">
-              <h4 className="text-white font-black uppercase tracking-widest text-[10px] opacity-80 mb-1">Stock Control</h4>
-              <p className="text-sm font-bold">Initiate Inventory Audit</p>
+              <h4 className="text-primary-foreground font-semibold uppercase tracking-wide text-[10px] opacity-80 mb-1">Stock Control</h4>
+              <p className="text-sm font-semibold">Initiate Inventory Audit</p>
             </div>
-            <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center relative z-10 group-hover:scale-110 transition-transform">
+            <div className="w-12 h-12 bg-primary-foreground/20 rounded-md flex items-center justify-center relative z-10">
               <Package className="w-6 h-6" />
             </div>
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-16 -mt-16" />
           </Card>
         </Link>
 
         <Link href="/admin/staff" className="block">
-          <Card className="p-6 bg-gradient-to-br from-violet-600 to-purple-700 text-white rounded-[2rem] border-none shadow-xl shadow-violet-100 flex items-center justify-between group cursor-pointer overflow-hidden">
+          <Card className="p-6 bg-primary text-primary-foreground rounded-lg border border-border shadow-sm flex items-center justify-between group cursor-pointer overflow-hidden">
             <div className="relative z-10">
-              <h4 className="text-white font-black uppercase tracking-widest text-[10px] opacity-80 mb-1">System Audit</h4>
-              <p className="text-sm font-bold">Review Module Permissions</p>
+              <h4 className="text-primary-foreground font-semibold uppercase tracking-wide text-[10px] opacity-80 mb-1">System Audit</h4>
+              <p className="text-sm font-semibold">Review Module Permissions</p>
             </div>
-            <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center relative z-10 group-hover:scale-110 transition-transform">
+            <div className="w-12 h-12 bg-primary-foreground/20 rounded-md flex items-center justify-center relative z-10">
               <Settings className="w-6 h-6" />
             </div>
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-16 -mt-16" />
           </Card>
         </Link>
       </div>

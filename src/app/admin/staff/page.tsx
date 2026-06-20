@@ -316,39 +316,39 @@ export default function StaffDirectoryPage() {
     <div className="space-y-6 py-4">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-slate-800 uppercase tracking-tight">Staff Directory</h1>
-          <p className="text-sm text-slate-500 font-semibold mt-1">Master records for workforce identity, role and status.</p>
+          <h1 className="text-2xl font-semibold text-foreground tracking-tight">Staff Directory</h1>
+          <p className="text-sm text-muted-foreground mt-1">Master records for workforce identity, role and status.</p>
         </div>
         <Button
           onClick={openCreateForm}
-          className="bg-none bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl h-11 px-5 text-xs font-black uppercase tracking-widest shadow-md shadow-emerald-900/20"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-md h-11 px-5 text-xs font-semibold shadow-sm"
         >
           <UserPlus className="w-4 h-4 mr-2" /> Add Staff
         </Button>
       </div>
 
       {error ? (
-        <Card className="border border-red-100 bg-red-50 p-4 rounded-2xl">
-          <p className="text-sm font-semibold text-red-700">{error}</p>
+        <Card className="border border-destructive/20 bg-destructive/10 p-4 rounded-lg">
+          <p className="text-sm font-semibold text-destructive">{error}</p>
         </Card>
       ) : null}
       {resultMessage ? (
-        <Card className="border border-emerald-100 bg-emerald-50 p-4 rounded-2xl">
-          <p className="text-sm font-semibold text-emerald-700">{resultMessage}</p>
+        <Card className="border border-success/20 bg-success/10 p-4 rounded-lg">
+          <p className="text-sm font-semibold text-success">{resultMessage}</p>
         </Card>
       ) : null}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="p-4 rounded-2xl border border-slate-100"><p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total</p><p className="text-2xl font-black text-slate-800 mt-1">{stats.total}</p></Card>
-        <Card className="p-4 rounded-2xl border border-slate-100"><p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Active</p><p className="text-2xl font-black text-emerald-700 mt-1">{stats.active}</p></Card>
-        <Card className="p-4 rounded-2xl border border-slate-100"><p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Suspended</p><p className="text-2xl font-black text-amber-700 mt-1">{stats.suspended}</p></Card>
-        <Card className="p-4 rounded-2xl border border-slate-100"><p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Resigned</p><p className="text-2xl font-black text-slate-600 mt-1">{stats.resigned}</p></Card>
+        <Card className="p-4 rounded-lg border border-border"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Total</p><p className="text-2xl font-semibold text-foreground mt-1 font-mono tabular-nums">{stats.total}</p></Card>
+        <Card className="p-4 rounded-lg border border-border"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Active</p><p className="text-2xl font-semibold text-success mt-1 font-mono tabular-nums">{stats.active}</p></Card>
+        <Card className="p-4 rounded-lg border border-border"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Suspended</p><p className="text-2xl font-semibold text-warning-foreground mt-1 font-mono tabular-nums">{stats.suspended}</p></Card>
+        <Card className="p-4 rounded-lg border border-border"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Resigned</p><p className="text-2xl font-semibold text-muted-foreground mt-1 font-mono tabular-nums">{stats.resigned}</p></Card>
       </div>
 
-      <Card className="rounded-3xl border border-slate-100 p-5">
+      <Card className="rounded-lg border border-border p-5">
         <div className="flex flex-col md:flex-row gap-3 md:items-center md:justify-between mb-4">
-          <div className="flex items-center gap-3 bg-slate-50 border border-slate-100 px-4 py-2.5 rounded-2xl w-full md:w-[430px]">
-            <Search className="w-4 h-4 text-slate-400" />
+          <div className="flex items-center gap-3 bg-muted border border-border px-4 py-2.5 rounded-md w-full md:w-[430px]">
+            <Search className="w-4 h-4 text-muted-foreground" />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -359,7 +359,7 @@ export default function StaffDirectoryPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+            className="h-10 rounded-md border border-input px-3 text-sm"
           >
             <option value="all">All Statuses</option>
             <option value="active">Active</option>
@@ -372,35 +372,35 @@ export default function StaffDirectoryPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="bg-slate-50/70">
-                <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Staff</th>
-                <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Role</th>
-                <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Department</th>
-                <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Facility</th>
-                <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Status</th>
-                <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Action</th>
+              <tr className="bg-muted">
+                <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Staff</th>
+                <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Role</th>
+                <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Department</th>
+                <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Facility</th>
+                <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Status</th>
+                <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Action</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={6} className="px-4 py-10 text-sm text-slate-500 font-semibold">Loading…</td></tr>
+                <tr><td colSpan={6} className="px-4 py-10 text-sm text-muted-foreground font-semibold">Loading…</td></tr>
               ) : rows.length === 0 ? (
-                <tr><td colSpan={6} className="px-4 py-10 text-sm text-slate-500 font-semibold">No staff found.</td></tr>
+                <tr><td colSpan={6} className="px-4 py-10 text-sm text-muted-foreground font-semibold">No staff found.</td></tr>
               ) : rows.map((row) => (
-                <tr key={`${row.account_type}:${row.staff_id}`} className="border-t border-slate-100">
+                <tr key={`${row.account_type}:${row.staff_id}`} className="border-t border-border">
                   <td className="px-4 py-3">
-                    <p className="text-sm font-bold text-slate-800">{row.name}</p>
-                    <p className="text-[11px] font-semibold text-slate-500">{row.user_code}</p>
+                    <p className="text-sm font-semibold text-foreground">{row.name}</p>
+                    <p className="text-[11px] font-semibold text-muted-foreground font-mono tabular-nums">{row.user_code}</p>
                   </td>
-                  <td className="px-4 py-3 text-sm font-semibold text-slate-700">{row.role}</td>
-                  <td className="px-4 py-3 text-sm font-semibold text-slate-700">{row.department || "-"}</td>
-                  <td className="px-4 py-3 text-sm font-semibold text-slate-700">{row.facility_code || "-"}</td>
+                  <td className="px-4 py-3 text-sm font-semibold text-foreground">{row.role}</td>
+                  <td className="px-4 py-3 text-sm font-semibold text-foreground">{row.department || "-"}</td>
+                  <td className="px-4 py-3 text-sm font-semibold text-foreground">{row.facility_code || "-"}</td>
                   <td className="px-4 py-3">
-                    <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${
-                      row.employment_status === "active" ? "bg-emerald-50 text-emerald-700" :
-                      row.employment_status === "suspended" ? "bg-amber-50 text-amber-700" :
-                      row.employment_status === "resigned" ? "bg-slate-100 text-slate-700" :
-                      "bg-rose-50 text-rose-700"
+                    <span className={`px-2.5 py-1 rounded-md text-xs font-semibold uppercase tracking-wide ${
+                      row.employment_status === "active" ? "bg-success/10 text-success" :
+                      row.employment_status === "suspended" ? "bg-warning/15 text-warning-foreground" :
+                      row.employment_status === "resigned" ? "bg-muted text-muted-foreground" :
+                      "bg-destructive/10 text-destructive"
                     }`}>
                       {row.employment_status}
                     </span>
@@ -408,7 +408,7 @@ export default function StaffDirectoryPage() {
                   <td className="px-4 py-3">
                     <Button
                       onClick={() => openEditForm(row)}
-                      className="h-8 rounded-xl bg-none bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-black uppercase tracking-widest px-3 shadow-md shadow-emerald-900/20"
+                      className="h-8 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold px-3 shadow-sm"
                     >
                       Edit
                     </Button>
@@ -421,12 +421,12 @@ export default function StaffDirectoryPage() {
       </Card>
 
       {showCreate ? (
-        <div className="fixed inset-0 z-[120] bg-black/50 backdrop-blur-md flex items-center justify-center p-4">
-          <Card className="w-full max-w-3xl rounded-3xl border border-slate-200 p-0 overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-emerald-50/40">
+        <div className="fixed inset-0 z-[120] bg-black/50 flex items-center justify-center p-4">
+          <Card className="w-full max-w-3xl rounded-lg border border-border p-0 overflow-hidden">
+            <div className="px-6 py-4 border-b border-border bg-muted">
               <div>
-                <h2 className="text-lg font-black text-slate-800 uppercase tracking-wider">{isEditMode ? "Edit Staff" : "Onboard Staff"}</h2>
-                <p className="text-xs text-slate-500 font-semibold mt-1">
+                <h2 className="text-lg font-semibold text-foreground tracking-tight">{isEditMode ? "Edit Staff" : "Onboard Staff"}</h2>
+                <p className="text-xs text-muted-foreground mt-1">
                   {isEditMode
                     ? isDoctorEdit
                       ? "Update doctor information and optionally change password."
@@ -439,33 +439,33 @@ export default function StaffDirectoryPage() {
             <div className="p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wide mb-1.5">Full Name</label>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">Full Name</label>
                   <input
-                    className="h-11 rounded-xl border border-slate-200 px-3 text-sm w-full"
+                    className="h-11 rounded-md border border-input px-3 text-sm w-full"
                     placeholder="Full Name"
                     autoComplete="name"
                     value={form.name}
                     onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
                   />
-                  {formErrors.name ? <p className="mt-1 text-[11px] text-rose-600 font-semibold">{formErrors.name}</p> : null}
+                  {formErrors.name ? <p className="mt-1 text-[11px] text-destructive font-semibold">{formErrors.name}</p> : null}
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wide mb-1.5">User Code</label>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">User Code</label>
                   <input
-                    className="h-11 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm w-full cursor-not-allowed"
+                    className="h-11 rounded-md border border-input bg-muted px-3 text-sm w-full cursor-not-allowed font-mono tabular-nums"
                     placeholder="User Code"
                     autoComplete="off"
                     value={form.user_code}
                     readOnly
                   />
-                  {formErrors.user_code ? <p className="mt-1 text-[11px] text-rose-600 font-semibold">{formErrors.user_code}</p> : null}
+                  {formErrors.user_code ? <p className="mt-1 text-[11px] text-destructive font-semibold">{formErrors.user_code}</p> : null}
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wide mb-1.5">Role</label>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">Role</label>
                   <select
-                    className="h-11 rounded-xl border border-slate-200 px-3 text-sm w-full"
+                    className="h-11 rounded-md border border-input px-3 text-sm w-full"
                     value={form.role}
                     disabled={isDoctorEdit}
                     onChange={(e) => {
@@ -505,12 +505,12 @@ export default function StaffDirectoryPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wide mb-1.5">
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">
                     {isEditMode ? "New Password (Optional)" : "Temporary Password"}
                   </label>
                   <div className="relative">
                     <input
-                      className="h-11 rounded-xl border border-slate-200 px-3 pr-11 text-sm w-full"
+                      className="h-11 rounded-md border border-input px-3 pr-11 text-sm w-full"
                       type={showCreatePassword ? "text" : "password"}
                       placeholder={isEditMode ? "Leave blank to keep current password" : "Temporary Password"}
                       autoComplete="new-password"
@@ -520,19 +520,19 @@ export default function StaffDirectoryPage() {
                     <button
                       type="button"
                       onClick={() => setShowCreatePassword((v) => !v)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                       aria-label={showCreatePassword ? "Hide password" : "Show password"}
                     >
                       {showCreatePassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
-                  {formErrors.password ? <p className="mt-1 text-[11px] text-rose-600 font-semibold">{formErrors.password}</p> : null}
+                  {formErrors.password ? <p className="mt-1 text-[11px] text-destructive font-semibold">{formErrors.password}</p> : null}
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wide mb-1.5">Department</label>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">Department</label>
                   <select
-                    className="h-11 rounded-xl border border-slate-200 px-3 text-sm w-full"
+                    className="h-11 rounded-md border border-input px-3 text-sm w-full"
                     value={form.department}
                     onChange={(e) => setForm((p) => ({ ...p, department: e.target.value }))}
                   >
@@ -544,9 +544,9 @@ export default function StaffDirectoryPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wide mb-1.5">Designation</label>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">Designation</label>
                   <select
-                    className="h-11 rounded-xl border border-slate-200 px-3 text-sm w-full"
+                    className="h-11 rounded-md border border-input px-3 text-sm w-full"
                     value={form.designation}
                     onChange={(e) => setForm((p) => ({ ...p, designation: e.target.value }))}
                   >
@@ -558,10 +558,10 @@ export default function StaffDirectoryPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wide mb-1.5">Facility Code</label>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">Facility Code</label>
                   <input
                     list="facility-suggestions"
-                    className="h-11 rounded-xl border border-slate-200 px-3 text-sm w-full"
+                    className="h-11 rounded-md border border-input px-3 text-sm w-full"
                     placeholder="Facility Code"
                     autoComplete="off"
                     value={form.facility_code}
@@ -570,10 +570,10 @@ export default function StaffDirectoryPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wide mb-1.5">Branch Code</label>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">Branch Code</label>
                   <input
                     list="branch-suggestions"
-                    className="h-11 rounded-xl border border-slate-200 px-3 text-sm w-full"
+                    className="h-11 rounded-md border border-input px-3 text-sm w-full"
                     placeholder="Branch Code"
                     autoComplete="off"
                     value={form.branch_code}
@@ -582,27 +582,27 @@ export default function StaffDirectoryPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wide mb-1.5">Contact Number</label>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">Contact Number</label>
                   <input
-                    className="h-11 rounded-xl border border-slate-200 px-3 text-sm w-full"
+                    className="h-11 rounded-md border border-input px-3 text-sm w-full"
                     placeholder="Contact Number"
                     autoComplete="tel"
                     value={form.contact_number}
                     onChange={(e) => setForm((p) => ({ ...p, contact_number: e.target.value }))}
                   />
-                  {formErrors.contact_number ? <p className="mt-1 text-[11px] text-rose-600 font-semibold">{formErrors.contact_number}</p> : null}
+                  {formErrors.contact_number ? <p className="mt-1 text-[11px] text-destructive font-semibold">{formErrors.contact_number}</p> : null}
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wide mb-1.5">Email</label>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">Email</label>
                   <input
-                    className="h-11 rounded-xl border border-slate-200 px-3 text-sm w-full"
+                    className="h-11 rounded-md border border-input px-3 text-sm w-full"
                     placeholder="Email"
                     autoComplete="email"
                     value={form.email}
                     onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
                   />
-                  {formErrors.email ? <p className="mt-1 text-[11px] text-rose-600 font-semibold">{formErrors.email}</p> : null}
+                  {formErrors.email ? <p className="mt-1 text-[11px] text-destructive font-semibold">{formErrors.email}</p> : null}
                 </div>
               </div>
 
@@ -614,12 +614,12 @@ export default function StaffDirectoryPage() {
               </datalist>
             </div>
 
-            <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-2">
-              <Button onClick={closeFormModal} className="bg-slate-200 text-slate-800 hover:bg-slate-300 rounded-xl px-4">Cancel</Button>
+            <div className="px-6 py-4 border-t border-border bg-muted flex justify-end gap-2">
+              <Button onClick={closeFormModal} className="bg-muted text-foreground hover:bg-accent rounded-md px-4">Cancel</Button>
               <Button
                 disabled={saving || !canSave}
                 onClick={saveStaff}
-                className="bg-none bg-emerald-600 text-white hover:bg-emerald-700 rounded-xl px-4 shadow-md shadow-emerald-900/20"
+                className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-4 shadow-sm"
               >
                 {saving ? "Saving..." : isEditMode ? "Save Changes" : "Create Staff"}
               </Button>
@@ -628,8 +628,8 @@ export default function StaffDirectoryPage() {
         </div>
       ) : null}
 
-      <Card className="rounded-2xl border border-slate-100 p-4 bg-slate-50">
-        <div className="flex items-start gap-3 text-slate-600">
+      <Card className="rounded-lg border border-border p-4 bg-muted">
+        <div className="flex items-start gap-3 text-muted-foreground">
           <Users className="w-4 h-4 mt-0.5" />
           <p className="text-xs font-semibold">
             Onboarding modal now supports smart prediction and auto-complete based on existing directory data.

@@ -104,120 +104,120 @@ export default function AdminCashierDashboard() {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-black uppercase tracking-wide text-slate-800">Cashier Analytics & Monitor</h1>
-          <p className="text-sm text-slate-500">Admin transparency view for live cashier operations.</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Cashier Analytics & Monitor</h1>
+          <p className="text-sm text-muted-foreground">Admin transparency view for live cashier operations.</p>
         </div>
-        <Button className="rounded-xl bg-slate-900 text-white hover:bg-black" onClick={load} isLoading={loading}>
+        <Button className="rounded-md bg-primary text-primary-foreground hover:bg-primary/90" onClick={load} isLoading={loading}>
           Refresh
         </Button>
       </div>
 
       {error ? (
-        <Card className="rounded-2xl border border-rose-200 bg-rose-50 text-rose-700">{error}</Card>
+        <Card className="rounded-lg border border-destructive/20 bg-destructive/10 text-destructive">{error}</Card>
       ) : null}
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-        <Card className="rounded-2xl border-none bg-white shadow-md">
-          <div className="flex items-center gap-2 text-slate-500"><CircleDollarSign className="h-4 w-4" /> Today Collections</div>
-          <p className="mt-1 text-xl font-black text-slate-900">{fmt(kpis?.todayCollections ?? 0)}</p>
-          <p className="text-xs text-slate-500">Last 30d: {fmt(kpis?.last30Collections ?? 0)}</p>
+        <Card className="rounded-lg border border-border bg-card shadow-sm">
+          <div className="flex items-center gap-2 text-muted-foreground"><CircleDollarSign className="h-4 w-4" aria-hidden /> Today Collections</div>
+          <p className="mt-1 text-xl font-semibold text-foreground font-mono tabular-nums">{fmt(kpis?.todayCollections ?? 0)}</p>
+          <p className="text-xs text-muted-foreground">Last 30d: <span className="font-mono tabular-nums">{fmt(kpis?.last30Collections ?? 0)}</span></p>
         </Card>
-        <Card className="rounded-2xl border-none bg-white shadow-md">
-          <div className="flex items-center gap-2 text-slate-500"><AlertTriangle className="h-4 w-4" /> Outstanding</div>
-          <p className="mt-1 text-xl font-black text-rose-700">{fmt(kpis?.outstandingDue ?? 0)}</p>
-          <p className="text-xs text-slate-500">Last 30d: {fmt(kpis?.last30Outstanding ?? 0)}</p>
+        <Card className="rounded-lg border border-border bg-card shadow-sm">
+          <div className="flex items-center gap-2 text-muted-foreground"><AlertTriangle className="h-4 w-4" aria-hidden /> Outstanding</div>
+          <p className="mt-1 text-xl font-semibold text-destructive font-mono tabular-nums">{fmt(kpis?.outstandingDue ?? 0)}</p>
+          <p className="text-xs text-muted-foreground">Last 30d: <span className="font-mono tabular-nums">{fmt(kpis?.last30Outstanding ?? 0)}</span></p>
         </Card>
-        <Card className="rounded-2xl border-none bg-white shadow-md">
-          <div className="flex items-center gap-2 text-slate-500"><ShieldCheck className="h-4 w-4" /> Reversals Today</div>
-          <p className="mt-1 text-xl font-black text-amber-700">{kpis?.reversalsToday.count ?? 0}</p>
-          <p className="text-xs text-slate-500">{fmt(kpis?.reversalsToday.amount ?? 0)}</p>
+        <Card className="rounded-lg border border-border bg-card shadow-sm">
+          <div className="flex items-center gap-2 text-muted-foreground"><ShieldCheck className="h-4 w-4" aria-hidden /> Reversals Today</div>
+          <p className="mt-1 text-xl font-semibold text-warning-foreground font-mono tabular-nums">{kpis?.reversalsToday.count ?? 0}</p>
+          <p className="text-xs text-muted-foreground font-mono tabular-nums">{fmt(kpis?.reversalsToday.amount ?? 0)}</p>
         </Card>
-        <Card className="rounded-2xl border-none bg-white shadow-md">
-          <div className="flex items-center gap-2 text-slate-500"><Activity className="h-4 w-4" /> Shift Monitor</div>
-          <p className="mt-1 text-xl font-black text-emerald-700">{kpis?.shifts.openShifts ?? 0} open</p>
-          <p className="text-xs text-slate-500">
-            Variance: {fmt(kpis?.shifts.todayVariance ?? 0)} • Last 30d Txns: {Number(kpis?.last30TxnCount ?? 0)}
+        <Card className="rounded-lg border border-border bg-card shadow-sm">
+          <div className="flex items-center gap-2 text-muted-foreground"><Activity className="h-4 w-4" aria-hidden /> Shift Monitor</div>
+          <p className="mt-1 text-xl font-semibold text-success"><span className="font-mono tabular-nums">{kpis?.shifts.openShifts ?? 0}</span> open</p>
+          <p className="text-xs text-muted-foreground">
+            Variance: <span className="font-mono tabular-nums">{fmt(kpis?.shifts.todayVariance ?? 0)}</span> • Last 30d Txns: <span className="font-mono tabular-nums">{Number(kpis?.last30TxnCount ?? 0)}</span>
           </p>
         </Card>
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Card className="rounded-2xl border-none shadow-md">
-          <h2 className="mb-3 flex items-center gap-2 text-sm font-black uppercase tracking-wide text-slate-800">
-            <BarChart3 className="h-4 w-4" /> Cashier-Wise Totals
+        <Card className="rounded-lg border border-border shadow-sm">
+          <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
+            <BarChart3 className="h-4 w-4" aria-hidden /> Cashier-Wise Totals
           </h2>
           <div className="space-y-2">
             {(kpis?.cashierWiseTotals ?? []).length === 0 ? (
-              <p className="text-sm text-slate-500">No pharmacy sales in selected period.</p>
+              <p className="text-sm text-muted-foreground">No pharmacy sales in selected period.</p>
             ) : (
               (kpis?.cashierWiseTotals ?? []).map((row) => (
-                <div key={`${row.staffId ?? "unknown"}-${row.cashierName}`} className="flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2">
-                  <p className="text-sm font-semibold text-slate-700">{row.cashierName}</p>
-                  <p className="text-sm font-black text-slate-900">{fmt(row.total)}</p>
+                <div key={`${row.staffId ?? "unknown"}-${row.cashierName}`} className="flex items-center justify-between rounded-md border border-border px-3 py-2">
+                  <p className="text-sm font-medium text-foreground">{row.cashierName}</p>
+                  <p className="text-sm font-semibold text-foreground font-mono tabular-nums">{fmt(row.total)}</p>
                 </div>
               ))
             )}
           </div>
         </Card>
 
-        <Card className="rounded-2xl border-none shadow-md">
-          <h2 className="mb-3 text-sm font-black uppercase tracking-wide text-slate-800">Overdue Buckets</h2>
+        <Card className="rounded-lg border border-border shadow-sm">
+          <h2 className="mb-3 text-sm font-semibold text-foreground">Overdue Buckets</h2>
           <div className="grid grid-cols-2 gap-3 text-sm">
-            <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-              <p className="text-slate-500">Total Due Bills</p>
-              <p className="font-black text-slate-800">{overdue?.summary.totalDueBills ?? 0}</p>
+            <div className="rounded-md border border-border bg-muted px-3 py-2">
+              <p className="text-muted-foreground">Total Due Bills</p>
+              <p className="font-semibold text-foreground font-mono tabular-nums">{overdue?.summary.totalDueBills ?? 0}</p>
             </div>
-            <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-              <p className="text-slate-500">Total Due Amount</p>
-              <p className="font-black text-slate-800">{fmt(overdue?.summary.totalDueAmount ?? 0)}</p>
+            <div className="rounded-md border border-border bg-muted px-3 py-2">
+              <p className="text-muted-foreground">Total Due Amount</p>
+              <p className="font-semibold text-foreground font-mono tabular-nums">{fmt(overdue?.summary.totalDueAmount ?? 0)}</p>
             </div>
-            <div className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2">
-              <p className="text-blue-700">7+ days</p>
-              <p className="font-black text-blue-800">{overdue?.summary.bucket7 ?? 0}</p>
+            <div className="rounded-md border border-info/20 bg-info/10 px-3 py-2">
+              <p className="text-info">7+ days</p>
+              <p className="font-semibold text-info font-mono tabular-nums">{overdue?.summary.bucket7 ?? 0}</p>
             </div>
-            <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
-              <p className="text-amber-700">30+ days</p>
-              <p className="font-black text-amber-800">{overdue?.summary.bucket30 ?? 0}</p>
+            <div className="rounded-md border border-warning/20 bg-warning/15 px-3 py-2">
+              <p className="text-warning-foreground">30+ days</p>
+              <p className="font-semibold text-warning-foreground font-mono tabular-nums">{overdue?.summary.bucket30 ?? 0}</p>
             </div>
-            <div className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2">
-              <p className="text-rose-700">60+ days</p>
-              <p className="font-black text-rose-800">{overdue?.summary.bucket60 ?? 0}</p>
+            <div className="rounded-md border border-destructive/20 bg-destructive/10 px-3 py-2">
+              <p className="text-destructive">60+ days</p>
+              <p className="font-semibold text-destructive font-mono tabular-nums">{overdue?.summary.bucket60 ?? 0}</p>
             </div>
           </div>
         </Card>
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Card className="rounded-2xl border-none shadow-md">
-          <h2 className="mb-3 text-sm font-black uppercase tracking-wide text-slate-800">Oldest / Largest Outstanding</h2>
+        <Card className="rounded-lg border border-border shadow-sm">
+          <h2 className="mb-3 text-sm font-semibold text-foreground">Oldest / Largest Outstanding</h2>
           <div className="space-y-2">
             {(overdue?.topOverdue ?? []).length === 0 ? (
-              <p className="text-sm text-slate-500">No overdue dues.</p>
+              <p className="text-sm text-muted-foreground">No overdue dues.</p>
             ) : (
               (overdue?.topOverdue ?? []).map((row) => (
-                <div key={row.billId} className="flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2">
+                <div key={row.billId} className="flex items-center justify-between rounded-md border border-border px-3 py-2">
                   <div>
-                    <p className="text-sm font-semibold text-slate-700">Bill #{row.billId} • {row.patientName}</p>
-                    <p className="text-xs text-slate-500">{row.overdueDays} days overdue</p>
+                    <p className="text-sm font-medium text-foreground">Bill #<span className="font-mono tabular-nums">{row.billId}</span> • {row.patientName}</p>
+                    <p className="text-xs text-muted-foreground"><span className="font-mono tabular-nums">{row.overdueDays}</span> days overdue</p>
                   </div>
-                  <p className="text-sm font-black text-rose-700">{fmt(row.dueAmount)}</p>
+                  <p className="text-sm font-semibold text-destructive font-mono tabular-nums">{fmt(row.dueAmount)}</p>
                 </div>
               ))
             )}
           </div>
         </Card>
 
-        <Card className="rounded-2xl border-none shadow-md">
-          <h2 className="mb-3 text-sm font-black uppercase tracking-wide text-slate-800">Live Transaction Feed</h2>
+        <Card className="rounded-lg border border-border shadow-sm">
+          <h2 className="mb-3 text-sm font-semibold text-foreground">Live Transaction Feed</h2>
           <div className="space-y-2">
             {audit.length === 0 ? (
-              <p className="text-sm text-slate-500">No pharmacy sales in selected period.</p>
+              <p className="text-sm text-muted-foreground">No pharmacy sales in selected period.</p>
             ) : (
               audit.map((event) => (
-                <div key={event.cashierAuditEventId} className="rounded-lg border border-slate-200 px-3 py-2">
-                  <p className="text-sm font-semibold text-slate-800">{event.eventType}</p>
-                  <p className="text-xs text-slate-500">
-                    {event.actorName || "System"} • Bill {event.billId ?? "-"} • Visit {event.visitId ?? "-"} • {dt(event.createdAt, systemTimezone)}
+                <div key={event.cashierAuditEventId} className="rounded-md border border-border px-3 py-2">
+                  <p className="text-sm font-medium text-foreground">{event.eventType}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {event.actorName || "System"} • Bill <span className="font-mono tabular-nums">{event.billId ?? "-"}</span> • Visit <span className="font-mono tabular-nums">{event.visitId ?? "-"}</span> • <span className="font-mono tabular-nums">{dt(event.createdAt, systemTimezone)}</span>
                   </p>
                 </div>
               ))

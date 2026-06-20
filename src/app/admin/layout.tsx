@@ -3,7 +3,7 @@ import { AdminSidebar } from "@/src/components/admin/Sidebar";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     return (
-        <div className="flex min-h-screen bg-slate-50 font-sans text-slate-900 overflow-x-hidden">
+        <div className="flex min-h-screen bg-background font-sans text-foreground overflow-x-hidden">
             {/* Sidebar (Fixed) */}
             <AdminSidebar />
 

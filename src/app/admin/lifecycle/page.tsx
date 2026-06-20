@@ -97,10 +97,10 @@ export default function LifecyclePage() {
   });
 
   const statusClass = (status: string) => {
-    if (status === "completed") return "bg-emerald-50 text-emerald-700";
-    if (status === "blocked" || status === "overdue") return "bg-rose-50 text-rose-700";
-    if (status === "cancelled") return "bg-slate-100 text-slate-600";
-    return "bg-amber-50 text-amber-700";
+    if (status === "completed") return "bg-success/10 text-success";
+    if (status === "blocked" || status === "overdue") return "bg-destructive/10 text-destructive";
+    if (status === "cancelled") return "bg-muted text-muted-foreground";
+    return "bg-warning/15 text-warning-foreground";
   };
 
   const loadDirectory = async () => {
@@ -222,33 +222,33 @@ export default function LifecyclePage() {
   return (
     <div className="space-y-6 py-4">
       <div>
-        <h1 className="text-2xl font-black text-slate-800 tracking-tight uppercase">Lifecycle</h1>
-        <p className="text-sm text-slate-500 font-semibold mt-1">
+        <h1 className="text-2xl font-semibold text-foreground tracking-tight">Lifecycle</h1>
+        <p className="text-sm text-muted-foreground font-medium mt-1">
           Onboarding/offboarding orchestration with task ownership, blockers, and closure controls.
         </p>
       </div>
 
       {error ? (
-        <Card className="rounded-2xl border border-rose-100 bg-rose-50 p-4">
-          <p className="text-sm font-semibold text-rose-700">{error}</p>
+        <Card className="rounded-lg border border-destructive/20 bg-destructive/10 p-4">
+          <p className="text-sm font-semibold text-destructive">{error}</p>
         </Card>
       ) : null}
 
       <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3">
-        <Card className="rounded-2xl p-3"><p className="text-[10px] font-black uppercase text-slate-400">Runs</p><p className="text-xl font-black text-slate-800">{summary.total_runs}</p></Card>
-        <Card className="rounded-2xl p-3"><p className="text-[10px] font-black uppercase text-slate-400">In Progress</p><p className="text-xl font-black text-amber-700">{summary.in_progress_runs}</p></Card>
-        <Card className="rounded-2xl p-3"><p className="text-[10px] font-black uppercase text-slate-400">Blocked</p><p className="text-xl font-black text-rose-700">{summary.blocked_runs}</p></Card>
-        <Card className="rounded-2xl p-3"><p className="text-[10px] font-black uppercase text-slate-400">Completed</p><p className="text-xl font-black text-emerald-700">{summary.completed_runs}</p></Card>
-        <Card className="rounded-2xl p-3"><p className="text-[10px] font-black uppercase text-slate-400">Pending Tasks</p><p className="text-xl font-black text-slate-800">{summary.pending_tasks}</p></Card>
-        <Card className="rounded-2xl p-3"><p className="text-[10px] font-black uppercase text-slate-400">Task WIP</p><p className="text-xl font-black text-amber-700">{summary.in_progress_tasks}</p></Card>
-        <Card className="rounded-2xl p-3"><p className="text-[10px] font-black uppercase text-slate-400">Task Blocked</p><p className="text-xl font-black text-rose-700">{summary.blocked_tasks}</p></Card>
-        <Card className="rounded-2xl p-3"><p className="text-[10px] font-black uppercase text-slate-400">Overdue</p><p className="text-xl font-black text-rose-700">{summary.overdue_tasks}</p></Card>
+        <Card className="rounded-lg p-3"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Runs</p><p className="text-xl font-semibold text-foreground font-mono tabular-nums">{summary.total_runs}</p></Card>
+        <Card className="rounded-lg p-3"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">In Progress</p><p className="text-xl font-semibold text-warning-foreground font-mono tabular-nums">{summary.in_progress_runs}</p></Card>
+        <Card className="rounded-lg p-3"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Blocked</p><p className="text-xl font-semibold text-destructive font-mono tabular-nums">{summary.blocked_runs}</p></Card>
+        <Card className="rounded-lg p-3"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Completed</p><p className="text-xl font-semibold text-success font-mono tabular-nums">{summary.completed_runs}</p></Card>
+        <Card className="rounded-lg p-3"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Pending Tasks</p><p className="text-xl font-semibold text-foreground font-mono tabular-nums">{summary.pending_tasks}</p></Card>
+        <Card className="rounded-lg p-3"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Task WIP</p><p className="text-xl font-semibold text-warning-foreground font-mono tabular-nums">{summary.in_progress_tasks}</p></Card>
+        <Card className="rounded-lg p-3"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Task Blocked</p><p className="text-xl font-semibold text-destructive font-mono tabular-nums">{summary.blocked_tasks}</p></Card>
+        <Card className="rounded-lg p-3"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Overdue</p><p className="text-xl font-semibold text-destructive font-mono tabular-nums">{summary.overdue_tasks}</p></Card>
       </div>
 
-      <Card className="rounded-3xl border border-slate-100 p-5 space-y-3">
-        <h2 className="text-sm font-black uppercase tracking-widest text-slate-400">Start Lifecycle Run</h2>
+      <Card className="rounded-lg border border-border p-5 space-y-3">
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Start Lifecycle Run</h2>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
-          <select className="h-10 rounded-xl border border-slate-200 px-3 text-sm" value={startForm.person_key} onChange={(e) => setStartForm((p) => ({ ...p, person_key: e.target.value }))}>
+          <select className="h-10 rounded-md border border-input px-3 text-sm" value={startForm.person_key} onChange={(e) => setStartForm((p) => ({ ...p, person_key: e.target.value }))}>
             <option value="">Select Employee</option>
             {staff.map((s) => (
               <option key={`${s.account_type ?? "staff"}:${s.staff_id}`} value={`${s.account_type ?? "staff"}:${s.staff_id}`}>
@@ -256,13 +256,13 @@ export default function LifecyclePage() {
               </option>
             ))}
           </select>
-          <select className="h-10 rounded-xl border border-slate-200 px-3 text-sm" value={startForm.lifecycle_type} onChange={(e) => setStartForm((p) => ({ ...p, lifecycle_type: e.target.value }))}>
+          <select className="h-10 rounded-md border border-input px-3 text-sm" value={startForm.lifecycle_type} onChange={(e) => setStartForm((p) => ({ ...p, lifecycle_type: e.target.value }))}>
             <option value="onboarding">Onboarding</option>
             <option value="offboarding">Offboarding</option>
             <option value="probation">Probation</option>
             <option value="transfer">Transfer</option>
           </select>
-          <select className="h-10 rounded-xl border border-slate-200 px-3 text-sm" value={startForm.lifecycle_template_id} onChange={(e) => setStartForm((p) => ({ ...p, lifecycle_template_id: e.target.value }))}>
+          <select className="h-10 rounded-md border border-input px-3 text-sm" value={startForm.lifecycle_template_id} onChange={(e) => setStartForm((p) => ({ ...p, lifecycle_template_id: e.target.value }))}>
             <option value="">Auto Template</option>
             {templates.map((t) => (
               <option key={t.lifecycle_template_id} value={t.lifecycle_template_id}>
@@ -270,11 +270,11 @@ export default function LifecyclePage() {
               </option>
             ))}
           </select>
-          <input className="h-10 rounded-xl border border-slate-200 px-3 text-sm" placeholder="Summary note" value={startForm.summary_note} onChange={(e) => setStartForm((p) => ({ ...p, summary_note: e.target.value }))} />
+          <input className="h-10 rounded-md border border-input px-3 text-sm" placeholder="Summary note" value={startForm.summary_note} onChange={(e) => setStartForm((p) => ({ ...p, summary_note: e.target.value }))} />
         </div>
         <div className="flex items-center gap-2">
-          <Button disabled={saving} onClick={startRun} className="h-10 rounded-xl bg-slate-900 hover:bg-black text-white text-xs font-black uppercase tracking-widest px-4">Start Run</Button>
-          <select className="h-10 rounded-xl border border-slate-200 px-3 text-sm" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+          <Button disabled={saving} onClick={startRun} className="h-10 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold px-4">Start Run</Button>
+          <select className="h-10 rounded-md border border-input px-3 text-sm" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
             <option value="all">All Status</option>
             <option value="in_progress">In Progress</option>
             <option value="blocked">Blocked</option>
@@ -284,47 +284,47 @@ export default function LifecyclePage() {
         </div>
       </Card>
 
-      <Card className="rounded-3xl border border-slate-100 p-5">
-        <h2 className="text-sm font-black uppercase tracking-widest text-slate-400 mb-3">Runs</h2>
+      <Card className="rounded-lg border border-border p-5">
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">Runs</h2>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1100px] text-left">
             <thead>
-              <tr className="bg-slate-50/70">
-                <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Employee</th>
-                <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Type</th>
-                <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Template</th>
-                <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Started</th>
-                <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Status</th>
-                <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Tasks</th>
-                <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Action</th>
+              <tr className="bg-muted">
+                <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Employee</th>
+                <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Type</th>
+                <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Template</th>
+                <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Started</th>
+                <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Status</th>
+                <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tasks</th>
+                <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground text-right">Action</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={7} className="px-3 py-8 text-sm font-semibold text-slate-500">Loading lifecycle runs…</td></tr>
+                <tr><td colSpan={7} className="px-3 py-8 text-sm font-semibold text-muted-foreground">Loading lifecycle runs…</td></tr>
               ) : runs.length === 0 ? (
-                <tr><td colSpan={7} className="px-3 py-8 text-sm font-semibold text-slate-500">No lifecycle runs found.</td></tr>
+                <tr><td colSpan={7} className="px-3 py-8 text-sm font-semibold text-muted-foreground">No lifecycle runs found.</td></tr>
               ) : runs.map((run) => (
-                <tr key={run.lifecycle_run_id} className="border-t border-slate-100">
+                <tr key={run.lifecycle_run_id} className="border-t border-border">
                   <td className="px-3 py-2">
-                    <p className="text-xs font-bold text-slate-800">{run.employee_name}</p>
-                    <p className="text-[10px] text-slate-500 font-semibold">{run.user_code} - {run.account_type.toUpperCase()}</p>
+                    <p className="text-xs font-semibold text-foreground">{run.employee_name}</p>
+                    <p className="text-[10px] text-muted-foreground font-medium font-mono tabular-nums">{run.user_code} - {run.account_type.toUpperCase()}</p>
                   </td>
-                  <td className="px-3 py-2 text-xs font-semibold text-slate-700">{run.lifecycle_type}</td>
-                  <td className="px-3 py-2 text-xs font-semibold text-slate-700">{run.template_name || "-"}</td>
-                  <td className="px-3 py-2 text-xs font-semibold text-slate-700">{formatDateTimeInTimezone(run.started_at, systemTimezone)}</td>
+                  <td className="px-3 py-2 text-xs font-medium text-foreground">{run.lifecycle_type}</td>
+                  <td className="px-3 py-2 text-xs font-medium text-foreground">{run.template_name || "-"}</td>
+                  <td className="px-3 py-2 text-xs font-medium text-foreground font-mono tabular-nums">{formatDateTimeInTimezone(run.started_at, systemTimezone)}</td>
                   <td className="px-3 py-2">
-                    <span className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${statusClass(run.run_status)}`}>{run.run_status}</span>
+                    <span className={`px-2 py-1 rounded-md text-[10px] font-semibold uppercase tracking-wide ${statusClass(run.run_status)}`}>{run.run_status}</span>
                   </td>
-                  <td className="px-3 py-2 text-xs font-semibold text-slate-700">{run.completed_tasks}/{run.total_tasks}</td>
+                  <td className="px-3 py-2 text-xs font-medium text-foreground font-mono tabular-nums">{run.completed_tasks}/{run.total_tasks}</td>
                   <td className="px-3 py-2 text-right">
                     <div className="inline-flex gap-1">
-                      <Button disabled={saving} onClick={() => setSelectedRunId(run.lifecycle_run_id)} className="h-8 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 text-[10px] font-black uppercase px-2">Tasks</Button>
+                      <Button disabled={saving} onClick={() => setSelectedRunId(run.lifecycle_run_id)} className="h-8 rounded-md bg-muted text-foreground hover:bg-accent text-[10px] font-semibold uppercase px-2">Tasks</Button>
                       {run.run_status !== "completed" ? (
-                        <Button disabled={saving} onClick={() => patchLifecycle({ action: "complete_run", lifecycle_run_id: run.lifecycle_run_id })} className="h-8 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 text-[10px] font-black uppercase px-2">Complete</Button>
+                        <Button disabled={saving} onClick={() => patchLifecycle({ action: "complete_run", lifecycle_run_id: run.lifecycle_run_id })} className="h-8 rounded-md bg-success text-success-foreground hover:bg-success/90 text-[10px] font-semibold uppercase px-2">Complete</Button>
                       ) : null}
                       {run.run_status !== "cancelled" ? (
-                        <Button disabled={saving} onClick={() => patchLifecycle({ action: "cancel_run", lifecycle_run_id: run.lifecycle_run_id })} className="h-8 rounded-lg bg-rose-600 text-white hover:bg-rose-700 text-[10px] font-black uppercase px-2">Cancel</Button>
+                        <Button disabled={saving} onClick={() => patchLifecycle({ action: "cancel_run", lifecycle_run_id: run.lifecycle_run_id })} className="h-8 rounded-md bg-destructive text-white hover:bg-destructive/90 text-[10px] font-semibold uppercase px-2">Cancel</Button>
                       ) : null}
                     </div>
                   </td>
@@ -335,44 +335,44 @@ export default function LifecyclePage() {
         </div>
       </Card>
 
-      <Card className="rounded-3xl border border-slate-100 p-5">
+      <Card className="rounded-lg border border-border p-5">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-black uppercase tracking-widest text-slate-400">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             {selectedRun ? `Tasks: ${selectedRun.employee_name} (${selectedRun.lifecycle_type})` : "Run Tasks"}
           </h2>
           {selectedRun ? (
-            <Button onClick={() => setSelectedRunId(null)} className="h-8 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 text-[10px] font-black uppercase px-2">Clear</Button>
+            <Button onClick={() => setSelectedRunId(null)} className="h-8 rounded-md bg-muted text-foreground hover:bg-accent text-[10px] font-semibold uppercase px-2">Clear</Button>
           ) : null}
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1100px] text-left">
             <thead>
-              <tr className="bg-slate-50/70">
-                <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Task</th>
-                <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Group</th>
-                <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Owner</th>
-                <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Due</th>
-                <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Status</th>
-                <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Action</th>
+              <tr className="bg-muted">
+                <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Task</th>
+                <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Group</th>
+                <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Owner</th>
+                <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Due</th>
+                <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Status</th>
+                <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground text-right">Action</th>
               </tr>
             </thead>
             <tbody>
               {!selectedRun ? (
-                <tr><td colSpan={6} className="px-3 py-8 text-sm font-semibold text-slate-500">Select a run to view tasks.</td></tr>
+                <tr><td colSpan={6} className="px-3 py-8 text-sm font-semibold text-muted-foreground">Select a run to view tasks.</td></tr>
               ) : tasks.length === 0 ? (
-                <tr><td colSpan={6} className="px-3 py-8 text-sm font-semibold text-slate-500">No tasks found for selected run.</td></tr>
+                <tr><td colSpan={6} className="px-3 py-8 text-sm font-semibold text-muted-foreground">No tasks found for selected run.</td></tr>
               ) : tasks.map((task) => (
-                <tr key={task.lifecycle_task_id} className="border-t border-slate-100">
+                <tr key={task.lifecycle_task_id} className="border-t border-border">
                   <td className="px-3 py-2">
-                    <p className="text-xs font-bold text-slate-800">{task.task_name}</p>
-                    <p className="text-[10px] text-slate-500 font-semibold">{task.task_code}</p>
+                    <p className="text-xs font-semibold text-foreground">{task.task_name}</p>
+                    <p className="text-[10px] text-muted-foreground font-medium font-mono tabular-nums">{task.task_code}</p>
                   </td>
-                  <td className="px-3 py-2 text-xs font-semibold text-slate-700">{task.task_group || "-"}</td>
-                  <td className="px-3 py-2 text-xs font-semibold text-slate-700">
+                  <td className="px-3 py-2 text-xs font-medium text-foreground">{task.task_group || "-"}</td>
+                  <td className="px-3 py-2 text-xs font-medium text-foreground">
                     {task.owner_name || "-"}
                     <div className="mt-1">
                       <select
-                        className="h-8 rounded-lg border border-slate-200 px-2 text-[11px]"
+                        className="h-8 rounded-md border border-input px-2 text-[11px]"
                         value={task.owner_staff_id ?? ""}
                         onChange={(e) => {
                           const ownerStaffId = Number(e.target.value);
@@ -391,15 +391,15 @@ export default function LifecyclePage() {
                       </select>
                     </div>
                   </td>
-                  <td className="px-3 py-2 text-xs font-semibold text-slate-700">{formatDateTimeInTimezone(task.due_at, systemTimezone)}</td>
+                  <td className="px-3 py-2 text-xs font-medium text-foreground font-mono tabular-nums">{formatDateTimeInTimezone(task.due_at, systemTimezone)}</td>
                   <td className="px-3 py-2">
-                    <span className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${statusClass(task.task_status)}`}>{task.task_status}</span>
+                    <span className={`px-2 py-1 rounded-md text-[10px] font-semibold uppercase tracking-wide ${statusClass(task.task_status)}`}>{task.task_status}</span>
                   </td>
                   <td className="px-3 py-2 text-right">
                     <div className="inline-flex gap-1 flex-wrap justify-end">
-                      <Button disabled={saving} onClick={() => patchLifecycle({ action: "update_task_status", lifecycle_task_id: task.lifecycle_task_id, task_status: "in_progress" })} className="h-8 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 text-[10px] font-black uppercase px-2">In Progress</Button>
-                      <Button disabled={saving} onClick={() => patchLifecycle({ action: "update_task_status", lifecycle_task_id: task.lifecycle_task_id, task_status: "blocked" })} className="h-8 rounded-lg bg-rose-100 text-rose-700 hover:bg-rose-200 text-[10px] font-black uppercase px-2">Block</Button>
-                      <Button disabled={saving} onClick={() => patchLifecycle({ action: "complete_task", lifecycle_task_id: task.lifecycle_task_id })} className="h-8 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 text-[10px] font-black uppercase px-2">Complete</Button>
+                      <Button disabled={saving} onClick={() => patchLifecycle({ action: "update_task_status", lifecycle_task_id: task.lifecycle_task_id, task_status: "in_progress" })} className="h-8 rounded-md bg-muted text-foreground hover:bg-accent text-[10px] font-semibold uppercase px-2">In Progress</Button>
+                      <Button disabled={saving} onClick={() => patchLifecycle({ action: "update_task_status", lifecycle_task_id: task.lifecycle_task_id, task_status: "blocked" })} className="h-8 rounded-md bg-destructive/10 text-destructive hover:bg-destructive/20 text-[10px] font-semibold uppercase px-2">Block</Button>
+                      <Button disabled={saving} onClick={() => patchLifecycle({ action: "complete_task", lifecycle_task_id: task.lifecycle_task_id })} className="h-8 rounded-md bg-success text-success-foreground hover:bg-success/90 text-[10px] font-semibold uppercase px-2">Complete</Button>
                     </div>
                   </td>
                 </tr>

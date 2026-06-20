@@ -83,9 +83,9 @@ export default function CredentialingPage() {
   });
 
   const statusBadge = (status: string) => {
-    if (status === "verified") return "bg-emerald-50 text-emerald-700";
-    if (status === "rejected" || status === "revoked" || status === "expired") return "bg-rose-50 text-rose-700";
-    return "bg-amber-50 text-amber-700";
+    if (status === "verified") return "bg-success/10 text-success";
+    if (status === "rejected" || status === "revoked" || status === "expired") return "bg-destructive/10 text-destructive";
+    return "bg-warning/15 text-warning-foreground";
   };
 
   const loadDirectory = async () => {
@@ -243,34 +243,34 @@ export default function CredentialingPage() {
   return (
     <div className="space-y-6 py-4">
       <div>
-        <h1 className="text-2xl font-black text-slate-800 tracking-tight uppercase">Credentialing</h1>
-        <p className="text-sm text-slate-500 font-semibold mt-1">
+        <h1 className="text-2xl font-semibold text-foreground tracking-tight">Credentialing</h1>
+        <p className="text-sm text-muted-foreground mt-1">
           Enterprise-grade credential verification, renewal control, and compliance tracking for staff and doctors.
         </p>
       </div>
 
       {error ? (
-        <Card className="rounded-2xl border border-rose-100 bg-rose-50 p-4">
-          <p className="text-sm font-semibold text-rose-700">{error}</p>
+        <Card className="rounded-lg border border-destructive/20 bg-destructive/10 p-4">
+          <p className="text-sm font-semibold text-destructive">{error}</p>
         </Card>
       ) : null}
 
       <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3">
-        <Card className="rounded-2xl p-3"><p className="text-[10px] font-black uppercase text-slate-400">Total</p><p className="text-xl font-black text-slate-800">{summary.total}</p></Card>
-        <Card className="rounded-2xl p-3"><p className="text-[10px] font-black uppercase text-slate-400">Verified</p><p className="text-xl font-black text-emerald-700">{summary.verified}</p></Card>
-        <Card className="rounded-2xl p-3"><p className="text-[10px] font-black uppercase text-slate-400">In Progress</p><p className="text-xl font-black text-amber-700">{summary.in_progress}</p></Card>
-        <Card className="rounded-2xl p-3"><p className="text-[10px] font-black uppercase text-slate-400">Rejected</p><p className="text-xl font-black text-rose-700">{summary.rejected}</p></Card>
-        <Card className="rounded-2xl p-3"><p className="text-[10px] font-black uppercase text-slate-400">Revoked</p><p className="text-xl font-black text-rose-700">{summary.revoked}</p></Card>
-        <Card className="rounded-2xl p-3"><p className="text-[10px] font-black uppercase text-slate-400">Expired</p><p className="text-xl font-black text-rose-700">{summary.expired}</p></Card>
-        <Card className="rounded-2xl p-3"><p className="text-[10px] font-black uppercase text-slate-400">Expiring Soon</p><p className="text-xl font-black text-amber-700">{summary.expiring_soon}</p></Card>
-        <Card className="rounded-2xl p-3"><p className="text-[10px] font-black uppercase text-slate-400">30-Day Alerts</p><p className="text-xl font-black text-amber-700">{expiringItems}</p></Card>
+        <Card className="rounded-lg p-3"><p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Total</p><p className="text-xl font-semibold text-foreground font-mono tabular-nums">{summary.total}</p></Card>
+        <Card className="rounded-lg p-3"><p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Verified</p><p className="text-xl font-semibold text-success font-mono tabular-nums">{summary.verified}</p></Card>
+        <Card className="rounded-lg p-3"><p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">In Progress</p><p className="text-xl font-semibold text-warning-foreground font-mono tabular-nums">{summary.in_progress}</p></Card>
+        <Card className="rounded-lg p-3"><p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Rejected</p><p className="text-xl font-semibold text-destructive font-mono tabular-nums">{summary.rejected}</p></Card>
+        <Card className="rounded-lg p-3"><p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Revoked</p><p className="text-xl font-semibold text-destructive font-mono tabular-nums">{summary.revoked}</p></Card>
+        <Card className="rounded-lg p-3"><p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Expired</p><p className="text-xl font-semibold text-destructive font-mono tabular-nums">{summary.expired}</p></Card>
+        <Card className="rounded-lg p-3"><p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Expiring Soon</p><p className="text-xl font-semibold text-warning-foreground font-mono tabular-nums">{summary.expiring_soon}</p></Card>
+        <Card className="rounded-lg p-3"><p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">30-Day Alerts</p><p className="text-xl font-semibold text-warning-foreground font-mono tabular-nums">{expiringItems}</p></Card>
       </div>
 
-      <Card className="rounded-3xl border border-slate-100 p-5 space-y-3">
-        <h2 className="text-sm font-black uppercase tracking-widest text-slate-400">New Credential Record</h2>
+      <Card className="rounded-lg border border-border p-5 space-y-3">
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">New Credential Record</h2>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
           <select
-            className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+            className="h-10 rounded-md border border-input px-3 text-sm"
             value={form.person_key}
             onChange={(e) => setForm((p) => ({ ...p, person_key: e.target.value }))}
           >
@@ -282,7 +282,7 @@ export default function CredentialingPage() {
             ))}
           </select>
           <select
-            className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+            className="h-10 rounded-md border border-input px-3 text-sm"
             value={form.credential_type_id}
             onChange={(e) => setForm((p) => ({ ...p, credential_type_id: e.target.value }))}
           >
@@ -294,27 +294,27 @@ export default function CredentialingPage() {
             ))}
           </select>
           <input
-            className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+            className="h-10 rounded-md border border-input px-3 text-sm"
             placeholder="Credential Number"
             value={form.credential_number}
             onChange={(e) => setForm((p) => ({ ...p, credential_number: e.target.value }))}
           />
           <input
-            className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+            className="h-10 rounded-md border border-input px-3 text-sm"
             placeholder="Credential Title"
             value={form.credential_title}
             onChange={(e) => setForm((p) => ({ ...p, credential_title: e.target.value }))}
           />
-          <input type="date" className="h-10 rounded-xl border border-slate-200 px-3 text-sm" value={form.issued_on} onChange={(e) => setForm((p) => ({ ...p, issued_on: e.target.value }))} />
-          <input type="date" className="h-10 rounded-xl border border-slate-200 px-3 text-sm" value={form.expires_on} onChange={(e) => setForm((p) => ({ ...p, expires_on: e.target.value }))} />
+          <input type="date" className="h-10 rounded-md border border-input px-3 text-sm" value={form.issued_on} onChange={(e) => setForm((p) => ({ ...p, issued_on: e.target.value }))} />
+          <input type="date" className="h-10 rounded-md border border-input px-3 text-sm" value={form.expires_on} onChange={(e) => setForm((p) => ({ ...p, expires_on: e.target.value }))} />
           <input
-            className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+            className="h-10 rounded-md border border-input px-3 text-sm"
             placeholder="Issuing Authority"
             value={form.issuing_authority}
             onChange={(e) => setForm((p) => ({ ...p, issuing_authority: e.target.value }))}
           />
           <input
-            className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+            className="h-10 rounded-md border border-input px-3 text-sm"
             placeholder="Issuing Country"
             value={form.issuing_country}
             onChange={(e) => setForm((p) => ({ ...p, issuing_country: e.target.value }))}
@@ -324,12 +324,12 @@ export default function CredentialingPage() {
           <Button
             disabled={saving}
             onClick={createCredential}
-            className="h-10 rounded-xl bg-slate-900 hover:bg-black text-white text-xs font-black uppercase tracking-widest px-4"
+            className="h-10 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold uppercase tracking-wide px-4"
           >
             Create Credential
           </Button>
           <select
-            className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+            className="h-10 rounded-md border border-input px-3 text-sm"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
           >
@@ -344,66 +344,66 @@ export default function CredentialingPage() {
         </div>
       </Card>
 
-      <Card className="rounded-3xl border border-slate-100 p-5">
+      <Card className="rounded-lg border border-border p-5">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1300px] text-left">
             <thead>
-              <tr className="bg-slate-50/70">
-                <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Employee</th>
-                <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Credential</th>
-                <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Number</th>
-                <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Issued</th>
-                <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Expires</th>
-                <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Days Left</th>
-                <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Verification</th>
-                <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Renewal</th>
-                <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Actions</th>
+              <tr className="bg-muted">
+                <th className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Employee</th>
+                <th className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Credential</th>
+                <th className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Number</th>
+                <th className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Issued</th>
+                <th className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Expires</th>
+                <th className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Days Left</th>
+                <th className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Verification</th>
+                <th className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Renewal</th>
+                <th className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={9} className="px-3 py-8 text-sm text-slate-500 font-semibold">Loading credentials…</td></tr>
+                <tr><td colSpan={9} className="px-3 py-8 text-sm text-muted-foreground font-semibold">Loading credentials…</td></tr>
               ) : items.length === 0 ? (
-                <tr><td colSpan={9} className="px-3 py-8 text-sm text-slate-500 font-semibold">No credential records found.</td></tr>
+                <tr><td colSpan={9} className="px-3 py-8 text-sm text-muted-foreground font-semibold">No credential records found.</td></tr>
               ) : (
                 items.map((item) => (
-                  <tr key={item.credential_id} className="border-t border-slate-100">
+                  <tr key={item.credential_id} className="border-t border-border">
                     <td className="px-3 py-2">
-                      <p className="text-xs font-bold text-slate-800">{item.employee_name}</p>
-                      <p className="text-[10px] font-semibold text-slate-500">{item.user_code} - {item.account_type.toUpperCase()}</p>
+                      <p className="text-xs font-semibold text-foreground">{item.employee_name}</p>
+                      <p className="text-[10px] font-semibold text-muted-foreground font-mono tabular-nums">{item.user_code} - {item.account_type.toUpperCase()}</p>
                     </td>
-                    <td className="px-3 py-2 text-xs font-semibold text-slate-700">{item.credential_name}</td>
-                    <td className="px-3 py-2 text-xs font-semibold text-slate-700">{item.credential_number}</td>
-                    <td className="px-3 py-2 text-xs font-semibold text-slate-700">{formatDateInTimezone(item.issued_on, systemTimezone)}</td>
-                    <td className="px-3 py-2 text-xs font-semibold text-slate-700">{formatDateInTimezone(item.expires_on, systemTimezone)}</td>
-                    <td className="px-3 py-2 text-xs font-semibold text-slate-700">
+                    <td className="px-3 py-2 text-xs font-semibold text-foreground">{item.credential_name}</td>
+                    <td className="px-3 py-2 text-xs font-semibold text-foreground font-mono tabular-nums">{item.credential_number}</td>
+                    <td className="px-3 py-2 text-xs font-semibold text-foreground font-mono tabular-nums">{formatDateInTimezone(item.issued_on, systemTimezone)}</td>
+                    <td className="px-3 py-2 text-xs font-semibold text-foreground font-mono tabular-nums">{formatDateInTimezone(item.expires_on, systemTimezone)}</td>
+                    <td className="px-3 py-2 text-xs font-semibold text-foreground font-mono tabular-nums">
                       {item.days_until_expiry == null ? "-" : item.days_until_expiry}
                     </td>
                     <td className="px-3 py-2">
-                      <span className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${statusBadge(item.verification_status)}`}>
+                      <span className={`px-2 py-1 rounded-md text-[10px] font-semibold uppercase tracking-wide ${statusBadge(item.verification_status)}`}>
                         {item.verification_status}
                       </span>
                       {item.reviewed_at ? (
-                        <p className="text-[10px] text-slate-500 mt-1">
+                        <p className="text-[10px] text-muted-foreground mt-1 font-mono tabular-nums">
                           {formatDateTimeInTimezone(item.reviewed_at, systemTimezone)}
                         </p>
                       ) : null}
                     </td>
-                    <td className="px-3 py-2 text-xs font-semibold text-slate-700">{item.renewal_status}</td>
+                    <td className="px-3 py-2 text-xs font-semibold text-foreground">{item.renewal_status}</td>
                     <td className="px-3 py-2 text-right">
                       <div className="inline-flex gap-1 flex-wrap justify-end">
                         {(item.verification_status === "draft" || item.verification_status === "rejected") ? (
-                          <Button onClick={() => triggerAction(item.credential_id, "submit")} disabled={saving} className="h-8 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 text-[10px] font-black uppercase px-2">Submit</Button>
+                          <Button onClick={() => triggerAction(item.credential_id, "submit")} disabled={saving} className="h-8 rounded-md bg-muted text-foreground hover:bg-accent text-[10px] font-semibold uppercase px-2">Submit</Button>
                         ) : null}
                         {item.verification_status === "submitted" || item.verification_status === "under_review" ? (
                           <>
-                            <Button onClick={() => triggerAction(item.credential_id, "verify")} disabled={saving} className="h-8 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 text-[10px] font-black uppercase px-2">Verify</Button>
-                            <Button onClick={() => triggerAction(item.credential_id, "reject")} disabled={saving} className="h-8 rounded-lg bg-rose-600 text-white hover:bg-rose-700 text-[10px] font-black uppercase px-2">Reject</Button>
+                            <Button onClick={() => triggerAction(item.credential_id, "verify")} disabled={saving} className="h-8 rounded-md bg-success text-success-foreground hover:bg-success/90 text-[10px] font-semibold uppercase px-2">Verify</Button>
+                            <Button onClick={() => triggerAction(item.credential_id, "reject")} disabled={saving} className="h-8 rounded-md bg-destructive text-white hover:bg-destructive/90 text-[10px] font-semibold uppercase px-2">Reject</Button>
                           </>
                         ) : null}
-                        <Button onClick={() => renewCredential(item.credential_id, item.expires_on)} disabled={saving} className="h-8 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-[10px] font-black uppercase px-2">Renew</Button>
+                        <Button onClick={() => renewCredential(item.credential_id, item.expires_on)} disabled={saving} className="h-8 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 text-[10px] font-semibold uppercase px-2">Renew</Button>
                         {item.verification_status !== "revoked" ? (
-                          <Button onClick={() => triggerAction(item.credential_id, "revoke")} disabled={saving} className="h-8 rounded-lg bg-rose-600 text-white hover:bg-rose-700 text-[10px] font-black uppercase px-2">Revoke</Button>
+                          <Button onClick={() => triggerAction(item.credential_id, "revoke")} disabled={saving} className="h-8 rounded-md bg-destructive text-white hover:bg-destructive/90 text-[10px] font-semibold uppercase px-2">Revoke</Button>
                         ) : null}
                       </div>
                     </td>

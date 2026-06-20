@@ -79,12 +79,12 @@ function FinancialsPageContent() {
 
   const cards = useMemo(
     () => [
-      { label: "Gross Revenue", value: Number(summary.gross_revenue ?? 0), tone: "text-emerald-700" },
-      { label: "Payroll Cost", value: Number(summary.payroll_expense ?? 0), tone: "text-slate-700" },
-      { label: "Operational Expense", value: Number(summary.operational_expense ?? 0), tone: "text-slate-700" },
-      { label: "Capex", value: Number(summary.capex ?? 0), tone: "text-slate-700" },
-      { label: "Total Expense", value: Number(summary.total_expense ?? summary.expenses ?? 0), tone: "text-rose-700" },
-      { label: "Net Operating Profit", value: Number(summary.net_operating_profit ?? 0), tone: "text-indigo-700" },
+      { label: "Gross Revenue", value: Number(summary.gross_revenue ?? 0), tone: "text-success" },
+      { label: "Payroll Cost", value: Number(summary.payroll_expense ?? 0), tone: "text-foreground" },
+      { label: "Operational Expense", value: Number(summary.operational_expense ?? 0), tone: "text-foreground" },
+      { label: "Capex", value: Number(summary.capex ?? 0), tone: "text-foreground" },
+      { label: "Total Expense", value: Number(summary.total_expense ?? summary.expenses ?? 0), tone: "text-destructive" },
+      { label: "Net Operating Profit", value: Number(summary.net_operating_profit ?? 0), tone: "text-primary" },
     ],
     [summary]
   );
@@ -212,44 +212,44 @@ function FinancialsPageContent() {
     <div className="space-y-6 py-4">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-black text-slate-800 uppercase tracking-tight">System Financials</h1>
-          <p className="text-sm text-slate-500 font-semibold mt-1">
+          <h1 className="text-2xl font-semibold text-foreground tracking-tight">System Financials</h1>
+          <p className="text-sm text-muted-foreground font-medium mt-1">
             Consolidated revenue, payroll, operating expenses, and asset purchases.
           </p>
         </div>
         <Button
           onClick={() => loadData(scope)}
           disabled={loading}
-          className="h-10 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-black uppercase tracking-widest px-4"
+          className="h-10 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold px-4"
         >
           {loading ? "Refreshing..." : "Refresh"}
         </Button>
       </div>
 
-      <Card className="rounded-2xl border border-slate-100 p-3">
+      <Card className="rounded-lg border border-border p-3">
         <div className="flex flex-wrap items-center gap-2">
           <Button
             onClick={() => handleModeChange("pharmacy")}
-            className="h-9 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-[11px] font-black uppercase tracking-widest px-4"
+            className="h-9 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground text-[11px] font-semibold px-4"
           >
             Pharmacy Financials
           </Button>
           <Button
             onClick={() => handleModeChange("combined")}
-            className={`h-9 rounded-xl text-[11px] font-black uppercase tracking-widest px-4 ${
+            className={`h-9 rounded-md text-[11px] font-semibold px-4 ${
               scope === "combined"
-                ? "bg-emerald-700 hover:bg-emerald-800 text-white"
-                : "bg-emerald-600 hover:bg-emerald-700 text-white"
+                ? "bg-primary hover:bg-primary/90 text-primary-foreground"
+                : "bg-primary/80 hover:bg-primary text-primary-foreground"
             }`}
           >
             Combined
           </Button>
           <Button
             onClick={() => handleModeChange("non_pharmacy")}
-            className={`h-9 rounded-xl text-[11px] font-black uppercase tracking-widest px-4 ${
+            className={`h-9 rounded-md text-[11px] font-semibold px-4 ${
               scope === "non_pharmacy"
-                ? "bg-emerald-700 hover:bg-emerald-800 text-white"
-                : "bg-emerald-600 hover:bg-emerald-700 text-white"
+                ? "bg-primary hover:bg-primary/90 text-primary-foreground"
+                : "bg-primary/80 hover:bg-primary text-primary-foreground"
             }`}
           >
             Non-Pharmacy
@@ -258,34 +258,34 @@ function FinancialsPageContent() {
       </Card>
 
       {error ? (
-        <Card className="border border-red-100 bg-red-50 p-4 rounded-2xl">
-          <p className="text-sm font-semibold text-red-700">{error}</p>
+        <Card className="border border-destructive/20 bg-destructive/10 p-4 rounded-lg">
+          <p className="text-sm font-medium text-destructive">{error}</p>
         </Card>
       ) : null}
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {cards.map((card) => (
-          <Card key={card.label} className="rounded-2xl border border-slate-100 p-4">
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{card.label}</p>
-            <p className={`text-2xl font-black mt-2 ${card.tone}`}>PKR {card.value.toLocaleString()}</p>
+          <Card key={card.label} className="rounded-lg border border-border p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{card.label}</p>
+            <p className={`text-2xl font-semibold mt-2 font-mono tabular-nums ${card.tone}`}>PKR {card.value.toLocaleString()}</p>
           </Card>
         ))}
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
-        <Card className="rounded-3xl border border-slate-100 p-5 space-y-3">
-          <h2 className="text-sm font-black uppercase tracking-widest text-slate-500">Add Operational Expense</h2>
+        <Card className="rounded-lg border border-border p-5 space-y-3">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Add Operational Expense</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             <input
               type="date"
               value={expenseForm.expense_date}
               onChange={(e) => setExpenseForm((p) => ({ ...p, expense_date: e.target.value }))}
-              className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+              className="h-10 rounded-md border border-input px-3 text-sm"
             />
             <select
               value={expenseForm.category}
               onChange={(e) => setExpenseForm((p) => ({ ...p, category: e.target.value }))}
-              className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+              className="h-10 rounded-md border border-input px-3 text-sm"
             >
               <option value="">Category</option>
               {categories.map((cat) => (
@@ -299,50 +299,50 @@ function FinancialsPageContent() {
               min={0}
               value={expenseForm.amount}
               onChange={(e) => setExpenseForm((p) => ({ ...p, amount: Number(e.target.value || 0) }))}
-              className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+              className="h-10 rounded-md border border-input px-3 text-sm"
               placeholder="Amount"
             />
             <input
               value={expenseForm.vendor_name}
               onChange={(e) => setExpenseForm((p) => ({ ...p, vendor_name: e.target.value }))}
-              className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+              className="h-10 rounded-md border border-input px-3 text-sm"
               placeholder="Vendor (optional)"
             />
           </div>
           <textarea
             value={expenseForm.notes}
             onChange={(e) => setExpenseForm((p) => ({ ...p, notes: e.target.value }))}
-            className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm min-h-[80px]"
+            className="w-full rounded-md border border-input px-3 py-2 text-sm min-h-[80px]"
             placeholder="Notes (optional)"
           />
           <Button
             onClick={createExpense}
             disabled={saving || !expenseForm.category || !expenseForm.expense_date || Number(expenseForm.amount) <= 0}
-            className="h-10 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-black uppercase tracking-widest px-4"
+            className="h-10 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold px-4"
           >
             Add Expense
           </Button>
         </Card>
 
-        <Card className="rounded-3xl border border-slate-100 p-5 space-y-3">
-          <h2 className="text-sm font-black uppercase tracking-widest text-slate-500">Add Asset Purchase (Capex)</h2>
+        <Card className="rounded-lg border border-border p-5 space-y-3">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Add Asset Purchase (Capex)</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             <input
               type="date"
               value={assetForm.purchase_date}
               onChange={(e) => setAssetForm((p) => ({ ...p, purchase_date: e.target.value }))}
-              className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+              className="h-10 rounded-md border border-input px-3 text-sm"
             />
             <input
               value={assetForm.asset_category}
               onChange={(e) => setAssetForm((p) => ({ ...p, asset_category: e.target.value }))}
-              className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+              className="h-10 rounded-md border border-input px-3 text-sm"
               placeholder="Asset category (e.g. machine)"
             />
             <input
               value={assetForm.asset_name}
               onChange={(e) => setAssetForm((p) => ({ ...p, asset_name: e.target.value }))}
-              className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+              className="h-10 rounded-md border border-input px-3 text-sm"
               placeholder="Asset name"
             />
             <input
@@ -350,20 +350,20 @@ function FinancialsPageContent() {
               min={0}
               value={assetForm.amount}
               onChange={(e) => setAssetForm((p) => ({ ...p, amount: Number(e.target.value || 0) }))}
-              className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+              className="h-10 rounded-md border border-input px-3 text-sm"
               placeholder="Amount"
             />
             <input
               value={assetForm.vendor_name}
               onChange={(e) => setAssetForm((p) => ({ ...p, vendor_name: e.target.value }))}
-              className="h-10 rounded-xl border border-slate-200 px-3 text-sm md:col-span-2"
+              className="h-10 rounded-md border border-input px-3 text-sm md:col-span-2"
               placeholder="Vendor (optional)"
             />
           </div>
           <textarea
             value={assetForm.notes}
             onChange={(e) => setAssetForm((p) => ({ ...p, notes: e.target.value }))}
-            className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm min-h-[80px]"
+            className="w-full rounded-md border border-input px-3 py-2 text-sm min-h-[80px]"
             placeholder="Notes (optional)"
           />
           <Button
@@ -375,7 +375,7 @@ function FinancialsPageContent() {
               !assetForm.purchase_date ||
               Number(assetForm.amount) <= 0
             }
-            className="h-10 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-black uppercase tracking-widest px-4"
+            className="h-10 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold px-4"
           >
             Add Asset Purchase
           </Button>
@@ -383,32 +383,32 @@ function FinancialsPageContent() {
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
-        <Card className="rounded-3xl border border-slate-100 p-5">
-          <h2 className="text-sm font-black uppercase tracking-widest text-slate-500 mb-3">Recent Expenses</h2>
+        <Card className="rounded-lg border border-border p-5">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">Recent Expenses</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-left min-w-[560px]">
               <thead>
-                <tr className="bg-slate-50/70">
-                  <th className="px-2 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Date</th>
-                  <th className="px-2 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Category</th>
-                  <th className="px-2 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Vendor</th>
-                  <th className="px-2 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Amount</th>
+                <tr className="bg-muted">
+                  <th className="px-2 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Date</th>
+                  <th className="px-2 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Category</th>
+                  <th className="px-2 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Vendor</th>
+                  <th className="px-2 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Amount</th>
                 </tr>
               </thead>
               <tbody>
                 {expenses.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-2 py-4 text-sm font-semibold text-slate-500">
+                    <td colSpan={4} className="px-2 py-4 text-sm font-medium text-muted-foreground">
                       No expense entries yet.
                     </td>
                   </tr>
                 ) : (
                   expenses.slice(0, 15).map((row) => (
-                    <tr key={row.expense_id} className="border-t border-slate-100">
-                      <td className="px-2 py-2 text-xs font-semibold text-slate-700">{row.expense_date}</td>
-                      <td className="px-2 py-2 text-xs font-semibold text-slate-700">{row.category}</td>
-                      <td className="px-2 py-2 text-xs font-semibold text-slate-700">{row.vendor_name || "-"}</td>
-                      <td className="px-2 py-2 text-xs font-black text-slate-800">PKR {Number(row.amount).toLocaleString()}</td>
+                    <tr key={row.expense_id} className="border-t border-border">
+                      <td className="px-2 py-2 text-xs font-medium text-foreground font-mono tabular-nums">{row.expense_date}</td>
+                      <td className="px-2 py-2 text-xs font-medium text-foreground">{row.category}</td>
+                      <td className="px-2 py-2 text-xs font-medium text-foreground">{row.vendor_name || "-"}</td>
+                      <td className="px-2 py-2 text-xs font-semibold text-foreground font-mono tabular-nums">PKR {Number(row.amount).toLocaleString()}</td>
                     </tr>
                   ))
                 )}
@@ -417,32 +417,32 @@ function FinancialsPageContent() {
           </div>
         </Card>
 
-        <Card className="rounded-3xl border border-slate-100 p-5">
-          <h2 className="text-sm font-black uppercase tracking-widest text-slate-500 mb-3">Recent Asset Purchases</h2>
+        <Card className="rounded-lg border border-border p-5">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">Recent Asset Purchases</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-left min-w-[560px]">
               <thead>
-                <tr className="bg-slate-50/70">
-                  <th className="px-2 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Date</th>
-                  <th className="px-2 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Category</th>
-                  <th className="px-2 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Asset</th>
-                  <th className="px-2 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Amount</th>
+                <tr className="bg-muted">
+                  <th className="px-2 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Date</th>
+                  <th className="px-2 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Category</th>
+                  <th className="px-2 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Asset</th>
+                  <th className="px-2 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Amount</th>
                 </tr>
               </thead>
               <tbody>
                 {assets.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-2 py-4 text-sm font-semibold text-slate-500">
+                    <td colSpan={4} className="px-2 py-4 text-sm font-medium text-muted-foreground">
                       No asset purchases yet.
                     </td>
                   </tr>
                 ) : (
                   assets.slice(0, 15).map((row) => (
-                    <tr key={row.asset_purchase_id} className="border-t border-slate-100">
-                      <td className="px-2 py-2 text-xs font-semibold text-slate-700">{row.purchase_date}</td>
-                      <td className="px-2 py-2 text-xs font-semibold text-slate-700">{row.asset_category}</td>
-                      <td className="px-2 py-2 text-xs font-semibold text-slate-700">{row.asset_name}</td>
-                      <td className="px-2 py-2 text-xs font-black text-slate-800">PKR {Number(row.amount).toLocaleString()}</td>
+                    <tr key={row.asset_purchase_id} className="border-t border-border">
+                      <td className="px-2 py-2 text-xs font-medium text-foreground font-mono tabular-nums">{row.purchase_date}</td>
+                      <td className="px-2 py-2 text-xs font-medium text-foreground">{row.asset_category}</td>
+                      <td className="px-2 py-2 text-xs font-medium text-foreground">{row.asset_name}</td>
+                      <td className="px-2 py-2 text-xs font-semibold text-foreground font-mono tabular-nums">PKR {Number(row.amount).toLocaleString()}</td>
                     </tr>
                   ))
                 )}
@@ -457,7 +457,7 @@ function FinancialsPageContent() {
 
 export default function FinancialsPage() {
   return (
-    <Suspense fallback={<div className="py-6 text-sm font-semibold text-slate-500">Loading financials...</div>}>
+    <Suspense fallback={<div className="py-6 text-sm font-medium text-muted-foreground">Loading financials...</div>}>
       <FinancialsPageContent />
     </Suspense>
   );

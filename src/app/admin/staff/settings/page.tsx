@@ -48,10 +48,10 @@ type LeavePolicyPayload = {
 
 export default function EmployeeSettingsPage() {
   const primaryBtnClass =
-    "h-10 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-black uppercase tracking-widest px-4";
-  const surfaceClass = "rounded-3xl border border-slate-200 bg-white p-6";
-  const fieldLabelClass = "text-[11px] font-black uppercase tracking-widest text-slate-500";
-  const inputClass = "h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm";
+    "h-10 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold uppercase tracking-wide px-4";
+  const surfaceClass = "rounded-lg border border-border bg-card p-6";
+  const fieldLabelClass = "text-[11px] font-semibold uppercase tracking-wide text-muted-foreground";
+  const inputClass = "h-10 w-full rounded-md border border-input bg-card px-3 text-sm";
 
   const [directory, setDirectory] = useState<DirectoryRow[]>([]);
   const [allowanceTypes, setAllowanceTypes] = useState<AllowanceTypeMaster[]>([]);
@@ -281,15 +281,15 @@ export default function EmployeeSettingsPage() {
   return (
     <div className="space-y-6 py-4">
       <div>
-        <h1 className="text-2xl font-black text-slate-800 uppercase tracking-tight">Employee Settings</h1>
-        <p className="text-sm text-slate-500 font-semibold mt-1">
+        <h1 className="text-2xl font-semibold text-foreground tracking-tight">Employee Settings</h1>
+        <p className="text-sm text-muted-foreground mt-1">
           Manage compensation model, allowances, and leave quota policy at role and employee level.
         </p>
       </div>
 
       {error ? (
-        <Card className="border border-red-100 bg-red-50 p-4 rounded-2xl">
-          <p className="text-sm font-semibold text-red-700">{error}</p>
+        <Card className="border border-destructive/20 bg-destructive/10 p-4 rounded-lg">
+          <p className="text-sm font-semibold text-destructive">{error}</p>
         </Card>
       ) : null}
 
@@ -312,10 +312,10 @@ export default function EmployeeSettingsPage() {
               ))}
             </select>
           </div>
-          <div className="text-xs font-semibold text-slate-500 md:col-span-2">
+          <div className="text-xs font-semibold text-muted-foreground md:col-span-2">
             {selected?.row ? (
               <>
-                Selected: <span className="font-black text-slate-700">{selected.row.name}</span> ·{" "}
+                Selected: <span className="font-semibold text-foreground">{selected.row.name}</span> ·{" "}
                 {selected.row.account_type === "doctor" ? "Doctor" : selected.row.role || "Staff"}
               </>
             ) : (
@@ -327,10 +327,10 @@ export default function EmployeeSettingsPage() {
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <Card className={`${surfaceClass} space-y-4`}>
-          <h2 className="text-sm font-black uppercase tracking-widest text-slate-500">Compensation Profile</h2>
-          <p className="text-xs text-slate-500">Set how this employee is paid each month.</p>
-          {loading ? <p className="text-sm font-semibold text-slate-500">Loading compensation...</p> : null}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-slate-50 border border-slate-200 rounded-2xl p-4">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Compensation Profile</h2>
+          <p className="text-xs text-muted-foreground">Set how this employee is paid each month.</p>
+          {loading ? <p className="text-sm font-semibold text-muted-foreground">Loading compensation...</p> : null}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-muted border border-border rounded-md p-4">
             <div className="space-y-1">
               <label htmlFor="salary-model" className={fieldLabelClass}>
                 Salary Model
@@ -376,10 +376,10 @@ export default function EmployeeSettingsPage() {
               </div>
             ) : (
               <div className="space-y-1">
-                <label className="text-[11px] font-black uppercase tracking-widest text-slate-400">
+                <label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                   Per Patient Fee
                 </label>
-                <div className="h-10 w-full rounded-xl border border-slate-200 bg-slate-100 px-3 text-sm text-slate-500 flex items-center">
+                <div className="h-10 w-full rounded-md border border-input bg-muted px-3 text-sm text-muted-foreground flex items-center">
                   Not used in Fixed Monthly mode
                 </div>
               </div>
@@ -395,9 +395,9 @@ export default function EmployeeSettingsPage() {
         </Card>
 
         <Card className={`${surfaceClass} space-y-4`}>
-          <h2 className="text-sm font-black uppercase tracking-widest text-slate-500">Allowances</h2>
-          <p className="text-xs text-slate-500">Add recurring or one-time allowances for this employee.</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-slate-50 border border-slate-200 rounded-2xl p-4">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Allowances</h2>
+          <p className="text-xs text-muted-foreground">Add recurring or one-time allowances for this employee.</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-muted border border-border rounded-md p-4">
             <div className="space-y-1">
               <label htmlFor="allowance-type" className={fieldLabelClass}>
                 Allowance Type
@@ -479,41 +479,41 @@ export default function EmployeeSettingsPage() {
           <div className="pt-1 overflow-x-auto">
             <table className="w-full text-left min-w-[680px]">
               <thead>
-                <tr className="bg-slate-50/70">
-                  <th className="px-2 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Code</th>
-                  <th className="px-2 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Name</th>
-                  <th className="px-2 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Mode</th>
-                  <th className="px-2 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Amount</th>
-                  <th className="px-2 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Status</th>
-                  <th className="px-2 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Action</th>
+                <tr className="bg-muted">
+                  <th className="px-2 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Code</th>
+                  <th className="px-2 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Name</th>
+                  <th className="px-2 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Mode</th>
+                  <th className="px-2 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Amount</th>
+                  <th className="px-2 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Status</th>
+                  <th className="px-2 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Action</th>
                 </tr>
               </thead>
               <tbody>
                 {allowances.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-2 py-4 text-sm font-semibold text-slate-500">
+                    <td colSpan={6} className="px-2 py-4 text-sm font-semibold text-muted-foreground">
                       No allowances configured.
                     </td>
                   </tr>
                 ) : (
                   allowances.map((a) => (
-                    <tr key={a.allowance_id} className="border-t border-slate-100">
-                      <td className="px-2 py-2 text-xs font-semibold text-slate-700">{a.allowance_code}</td>
-                      <td className="px-2 py-2 text-xs font-semibold text-slate-700">{a.allowance_name}</td>
-                      <td className="px-2 py-2 text-xs font-semibold text-slate-700">{a.allowance_mode}</td>
-                      <td className="px-2 py-2 text-xs font-semibold text-slate-700">PKR {Number(a.amount).toLocaleString()}</td>
-                      <td className="px-2 py-2 text-xs font-semibold text-slate-700">{a.is_active ? "Active" : "Inactive"}</td>
+                    <tr key={a.allowance_id} className="border-t border-border">
+                      <td className="px-2 py-2 text-xs font-semibold text-foreground font-mono tabular-nums">{a.allowance_code}</td>
+                      <td className="px-2 py-2 text-xs font-semibold text-foreground">{a.allowance_name}</td>
+                      <td className="px-2 py-2 text-xs font-semibold text-foreground">{a.allowance_mode}</td>
+                      <td className="px-2 py-2 text-xs font-semibold text-foreground font-mono tabular-nums">PKR {Number(a.amount).toLocaleString()}</td>
+                      <td className="px-2 py-2 text-xs font-semibold text-foreground">{a.is_active ? "Active" : "Inactive"}</td>
                       <td className="px-2 py-2">
                         {a.is_active ? (
                           <Button
                             onClick={() => deactivateAllowance(a.allowance_id)}
                             disabled={saving}
-                            className="h-8 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-[10px] font-black uppercase tracking-widest px-3"
+                            className="h-8 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground text-[10px] font-semibold uppercase tracking-wide px-3"
                           >
                             Deactivate
                           </Button>
                         ) : (
-                          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Archived</span>
+                          <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Archived</span>
                         )}
                       </td>
                     </tr>
@@ -526,9 +526,9 @@ export default function EmployeeSettingsPage() {
       </div>
 
       <Card className={`${surfaceClass} space-y-4`}>
-        <h2 className="text-sm font-black uppercase tracking-widest text-slate-500">Leave Quota Policy</h2>
-        <p className="text-xs text-slate-500">Define annual leave days by role default and by employee override.</p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-slate-50 border border-slate-200 rounded-2xl p-4">
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Leave Quota Policy</h2>
+        <p className="text-xs text-muted-foreground">Define annual leave days by role default and by employee override.</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-muted border border-border rounded-md p-4">
           <div className="space-y-1">
             <label htmlFor="leave-type" className={fieldLabelClass}>
               Leave Type
@@ -594,28 +594,28 @@ export default function EmployeeSettingsPage() {
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Role Defaults ({selected?.row?.role || "N/A"})</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-2">Role Defaults ({selected?.row?.role || "N/A"})</p>
             <div className="space-y-1">
               {policy.role_quotas.length === 0 ? (
-                <p className="text-xs font-semibold text-slate-500">No role quota configured.</p>
+                <p className="text-xs font-semibold text-muted-foreground">No role quota configured.</p>
               ) : (
                 policy.role_quotas.map((r, idx) => (
-                  <p key={`${r.leave_type_id}-${idx}`} className="text-xs font-semibold text-slate-700">
-                    Leave Type #{r.leave_type_id}: {Number(r.annual_quota)} days
+                  <p key={`${r.leave_type_id}-${idx}`} className="text-xs font-semibold text-foreground">
+                    Leave Type #<span className="font-mono tabular-nums">{r.leave_type_id}</span>: <span className="font-mono tabular-nums">{Number(r.annual_quota)}</span> days
                   </p>
                 ))
               )}
             </div>
           </div>
           <div>
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Employee Overrides</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-2">Employee Overrides</p>
             <div className="space-y-1">
               {policy.employee_overrides.length === 0 ? (
-                <p className="text-xs font-semibold text-slate-500">No employee override configured.</p>
+                <p className="text-xs font-semibold text-muted-foreground">No employee override configured.</p>
               ) : (
                 policy.employee_overrides.map((r, idx) => (
-                  <p key={`${r.leave_type_id}-${idx}`} className="text-xs font-semibold text-slate-700">
-                    Leave Type #{r.leave_type_id}: {Number(r.annual_quota)} days
+                  <p key={`${r.leave_type_id}-${idx}`} className="text-xs font-semibold text-foreground">
+                    Leave Type #<span className="font-mono tabular-nums">{r.leave_type_id}</span>: <span className="font-mono tabular-nums">{Number(r.annual_quota)}</span> days
                   </p>
                 ))
               )}

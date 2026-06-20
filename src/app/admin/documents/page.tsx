@@ -89,10 +89,10 @@ export default function DocumentsPage() {
   });
 
   const statusClass = (status: string) => {
-    if (status === "approved") return "bg-emerald-50 text-emerald-700";
-    if (status === "rejected" || status === "expired") return "bg-rose-50 text-rose-700";
-    if (status === "archived") return "bg-slate-100 text-slate-700";
-    return "bg-amber-50 text-amber-700";
+    if (status === "approved") return "bg-success/10 text-success";
+    if (status === "rejected" || status === "expired") return "bg-destructive/10 text-destructive";
+    if (status === "archived") return "bg-muted text-muted-foreground";
+    return "bg-warning/15 text-warning-foreground";
   };
 
   const loadDirectory = async () => {
@@ -252,33 +252,33 @@ export default function DocumentsPage() {
   return (
     <div className="space-y-6 py-4">
       <div>
-        <h1 className="text-2xl font-black text-slate-800 tracking-tight uppercase">Documents</h1>
-        <p className="text-sm text-slate-500 font-semibold mt-1">
+        <h1 className="text-2xl font-semibold text-foreground tracking-tight">Documents</h1>
+        <p className="text-sm text-muted-foreground font-medium mt-1">
           Controlled document lifecycle, version governance, review workflow, and requirement coverage.
         </p>
       </div>
 
       {error ? (
-        <Card className="rounded-2xl border border-rose-100 bg-rose-50 p-4">
-          <p className="text-sm font-semibold text-rose-700">{error}</p>
+        <Card className="rounded-lg border border-destructive/20 bg-destructive/10 p-4">
+          <p className="text-sm font-medium text-destructive">{error}</p>
         </Card>
       ) : null}
 
       <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3">
-        <Card className="rounded-2xl p-3"><p className="text-[10px] font-black uppercase text-slate-400">Total</p><p className="text-xl font-black text-slate-800">{summary.total}</p></Card>
-        <Card className="rounded-2xl p-3"><p className="text-[10px] font-black uppercase text-slate-400">Approved</p><p className="text-xl font-black text-emerald-700">{summary.approved}</p></Card>
-        <Card className="rounded-2xl p-3"><p className="text-[10px] font-black uppercase text-slate-400">In Progress</p><p className="text-xl font-black text-amber-700">{summary.in_progress}</p></Card>
-        <Card className="rounded-2xl p-3"><p className="text-[10px] font-black uppercase text-slate-400">Rejected</p><p className="text-xl font-black text-rose-700">{summary.rejected}</p></Card>
-        <Card className="rounded-2xl p-3"><p className="text-[10px] font-black uppercase text-slate-400">Expired</p><p className="text-xl font-black text-rose-700">{summary.expired}</p></Card>
-        <Card className="rounded-2xl p-3"><p className="text-[10px] font-black uppercase text-slate-400">Expiring Soon</p><p className="text-xl font-black text-amber-700">{summary.expiring_soon}</p></Card>
-        <Card className="rounded-2xl p-3"><p className="text-[10px] font-black uppercase text-slate-400">Missing Required</p><p className="text-xl font-black text-rose-700">{summary.missing_required}</p></Card>
-        <Card className="rounded-2xl p-3"><p className="text-[10px] font-black uppercase text-slate-400">Expiring Today</p><p className="text-xl font-black text-amber-700">{expiringToday}</p></Card>
+        <Card className="rounded-lg p-3"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Total</p><p className="text-xl font-semibold text-foreground font-mono tabular-nums">{summary.total}</p></Card>
+        <Card className="rounded-lg p-3"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Approved</p><p className="text-xl font-semibold text-success font-mono tabular-nums">{summary.approved}</p></Card>
+        <Card className="rounded-lg p-3"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">In Progress</p><p className="text-xl font-semibold text-warning-foreground font-mono tabular-nums">{summary.in_progress}</p></Card>
+        <Card className="rounded-lg p-3"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Rejected</p><p className="text-xl font-semibold text-destructive font-mono tabular-nums">{summary.rejected}</p></Card>
+        <Card className="rounded-lg p-3"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Expired</p><p className="text-xl font-semibold text-destructive font-mono tabular-nums">{summary.expired}</p></Card>
+        <Card className="rounded-lg p-3"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Expiring Soon</p><p className="text-xl font-semibold text-warning-foreground font-mono tabular-nums">{summary.expiring_soon}</p></Card>
+        <Card className="rounded-lg p-3"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Missing Required</p><p className="text-xl font-semibold text-destructive font-mono tabular-nums">{summary.missing_required}</p></Card>
+        <Card className="rounded-lg p-3"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Expiring Today</p><p className="text-xl font-semibold text-warning-foreground font-mono tabular-nums">{expiringToday}</p></Card>
       </div>
 
-      <Card className="rounded-3xl border border-slate-100 p-5 space-y-3">
-        <h2 className="text-sm font-black uppercase tracking-widest text-slate-400">Create Document Record</h2>
+      <Card className="rounded-lg border border-border p-5 space-y-3">
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Create Document Record</h2>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
-          <select className="h-10 rounded-xl border border-slate-200 px-3 text-sm" value={form.person_key} onChange={(e) => setForm((p) => ({ ...p, person_key: e.target.value }))}>
+          <select className="h-10 rounded-md border border-input px-3 text-sm" value={form.person_key} onChange={(e) => setForm((p) => ({ ...p, person_key: e.target.value }))}>
             <option value="">Select Employee</option>
             {staff.map((s) => (
               <option key={`${s.account_type ?? "staff"}:${s.staff_id}`} value={`${s.account_type ?? "staff"}:${s.staff_id}`}>
@@ -286,28 +286,28 @@ export default function DocumentsPage() {
               </option>
             ))}
           </select>
-          <select className="h-10 rounded-xl border border-slate-200 px-3 text-sm" value={form.document_type_id} onChange={(e) => setForm((p) => ({ ...p, document_type_id: e.target.value }))}>
+          <select className="h-10 rounded-md border border-input px-3 text-sm" value={form.document_type_id} onChange={(e) => setForm((p) => ({ ...p, document_type_id: e.target.value }))}>
             <option value="">Document Type</option>
             {types.map((t) => (
               <option key={t.document_type_id} value={t.document_type_id}>{t.document_name} ({t.document_code})</option>
             ))}
           </select>
-          <input className="h-10 rounded-xl border border-slate-200 px-3 text-sm" placeholder="Document title" value={form.document_title} onChange={(e) => setForm((p) => ({ ...p, document_title: e.target.value }))} />
-          <select className="h-10 rounded-xl border border-slate-200 px-3 text-sm" value={form.visibility} onChange={(e) => setForm((p) => ({ ...p, visibility: e.target.value }))}>
+          <input className="h-10 rounded-md border border-input px-3 text-sm" placeholder="Document title" value={form.document_title} onChange={(e) => setForm((p) => ({ ...p, document_title: e.target.value }))} />
+          <select className="h-10 rounded-md border border-input px-3 text-sm" value={form.visibility} onChange={(e) => setForm((p) => ({ ...p, visibility: e.target.value }))}>
             <option value="internal">Internal</option>
             <option value="restricted">Restricted</option>
             <option value="confidential">Confidential</option>
           </select>
-          <input className="h-10 rounded-xl border border-slate-200 px-3 text-sm" placeholder="Description" value={form.document_description} onChange={(e) => setForm((p) => ({ ...p, document_description: e.target.value }))} />
-          <input type="date" className="h-10 rounded-xl border border-slate-200 px-3 text-sm" value={form.expires_on} onChange={(e) => setForm((p) => ({ ...p, expires_on: e.target.value }))} />
-          <input type="date" className="h-10 rounded-xl border border-slate-200 px-3 text-sm" value={form.required_by} onChange={(e) => setForm((p) => ({ ...p, required_by: e.target.value }))} />
-          <input className="h-10 rounded-xl border border-slate-200 px-3 text-sm" placeholder="File URL (optional)" value={form.file_url} onChange={(e) => setForm((p) => ({ ...p, file_url: e.target.value }))} />
-          <input className="h-10 rounded-xl border border-slate-200 px-3 text-sm" placeholder="File name (optional)" value={form.file_name} onChange={(e) => setForm((p) => ({ ...p, file_name: e.target.value }))} />
-          <input className="h-10 rounded-xl border border-slate-200 px-3 text-sm" placeholder="MIME type (optional)" value={form.mime_type} onChange={(e) => setForm((p) => ({ ...p, mime_type: e.target.value }))} />
+          <input className="h-10 rounded-md border border-input px-3 text-sm" placeholder="Description" value={form.document_description} onChange={(e) => setForm((p) => ({ ...p, document_description: e.target.value }))} />
+          <input type="date" className="h-10 rounded-md border border-input px-3 text-sm" value={form.expires_on} onChange={(e) => setForm((p) => ({ ...p, expires_on: e.target.value }))} />
+          <input type="date" className="h-10 rounded-md border border-input px-3 text-sm" value={form.required_by} onChange={(e) => setForm((p) => ({ ...p, required_by: e.target.value }))} />
+          <input className="h-10 rounded-md border border-input px-3 text-sm" placeholder="File URL (optional)" value={form.file_url} onChange={(e) => setForm((p) => ({ ...p, file_url: e.target.value }))} />
+          <input className="h-10 rounded-md border border-input px-3 text-sm" placeholder="File name (optional)" value={form.file_name} onChange={(e) => setForm((p) => ({ ...p, file_name: e.target.value }))} />
+          <input className="h-10 rounded-md border border-input px-3 text-sm" placeholder="MIME type (optional)" value={form.mime_type} onChange={(e) => setForm((p) => ({ ...p, mime_type: e.target.value }))} />
         </div>
         <div className="flex items-center gap-2">
-          <Button disabled={saving} onClick={createDocument} className="h-10 rounded-xl bg-slate-900 hover:bg-black text-white text-xs font-black uppercase tracking-widest px-4">Create Document</Button>
-          <select className="h-10 rounded-xl border border-slate-200 px-3 text-sm" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+          <Button disabled={saving} onClick={createDocument} className="h-10 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold px-4">Create Document</Button>
+          <select className="h-10 rounded-md border border-input px-3 text-sm" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
             <option value="all">All Statuses</option>
             <option value="draft">Draft</option>
             <option value="submitted">Submitted</option>
@@ -319,72 +319,72 @@ export default function DocumentsPage() {
         </div>
       </Card>
 
-      <Card className="rounded-3xl border border-slate-100 p-5">
+      <Card className="rounded-lg border border-border p-5">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1400px] text-left">
             <thead>
-              <tr className="bg-slate-50/70">
-                <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Employee</th>
-                <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Document</th>
-                <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Type</th>
-                <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Version</th>
-                <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Expiry</th>
-                <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Status</th>
-                <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Actions</th>
+              <tr className="bg-muted">
+                <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Employee</th>
+                <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Document</th>
+                <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Type</th>
+                <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Version</th>
+                <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Expiry</th>
+                <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Status</th>
+                <th className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={7} className="px-3 py-8 text-sm font-semibold text-slate-500">Loading documents…</td></tr>
+                <tr><td colSpan={7} className="px-3 py-8 text-sm font-medium text-muted-foreground">Loading documents…</td></tr>
               ) : items.length === 0 ? (
-                <tr><td colSpan={7} className="px-3 py-8 text-sm font-semibold text-slate-500">No document records found.</td></tr>
+                <tr><td colSpan={7} className="px-3 py-8 text-sm font-medium text-muted-foreground">No document records found.</td></tr>
               ) : items.map((item) => (
-                <tr key={item.document_id} className="border-t border-slate-100">
+                <tr key={item.document_id} className="border-t border-border">
                   <td className="px-3 py-2">
-                    <p className="text-xs font-bold text-slate-800">{item.employee_name}</p>
-                    <p className="text-[10px] text-slate-500 font-semibold">{item.user_code} - {item.account_type.toUpperCase()}</p>
+                    <p className="text-xs font-semibold text-foreground">{item.employee_name}</p>
+                    <p className="text-[10px] text-muted-foreground font-medium font-mono tabular-nums">{item.user_code} - {item.account_type.toUpperCase()}</p>
                   </td>
                   <td className="px-3 py-2">
-                    <p className="text-xs font-bold text-slate-800">{item.document_title}</p>
+                    <p className="text-xs font-semibold text-foreground">{item.document_title}</p>
                     {item.file_url ? (
-                      <a href={item.file_url} target="_blank" rel="noreferrer" className="text-[10px] font-semibold text-blue-600 hover:underline">
+                      <a href={item.file_url} target="_blank" rel="noreferrer" className="text-[10px] font-medium text-info hover:underline">
                         {item.file_name || "Open file"}
                       </a>
                     ) : (
-                      <p className="text-[10px] font-semibold text-slate-400">No attachment</p>
+                      <p className="text-[10px] font-medium text-muted-foreground">No attachment</p>
                     )}
                   </td>
-                  <td className="px-3 py-2 text-xs font-semibold text-slate-700">{item.document_name}</td>
-                  <td className="px-3 py-2 text-xs font-semibold text-slate-700">v{item.current_version_no}</td>
-                  <td className="px-3 py-2 text-xs font-semibold text-slate-700">
-                    <p>{formatDateInTimezone(item.expires_on, systemTimezone)}</p>
-                    <p className="text-[10px] text-slate-500">{item.days_until_expiry == null ? "-" : `${item.days_until_expiry} days`}</p>
+                  <td className="px-3 py-2 text-xs font-medium text-foreground">{item.document_name}</td>
+                  <td className="px-3 py-2 text-xs font-medium text-foreground font-mono tabular-nums">v{item.current_version_no}</td>
+                  <td className="px-3 py-2 text-xs font-medium text-foreground">
+                    <p className="font-mono tabular-nums">{formatDateInTimezone(item.expires_on, systemTimezone)}</p>
+                    <p className="text-[10px] text-muted-foreground font-mono tabular-nums">{item.days_until_expiry == null ? "-" : `${item.days_until_expiry} days`}</p>
                   </td>
                   <td className="px-3 py-2">
-                    <span className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${statusClass(item.review_status)}`}>
+                    <span className={`px-2 py-1 rounded-md text-[10px] font-semibold uppercase tracking-wide ${statusClass(item.review_status)}`}>
                       {item.review_status}
                     </span>
                     {item.reviewed_at ? (
-                      <p className="text-[10px] text-slate-500 mt-1">{formatDateTimeInTimezone(item.reviewed_at, systemTimezone)}</p>
+                      <p className="text-[10px] text-muted-foreground mt-1 font-mono tabular-nums">{formatDateTimeInTimezone(item.reviewed_at, systemTimezone)}</p>
                     ) : null}
                   </td>
                   <td className="px-3 py-2 text-right">
                     <div className="inline-flex gap-1 flex-wrap justify-end">
-                      <Button disabled={saving} onClick={() => addVersion(item.document_id)} className="h-8 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 text-[10px] font-black uppercase px-2">Add Version</Button>
+                      <Button disabled={saving} onClick={() => addVersion(item.document_id)} className="h-8 rounded-md bg-muted text-foreground hover:bg-accent text-[10px] font-semibold uppercase px-2">Add Version</Button>
                       {(item.review_status === "draft" || item.review_status === "rejected") ? (
-                        <Button disabled={saving} onClick={() => changeStatus(item.document_id, "submit")} className="h-8 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 text-[10px] font-black uppercase px-2">Submit</Button>
+                        <Button disabled={saving} onClick={() => changeStatus(item.document_id, "submit")} className="h-8 rounded-md bg-muted text-foreground hover:bg-accent text-[10px] font-semibold uppercase px-2">Submit</Button>
                       ) : null}
                       {item.review_status === "submitted" ? (
-                        <Button disabled={saving} onClick={() => changeStatus(item.document_id, "under_review")} className="h-8 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-[10px] font-black uppercase px-2">Review</Button>
+                        <Button disabled={saving} onClick={() => changeStatus(item.document_id, "under_review")} className="h-8 rounded-md bg-info text-white hover:bg-info/90 text-[10px] font-semibold uppercase px-2">Review</Button>
                       ) : null}
                       {(item.review_status === "submitted" || item.review_status === "under_review") ? (
                         <>
-                          <Button disabled={saving} onClick={() => changeStatus(item.document_id, "approve")} className="h-8 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 text-[10px] font-black uppercase px-2">Approve</Button>
-                          <Button disabled={saving} onClick={() => changeStatus(item.document_id, "reject")} className="h-8 rounded-lg bg-rose-600 text-white hover:bg-rose-700 text-[10px] font-black uppercase px-2">Reject</Button>
+                          <Button disabled={saving} onClick={() => changeStatus(item.document_id, "approve")} className="h-8 rounded-md bg-success text-success-foreground hover:bg-success/90 text-[10px] font-semibold uppercase px-2">Approve</Button>
+                          <Button disabled={saving} onClick={() => changeStatus(item.document_id, "reject")} className="h-8 rounded-md bg-destructive text-white hover:bg-destructive/90 text-[10px] font-semibold uppercase px-2">Reject</Button>
                         </>
                       ) : null}
                       {item.review_status !== "archived" ? (
-                        <Button disabled={saving} onClick={() => changeStatus(item.document_id, "archive")} className="h-8 rounded-lg bg-slate-600 text-white hover:bg-slate-700 text-[10px] font-black uppercase px-2">Archive</Button>
+                        <Button disabled={saving} onClick={() => changeStatus(item.document_id, "archive")} className="h-8 rounded-md bg-muted text-foreground hover:bg-accent text-[10px] font-semibold uppercase px-2">Archive</Button>
                       ) : null}
                     </div>
                   </td>

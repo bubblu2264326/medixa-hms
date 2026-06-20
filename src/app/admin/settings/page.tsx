@@ -141,19 +141,19 @@ export default function SettingsPage() {
     helper: string
   ) => (
     <div className="space-y-2">
-      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{label}</label>
-      <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3">
-        <span className="text-emerald-700">{icon}</span>
+      <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">{label}</label>
+      <div className="flex items-center gap-3 rounded-md border border-input bg-card px-4 py-3">
+        <span className="text-primary">{icon}</span>
         <input
           type="number"
           min={0}
           value={value}
           onChange={(e) => onChange(Number(e.target.value || 0))}
-          className="w-full bg-transparent text-sm font-semibold text-slate-700 focus:outline-none"
+          className="w-full bg-transparent text-sm font-semibold text-foreground font-mono tabular-nums focus:outline-none"
         />
-        <span className="text-xs font-semibold text-slate-400">min</span>
+        <span className="text-xs font-medium text-muted-foreground">min</span>
       </div>
-      <p className="text-xs text-slate-400">{helper}</p>
+      <p className="text-xs text-muted-foreground">{helper}</p>
     </div>
   );
 
@@ -161,16 +161,16 @@ export default function SettingsPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-black text-slate-800 uppercase tracking-tight">System Settings</h1>
-          <p className="text-sm text-slate-500">Global timezone and attendance policy controls for whole HMS.</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">System Settings</h1>
+          <p className="text-sm text-muted-foreground">Global timezone and attendance policy controls for whole HMS.</p>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" className="rounded-2xl" onClick={fetchSettings} disabled={loading || saving}>
+          <Button variant="outline" className="rounded-md" onClick={fetchSettings} disabled={loading || saving}>
             <Settings2 className="mr-2 h-4 w-4" />
             Reload
           </Button>
           <Button
-            className="rounded-2xl bg-emerald-700 text-white hover:bg-emerald-800 disabled:opacity-60"
+            className="rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
             onClick={saveAll}
             disabled={loading || saving}
           >
@@ -181,28 +181,28 @@ export default function SettingsPage() {
       </div>
 
       {error ? (
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">{error}</div>
+        <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive">{error}</div>
       ) : null}
 
-      <Card className="rounded-[2rem] border border-slate-100 bg-slate-50/60 p-6 shadow-sm space-y-6">
+      <Card className="rounded-lg border border-border bg-muted p-6 shadow-sm space-y-6">
         {loading ? (
-          <div className="py-16 text-center text-sm font-semibold text-slate-400">Loading settings...</div>
+          <div className="py-16 text-center text-sm font-medium text-muted-foreground">Loading settings...</div>
         ) : (
           <>
-            <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 px-4 py-3 text-sm font-semibold text-emerald-800">
-              Scope: <span className="font-black">Global clinic</span>
+            <div className="rounded-md border border-primary/20 bg-primary/10 px-4 py-3 text-sm font-medium text-foreground">
+              Scope: <span className="font-semibold">Global clinic</span>
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">System Timezone</label>
-              <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3">
-                <Globe2 className="h-4 w-4 text-emerald-700" />
+              <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">System Timezone</label>
+              <div className="flex items-center gap-3 rounded-md border border-input bg-card px-4 py-3">
+                <Globe2 className="h-4 w-4 text-primary" />
                 <input
                   list="system-timezone-options"
                   value={systemTimezone}
                   onChange={(e) => setSystemTimezone(e.target.value.trim())}
                   placeholder="Search timezone e.g. Asia/Karachi"
-                  className="w-full bg-transparent text-sm font-semibold text-slate-700 focus:outline-none"
+                  className="w-full bg-transparent text-sm font-semibold text-foreground focus:outline-none"
                 />
               </div>
               <datalist id="system-timezone-options">
@@ -210,11 +210,11 @@ export default function SettingsPage() {
                   <option key={tz} value={tz} />
                 ))}
               </datalist>
-              <p className="text-xs text-slate-400">All business-day boundaries and date-time displays follow this timezone.</p>
+              <p className="text-xs text-muted-foreground">All business-day boundaries and date-time displays follow this timezone.</p>
             </div>
 
             <div>
-              <h2 className="text-sm font-black uppercase tracking-widest text-slate-500 mb-4">Attendance Policy</h2>
+              <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-4">Attendance Policy</h2>
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                 {numberField(
                   "Grace Minutes",
@@ -247,7 +247,7 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 text-xs font-semibold text-slate-500">
+            <div className="flex items-center justify-between rounded-md border border-input bg-card px-4 py-3 text-xs font-medium text-muted-foreground">
               <span>Supabase system settings are the single source of truth.</span>
               <span>{savedAt ? `Last saved at ${savedAt}` : dirty ? "Unsaved changes" : "No changes"}</span>
             </div>

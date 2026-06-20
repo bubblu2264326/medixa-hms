@@ -51,7 +51,7 @@ export default function StaffSecurityPage() {
   const [error, setError] = useState("");
   const [resultMessage, setResultMessage] = useState("");
   const actionBtnClass =
-    "h-10 rounded-2xl bg-none bg-[#0A9F6A] hover:bg-[#087A53] text-white text-xs font-black uppercase tracking-widest px-4 shadow-[0_6px_14px_rgba(10,159,106,0.24)] focus:ring-[#0A9F6A]";
+    "h-10 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold px-4";
 
   const activeSessions = useMemo(
     () => (payload?.sessions ?? []).filter((s) => !s.revoked_at).length,
@@ -144,17 +144,17 @@ export default function StaffSecurityPage() {
   return (
     <div className="space-y-6 py-4">
       <div>
-        <h1 className="text-2xl font-black text-slate-800 uppercase tracking-tight">Security Sessions</h1>
-        <p className="text-sm text-slate-500 font-semibold mt-1">Account lockout and forced session management controls.</p>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Security Sessions</h1>
+        <p className="text-sm text-muted-foreground mt-1">Account lockout and forced session management controls.</p>
       </div>
 
-      {error ? <Card className="border border-red-100 bg-red-50 p-4 rounded-2xl"><p className="text-sm font-semibold text-red-700">{error}</p></Card> : null}
-      {resultMessage ? <Card className="border border-emerald-100 bg-emerald-50 p-4 rounded-2xl"><p className="text-sm font-semibold text-emerald-700">{resultMessage}</p></Card> : null}
+      {error ? <Card className="border border-destructive/20 bg-destructive/10 p-4 rounded-lg"><p className="text-sm font-medium text-destructive">{error}</p></Card> : null}
+      {resultMessage ? <Card className="border border-success/20 bg-success/10 p-4 rounded-lg"><p className="text-sm font-medium text-success">{resultMessage}</p></Card> : null}
 
-      <Card className="rounded-3xl border border-slate-100 p-5 space-y-4">
+      <Card className="rounded-lg border border-border p-5 space-y-4">
         <div className="flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
           <select
-            className="h-10 rounded-xl border border-slate-200 px-3 text-sm md:w-[360px]"
+            className="h-10 rounded-md border border-input px-3 text-sm md:w-[360px]"
             value={selectedAccount}
             onChange={(e) => setSelectedAccount(e.target.value)}
           >
@@ -185,40 +185,40 @@ export default function StaffSecurityPage() {
         </div>
 
         {loading ? (
-          <p className="text-sm font-semibold text-slate-500">Loading security state…</p>
+          <p className="text-sm font-medium text-muted-foreground">Loading security state…</p>
         ) : payload?.staff ? (
           <>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-              <Card className="p-3 rounded-xl border border-slate-100"><p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Status</p><p className="text-sm font-bold text-slate-800 mt-1">{payload.staff.employment_status}</p></Card>
-              <Card className="p-3 rounded-xl border border-slate-100"><p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Failed Attempts</p><p className="text-sm font-bold text-slate-800 mt-1">{payload.staff.failed_login_attempts}</p></Card>
-              <Card className="p-3 rounded-xl border border-slate-100"><p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Active Sessions</p><p className="text-sm font-bold text-emerald-700 mt-1">{activeSessions}</p></Card>
-              <Card className="p-3 rounded-xl border border-slate-100"><p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Session Version</p><p className="text-sm font-bold text-slate-800 mt-1">{payload.staff.session_version}</p></Card>
-              <Card className="p-3 rounded-xl border border-slate-100"><p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Locked Until</p><p className="text-sm font-bold text-slate-800 mt-1">{payload.staff.account_locked_until ? formatDateTimeInTimezone(payload.staff.account_locked_until, systemTimezone) : "-"}</p></Card>
+              <Card className="p-3 rounded-md border border-border"><p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Status</p><p className="text-sm font-semibold text-foreground mt-1">{payload.staff.employment_status}</p></Card>
+              <Card className="p-3 rounded-md border border-border"><p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Failed Attempts</p><p className="text-sm font-semibold text-foreground mt-1 font-mono tabular-nums">{payload.staff.failed_login_attempts}</p></Card>
+              <Card className="p-3 rounded-md border border-border"><p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Active Sessions</p><p className="text-sm font-semibold text-success mt-1 font-mono tabular-nums">{activeSessions}</p></Card>
+              <Card className="p-3 rounded-md border border-border"><p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Session Version</p><p className="text-sm font-semibold text-foreground mt-1 font-mono tabular-nums">{payload.staff.session_version}</p></Card>
+              <Card className="p-3 rounded-md border border-border"><p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Locked Until</p><p className="text-sm font-semibold text-foreground mt-1 font-mono tabular-nums">{payload.staff.account_locked_until ? formatDateTimeInTimezone(payload.staff.account_locked_until, systemTimezone) : "-"}</p></Card>
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-left min-w-[900px]">
                 <thead>
-                  <tr className="bg-slate-50/70">
-                    <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Login</th>
-                    <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Last Seen</th>
-                    <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">IP</th>
-                    <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Agent</th>
-                    <th className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">State</th>
+                  <tr className="bg-muted">
+                    <th className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Login</th>
+                    <th className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Last Seen</th>
+                    <th className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">IP</th>
+                    <th className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Agent</th>
+                    <th className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">State</th>
                   </tr>
                 </thead>
                 <tbody>
                   {(payload.sessions ?? []).map((s) => (
-                    <tr key={s.session_id} className="border-t border-slate-100">
-                      <td className="px-3 py-2 text-xs font-semibold text-slate-700">{formatDateTimeInTimezone(s.login_at, systemTimezone)}</td>
-                      <td className="px-3 py-2 text-xs font-semibold text-slate-700">{formatDateTimeInTimezone(s.last_seen_at, systemTimezone)}</td>
-                      <td className="px-3 py-2 text-xs font-semibold text-slate-700">{s.ip_address || "-"}</td>
-                      <td className="px-3 py-2 text-xs font-semibold text-slate-700 max-w-[360px] truncate">{s.user_agent || "-"}</td>
+                    <tr key={s.session_id} className="border-t border-border">
+                      <td className="px-3 py-2 text-xs font-medium text-foreground font-mono tabular-nums">{formatDateTimeInTimezone(s.login_at, systemTimezone)}</td>
+                      <td className="px-3 py-2 text-xs font-medium text-foreground font-mono tabular-nums">{formatDateTimeInTimezone(s.last_seen_at, systemTimezone)}</td>
+                      <td className="px-3 py-2 text-xs font-medium text-foreground font-mono tabular-nums">{s.ip_address || "-"}</td>
+                      <td className="px-3 py-2 text-xs font-medium text-foreground max-w-[360px] truncate">{s.user_agent || "-"}</td>
                       <td className="px-3 py-2">
                         {s.revoked_at ? (
-                          <span className="px-2 py-1 rounded-lg bg-slate-100 text-slate-700 text-[10px] font-black uppercase tracking-widest">Revoked</span>
+                          <span className="px-2 py-1 rounded-md bg-muted text-muted-foreground text-[10px] font-semibold uppercase tracking-wide">Revoked</span>
                         ) : (
-                          <span className="px-2 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-[10px] font-black uppercase tracking-widest">Active</span>
+                          <span className="px-2 py-1 rounded-md bg-success/10 text-success text-[10px] font-semibold uppercase tracking-wide">Active</span>
                         )}
                       </td>
                     </tr>
@@ -228,7 +228,7 @@ export default function StaffSecurityPage() {
             </div>
           </>
         ) : (
-          <p className="text-sm font-semibold text-slate-500">Select an employee to inspect security sessions.</p>
+          <p className="text-sm font-medium text-muted-foreground">Select an employee to inspect security sessions.</p>
         )}
       </Card>
     </div>
