@@ -6,7 +6,7 @@ import { usePatient } from "@/contexts/PatientIdContext";
 import { useDoctorWorkspace } from "@/src/features/doctor/workspace/DoctorWorkspaceContext";
 
 import * as api from "../api";
-import { FormValues, MedicineSearchResult } from "../types";
+import { AllergyWarning, FormValues, MedicineSearchResult } from "../types";
 
 const EMPTY_SEARCH_RESULTS: MedicineSearchResult[] = [];
 
@@ -49,6 +49,7 @@ export function usePrescriptionForm() {
   const [searchResults, setSearchResults] = useState<MedicineSearchResult[]>(EMPTY_SEARCH_RESULTS);
   const [isSearching, setIsSearching] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [allergyWarnings, setAllergyWarnings] = useState<AllergyWarning[]>([]);
 
   const formMethods: UseFormReturn<FormValues> = useForm<FormValues>({
     defaultValues: {
@@ -98,6 +99,7 @@ export function usePrescriptionForm() {
     replace([]);
     setSearchQuery("");
     setSearchResults(EMPTY_SEARCH_RESULTS);
+    setAllergyWarnings([]);
   }, [patientId, replace]);
 
   const addMedicine = (medicine: MedicineSearchResult) => {
@@ -119,6 +121,7 @@ export function usePrescriptionForm() {
     replace([]);
     setSearchQuery("");
     setSearchResults(EMPTY_SEARCH_RESULTS);
+    setAllergyWarnings([]);
   };
 
   const onSubmit = async (data: FormValues) => {
@@ -133,6 +136,7 @@ export function usePrescriptionForm() {
     }
 
     setIsSubmitting(true);
+    setAllergyWarnings([]);
 
     try {
       const invalid = data.prescriptions.filter(
@@ -170,6 +174,9 @@ export function usePrescriptionForm() {
         toast.success("Prescription updated on existing encounter thread.");
       }
       clearPrescription();
+      // Non-blocking: surface any drug-vs-allergy conflicts the API flagged so the
+      // doctor sees them after the order is recorded (clearPrescription resets first).
+      setAllergyWarnings(result.allergy_warnings ?? []);
       window.dispatchEvent(new Event("refresh-queue"));
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Failed to submit prescription";
@@ -191,6 +198,8 @@ export function usePrescriptionForm() {
     isDraftValid,
     isVisitActionable,
     isPrescriptionRowValid,
+    allergyWarnings,
+    dismissAllergyWarnings: () => setAllergyWarnings([]),
     addMedicine,
     remove,
     clearPrescription,

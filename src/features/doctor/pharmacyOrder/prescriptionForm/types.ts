@@ -47,3 +47,10 @@ export type SelectedPrescriptionMedicine = {
 export type FormValues = {
   prescriptions: SelectedPrescriptionMedicine[];
 };
+
+export type AllergyWarning = {
+  medicine_id: number;
+  drug: string;
+  allergen: string;
+  severity: string;
+};

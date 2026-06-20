@@ -1,6 +1,6 @@
 
 import { ApiResponse, Medicine } from "@/src/lib/types";
-import { MedicineSearchResult } from "./types";
+import { AllergyWarning, MedicineSearchResult } from "./types";
 
 type PrescriptionCreateItem = {
   medicine_id: string;
@@ -66,6 +66,7 @@ export async function createPrescription(
   mode: "append" | "new_thread";
   prescription_id: number;
   visit_id: number;
+  allergy_warnings?: AllergyWarning[];
 }> {
   if (!visitId) {
     throw new Error("Select a visit before submitting prescriptions");
