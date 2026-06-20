@@ -51,6 +51,13 @@ export async function middleware(req: NextRequest) {
             url.pathname = "/";
             return NextResponse.redirect(url);
         }
+        if (
+            url.pathname.startsWith("/ipd") &&
+            !["admin", "super_admin", "doctor", "nurse", "receptionist"].includes(role)
+        ) {
+            url.pathname = "/";
+            return NextResponse.redirect(url);
+        }
         if (url.pathname.startsWith("/employee")) {
             // Any authenticated and active account can access employee self-service APIs/pages.
             return NextResponse.next();
@@ -66,4 +73,4 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
 }
 
-export const config = { matcher: ["/doctor/:path*", "/lab/:path*", "/pharmacy/:path*", "/receptionist/:path*", "/admin/:path*", "/cashier/:path*", "/employee/:path*"], };
+export const config = { matcher: ["/doctor/:path*", "/lab/:path*", "/pharmacy/:path*", "/receptionist/:path*", "/admin/:path*", "/cashier/:path*", "/ipd/:path*", "/employee/:path*"], };
