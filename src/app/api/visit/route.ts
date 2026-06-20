@@ -1,6 +1,7 @@
 
 import { query } from "@/database/db";
 import { AuthError, getAuthenticatedUser } from "@/src/lib/server/auth";
+import { resolveActorStaffId } from "@/src/lib/server/actor";
 import { publishQueueInvalidation } from "@/src/lib/server/queueEvents";
 import {
    ACTIVE_ENCOUNTER_BLOCKING_VISIT_STATUSES,
@@ -30,11 +31,26 @@ export async function PATCH(req: NextRequest) {
          if (currentVisit.rows.length === 0) {
             return NextResponse.json({ error: "visit not found" }, { status: 404 });
          }
-         assertVisitStatusTransition(String(currentVisit.rows[0].status ?? ""), requestedStatus, "visit");
+         const currentStatus = String(currentVisit.rows[0].status ?? "");
+         if (currentStatus !== requestedStatus) {
+            // Real status change: validate the transition and route it through the
+            // audited proc so visit_status_history is written. This PATCH used to
+            // write visit.status directly, bypassing the proc (audit P1-1/H4).
+            assertVisitStatusTransition(currentStatus, requestedStatus, "visit");
+            const actorStaffId = await resolveActorStaffId(req, { query });
+            await query("call update_and_log_visit_status($1,$2,$3,$4)", [
+               res.visit_id,
+               requestedStatus,
+               null,
+               actorStaffId,
+            ]);
+         }
       }
+      // Update visit metadata only — status transitions are handled above via the
+      // audited proc (or via /api/visit/status), never written directly here.
       const v_res = await query(
-         "update visit set doctor_id = $2, visit_type = $3, clinic_number = $4, status = $5, reason = $6 where visit_id = $1 and is_deleted = false returning *",
-         [res.visit_id, res.doctor_id, res.visit_type, res.clinic_number, res.status, res.reason]
+         "update visit set doctor_id = $2, visit_type = $3, clinic_number = $4, reason = $5 where visit_id = $1 and is_deleted = false returning *",
+         [res.visit_id, res.doctor_id, res.visit_type, res.clinic_number, res.reason]
       );
       if (v_res.rows.length === 0) {
          return NextResponse.json({ error: "visit not found" }, { status: 404 });
