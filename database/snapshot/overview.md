@@ -1,8 +1,8 @@
 # DB Snapshot — overview
 
-Generated: 2026-06-20T09:00:53.218Z
+Generated: 2026-06-20T09:05:09.713Z
 
-- Tables: 98
+- Tables: 104
 - Views: 4
 - Functions/Procedures: 15
 - Triggers: 17
@@ -32,6 +32,7 @@ Generated: 2026-06-20T09:00:53.218Z
 | doctor | 6 |
 | doctor_attendance | 5 |
 | doctor_encounter_note | 27 |
+| doctor_order | 0 |
 | doctor_security_sessions | 19 |
 | employee_allowance | 0 |
 | employee_compensation_profile | 12 |
@@ -51,6 +52,7 @@ Generated: 2026-06-20T09:00:53.218Z
 | finance_asset_purchase | 0 |
 | finance_expense_category | 7 |
 | finance_expense_entry | 0 |
+| intake_output | 0 |
 | lab_order | 0 |
 | lab_result | 0 |
 | lab_result_approvals | 0 |
@@ -59,6 +61,8 @@ Generated: 2026-06-20T09:00:53.218Z
 | lab_test_results | 0 |
 | leave_employee_quota_override | 0 |
 | leave_role_quota | 72 |
+| medication_administration | 0 |
+| medication_order | 0 |
 | medicine | 12 |
 | medicine_batch | 24 |
 | medicine_category | 8 |
@@ -68,11 +72,13 @@ Generated: 2026-06-20T09:00:53.218Z
 | medicine_purchase_detail | 21 |
 | medicine_transaction | 128 |
 | menstrual_history | 1 |
+| nursing_note | 0 |
 | obstetric_history | 1 |
 | para_details | 1 |
 | party | 6 |
 | party_payment | 1 |
 | patient | 12 |
+| patient_allergy | 0 |
 | patient_vitals | 9 |
 | payroll_line_item | 24 |
 | payroll_run | 2 |

@@ -1071,6 +1071,61 @@ _(none)_
 
 
 
+## doctor_order
+
+### Columns
+
+| table_name | column_name | data_type | udt_name | is_nullable | column_default | character_maximum_length |
+| --- | --- | --- | --- | --- | --- | --- |
+| doctor_order | order_id | integer | int4 | NO | nextval('doctor_order_order_id_seq'::regclass) |  |
+| doctor_order | admission_id | integer | int4 | NO |  |  |
+| doctor_order | ordered_by_doctor_id | integer | int4 | YES |  |  |
+| doctor_order | order_type | character varying | varchar | NO |  | 20 |
+| doctor_order | details | text | text | YES |  |  |
+| doctor_order | priority | character varying | varchar | NO | 'routine'::character varying | 10 |
+| doctor_order | status | character varying | varchar | NO | 'active'::character varying | 15 |
+| doctor_order | start_dt | timestamp without time zone | timestamp | NO | CURRENT_TIMESTAMP |  |
+| doctor_order | stop_dt | timestamp without time zone | timestamp | YES |  |  |
+| doctor_order | created_at | timestamp without time zone | timestamp | NO | CURRENT_TIMESTAMP |  |
+
+
+### Primary key
+
+| table_name | column_name | constraint_name |
+| --- | --- | --- |
+| doctor_order | order_id | doctor_order_pkey |
+
+
+### Foreign keys
+
+| table_name | column_name | ref_table | ref_column | update_rule | delete_rule | constraint_name |
+| --- | --- | --- | --- | --- | --- | --- |
+| doctor_order | admission_id | admission | admission_id | NO ACTION | CASCADE | doctor_order_admission_id_fkey |
+| doctor_order | ordered_by_doctor_id | doctor | doctor_id | NO ACTION | NO ACTION | doctor_order_ordered_by_doctor_id_fkey |
+
+
+### Unique constraints
+
+_(none)_
+
+
+### Check constraints
+
+| table_name | constraint_name | check_clause |
+| --- | --- | --- |
+| doctor_order | ck_order_priority | ((priority)::text = ANY ((ARRAY['stat'::character varying, 'routine'::character varying, 'prn'::character varying])::text[])) |
+| doctor_order | ck_order_status | ((status)::text = ANY ((ARRAY['active'::character varying, 'held'::character varying, 'discontinued'::character varying, 'completed'::character varying])::text[])) |
+| doctor_order | ck_order_type | ((order_type)::text = ANY ((ARRAY['medication'::character varying, 'lab'::character varying, 'radiology'::character varying, 'diet'::character varying, 'iv'::character varying, 'procedure'::character varying, 'nursing'::character varying])::text[])) |
+| doctor_order | doctor_order_admission_id_not_null | admission_id IS NOT NULL |
+| doctor_order | doctor_order_created_at_not_null | created_at IS NOT NULL |
+| doctor_order | doctor_order_order_id_not_null | order_id IS NOT NULL |
+| doctor_order | doctor_order_order_type_not_null | order_type IS NOT NULL |
+| doctor_order | doctor_order_priority_not_null | priority IS NOT NULL |
+| doctor_order | doctor_order_start_dt_not_null | start_dt IS NOT NULL |
+| doctor_order | doctor_order_status_not_null | status IS NOT NULL |
+
+
+
 ## doctor_security_sessions
 
 ### Columns
@@ -2139,6 +2194,57 @@ _(none)_
 
 
 
+## intake_output
+
+### Columns
+
+| table_name | column_name | data_type | udt_name | is_nullable | column_default | character_maximum_length |
+| --- | --- | --- | --- | --- | --- | --- |
+| intake_output | io_id | integer | int4 | NO | nextval('intake_output_io_id_seq'::regclass) |  |
+| intake_output | admission_id | integer | int4 | NO |  |  |
+| intake_output | recorded_dt | timestamp without time zone | timestamp | NO | CURRENT_TIMESTAMP |  |
+| intake_output | io_type | character varying | varchar | NO |  | 10 |
+| intake_output | category | character varying | varchar | YES |  | 40 |
+| intake_output | volume_ml | numeric | numeric | NO | 0 |  |
+| intake_output | recorded_by_staff_id | integer | int4 | YES |  |  |
+| intake_output | created_at | timestamp without time zone | timestamp | NO | CURRENT_TIMESTAMP |  |
+
+
+### Primary key
+
+| table_name | column_name | constraint_name |
+| --- | --- | --- |
+| intake_output | io_id | intake_output_pkey |
+
+
+### Foreign keys
+
+| table_name | column_name | ref_table | ref_column | update_rule | delete_rule | constraint_name |
+| --- | --- | --- | --- | --- | --- | --- |
+| intake_output | admission_id | admission | admission_id | NO ACTION | CASCADE | intake_output_admission_id_fkey |
+| intake_output | recorded_by_staff_id | staff | staff_id | NO ACTION | NO ACTION | intake_output_recorded_by_staff_id_fkey |
+
+
+### Unique constraints
+
+_(none)_
+
+
+### Check constraints
+
+| table_name | constraint_name | check_clause |
+| --- | --- | --- |
+| intake_output | ck_io_type | ((io_type)::text = ANY ((ARRAY['intake'::character varying, 'output'::character varying])::text[])) |
+| intake_output | ck_io_volume_nonneg | (volume_ml >= (0)::numeric) |
+| intake_output | intake_output_admission_id_not_null | admission_id IS NOT NULL |
+| intake_output | intake_output_created_at_not_null | created_at IS NOT NULL |
+| intake_output | intake_output_io_id_not_null | io_id IS NOT NULL |
+| intake_output | intake_output_io_type_not_null | io_type IS NOT NULL |
+| intake_output | intake_output_recorded_dt_not_null | recorded_dt IS NOT NULL |
+| intake_output | intake_output_volume_ml_not_null | volume_ml IS NOT NULL |
+
+
+
 ## lab_order
 
 ### Columns
@@ -2540,6 +2646,106 @@ _(none)_
 | leave_role_quota | leave_role_quota_role_name_not_null | role_name IS NOT NULL |
 | leave_role_quota | leave_role_quota_role_quota_id_not_null | role_quota_id IS NOT NULL |
 | leave_role_quota | leave_role_quota_updated_at_not_null | updated_at IS NOT NULL |
+
+
+
+## medication_administration
+
+### Columns
+
+| table_name | column_name | data_type | udt_name | is_nullable | column_default | character_maximum_length |
+| --- | --- | --- | --- | --- | --- | --- |
+| medication_administration | mar_id | integer | int4 | NO | nextval('medication_administration_mar_id_seq'::regclass) |  |
+| medication_administration | med_order_id | integer | int4 | NO |  |  |
+| medication_administration | scheduled_dt | timestamp without time zone | timestamp | YES |  |  |
+| medication_administration | action | character varying | varchar | NO |  | 10 |
+| medication_administration | administered_dt | timestamp without time zone | timestamp | YES |  |  |
+| medication_administration | administered_by_staff_id | integer | int4 | YES |  |  |
+| medication_administration | dose_given | character varying | varchar | YES |  | 80 |
+| medication_administration | route | character varying | varchar | YES |  | 40 |
+| medication_administration | reason | text | text | YES |  |  |
+| medication_administration | notes | text | text | YES |  |  |
+| medication_administration | created_at | timestamp without time zone | timestamp | NO | CURRENT_TIMESTAMP |  |
+
+
+### Primary key
+
+| table_name | column_name | constraint_name |
+| --- | --- | --- |
+| medication_administration | mar_id | medication_administration_pkey |
+
+
+### Foreign keys
+
+| table_name | column_name | ref_table | ref_column | update_rule | delete_rule | constraint_name |
+| --- | --- | --- | --- | --- | --- | --- |
+| medication_administration | administered_by_staff_id | staff | staff_id | NO ACTION | NO ACTION | medication_administration_administered_by_staff_id_fkey |
+| medication_administration | med_order_id | medication_order | med_order_id | NO ACTION | CASCADE | medication_administration_med_order_id_fkey |
+
+
+### Unique constraints
+
+_(none)_
+
+
+### Check constraints
+
+| table_name | constraint_name | check_clause |
+| --- | --- | --- |
+| medication_administration | ck_mar_action | ((action)::text = ANY ((ARRAY['given'::character varying, 'refused'::character varying, 'held'::character varying, 'skipped'::character varying, 'missed'::character varying])::text[])) |
+| medication_administration | ck_mar_given_complete | (((action)::text <> 'given'::text) OR ((administered_by_staff_id IS NOT NULL) AND (administered_dt IS NOT NULL))) |
+| medication_administration | medication_administration_action_not_null | action IS NOT NULL |
+| medication_administration | medication_administration_created_at_not_null | created_at IS NOT NULL |
+| medication_administration | medication_administration_mar_id_not_null | mar_id IS NOT NULL |
+| medication_administration | medication_administration_med_order_id_not_null | med_order_id IS NOT NULL |
+
+
+
+## medication_order
+
+### Columns
+
+| table_name | column_name | data_type | udt_name | is_nullable | column_default | character_maximum_length |
+| --- | --- | --- | --- | --- | --- | --- |
+| medication_order | med_order_id | integer | int4 | NO | nextval('medication_order_med_order_id_seq'::regclass) |  |
+| medication_order | order_id | integer | int4 | NO |  |  |
+| medication_order | medicine_id | integer | int4 | YES |  |  |
+| medication_order | drug_name | character varying | varchar | NO |  | 200 |
+| medication_order | dose | character varying | varchar | YES |  | 80 |
+| medication_order | route | character varying | varchar | YES |  | 40 |
+| medication_order | frequency | character varying | varchar | YES |  | 80 |
+| medication_order | schedule_times | text | text | YES |  |  |
+| medication_order | created_at | timestamp without time zone | timestamp | NO | CURRENT_TIMESTAMP |  |
+
+
+### Primary key
+
+| table_name | column_name | constraint_name |
+| --- | --- | --- |
+| medication_order | med_order_id | medication_order_pkey |
+
+
+### Foreign keys
+
+| table_name | column_name | ref_table | ref_column | update_rule | delete_rule | constraint_name |
+| --- | --- | --- | --- | --- | --- | --- |
+| medication_order | medicine_id | medicine | medicine_id | NO ACTION | NO ACTION | medication_order_medicine_id_fkey |
+| medication_order | order_id | doctor_order | order_id | NO ACTION | CASCADE | medication_order_order_id_fkey |
+
+
+### Unique constraints
+
+_(none)_
+
+
+### Check constraints
+
+| table_name | constraint_name | check_clause |
+| --- | --- | --- |
+| medication_order | medication_order_created_at_not_null | created_at IS NOT NULL |
+| medication_order | medication_order_drug_name_not_null | drug_name IS NOT NULL |
+| medication_order | medication_order_med_order_id_not_null | med_order_id IS NOT NULL |
+| medication_order | medication_order_order_id_not_null | order_id IS NOT NULL |
 
 
 
@@ -2991,6 +3197,53 @@ _(none)_
 
 
 
+## nursing_note
+
+### Columns
+
+| table_name | column_name | data_type | udt_name | is_nullable | column_default | character_maximum_length |
+| --- | --- | --- | --- | --- | --- | --- |
+| nursing_note | note_id | integer | int4 | NO | nextval('nursing_note_note_id_seq'::regclass) |  |
+| nursing_note | admission_id | integer | int4 | NO |  |  |
+| nursing_note | shift | character varying | varchar | YES |  | 20 |
+| nursing_note | note_dt | timestamp without time zone | timestamp | NO | CURRENT_TIMESTAMP |  |
+| nursing_note | author_staff_id | integer | int4 | YES |  |  |
+| nursing_note | note | text | text | NO |  |  |
+| nursing_note | created_at | timestamp without time zone | timestamp | NO | CURRENT_TIMESTAMP |  |
+
+
+### Primary key
+
+| table_name | column_name | constraint_name |
+| --- | --- | --- |
+| nursing_note | note_id | nursing_note_pkey |
+
+
+### Foreign keys
+
+| table_name | column_name | ref_table | ref_column | update_rule | delete_rule | constraint_name |
+| --- | --- | --- | --- | --- | --- | --- |
+| nursing_note | admission_id | admission | admission_id | NO ACTION | CASCADE | nursing_note_admission_id_fkey |
+| nursing_note | author_staff_id | staff | staff_id | NO ACTION | NO ACTION | nursing_note_author_staff_id_fkey |
+
+
+### Unique constraints
+
+_(none)_
+
+
+### Check constraints
+
+| table_name | constraint_name | check_clause |
+| --- | --- | --- |
+| nursing_note | nursing_note_admission_id_not_null | admission_id IS NOT NULL |
+| nursing_note | nursing_note_created_at_not_null | created_at IS NOT NULL |
+| nursing_note | nursing_note_note_dt_not_null | note_dt IS NOT NULL |
+| nursing_note | nursing_note_note_id_not_null | note_id IS NOT NULL |
+| nursing_note | nursing_note_note_not_null | note IS NOT NULL |
+
+
+
 ## obstetric_history
 
 ### Columns
@@ -3221,6 +3474,56 @@ _(none)_
 
 
 
+## patient_allergy
+
+### Columns
+
+| table_name | column_name | data_type | udt_name | is_nullable | column_default | character_maximum_length |
+| --- | --- | --- | --- | --- | --- | --- |
+| patient_allergy | allergy_id | integer | int4 | NO | nextval('patient_allergy_allergy_id_seq'::regclass) |  |
+| patient_allergy | patient_id | integer | int4 | NO |  |  |
+| patient_allergy | allergen | character varying | varchar | NO |  | 160 |
+| patient_allergy | reaction | text | text | YES |  |  |
+| patient_allergy | severity | character varying | varchar | NO | 'unknown'::character varying | 20 |
+| patient_allergy | is_active | boolean | bool | NO | true |  |
+| patient_allergy | noted_by | integer | int4 | YES |  |  |
+| patient_allergy | noted_at | timestamp without time zone | timestamp | NO | CURRENT_TIMESTAMP |  |
+
+
+### Primary key
+
+| table_name | column_name | constraint_name |
+| --- | --- | --- |
+| patient_allergy | allergy_id | patient_allergy_pkey |
+
+
+### Foreign keys
+
+| table_name | column_name | ref_table | ref_column | update_rule | delete_rule | constraint_name |
+| --- | --- | --- | --- | --- | --- | --- |
+| patient_allergy | noted_by | staff | staff_id | NO ACTION | NO ACTION | patient_allergy_noted_by_fkey |
+| patient_allergy | patient_id | patient | patient_id | NO ACTION | CASCADE | patient_allergy_patient_id_fkey |
+
+
+### Unique constraints
+
+_(none)_
+
+
+### Check constraints
+
+| table_name | constraint_name | check_clause |
+| --- | --- | --- |
+| patient_allergy | ck_allergy_severity | ((severity)::text = ANY ((ARRAY['mild'::character varying, 'moderate'::character varying, 'severe'::character varying, 'unknown'::character varying])::text[])) |
+| patient_allergy | patient_allergy_allergen_not_null | allergen IS NOT NULL |
+| patient_allergy | patient_allergy_allergy_id_not_null | allergy_id IS NOT NULL |
+| patient_allergy | patient_allergy_is_active_not_null | is_active IS NOT NULL |
+| patient_allergy | patient_allergy_noted_at_not_null | noted_at IS NOT NULL |
+| patient_allergy | patient_allergy_patient_id_not_null | patient_id IS NOT NULL |
+| patient_allergy | patient_allergy_severity_not_null | severity IS NOT NULL |
+
+
+
 ## patient_vitals
 
 ### Columns
@@ -3228,7 +3531,7 @@ _(none)_
 | table_name | column_name | data_type | udt_name | is_nullable | column_default | character_maximum_length |
 | --- | --- | --- | --- | --- | --- | --- |
 | patient_vitals | vital_id | integer | int4 | NO | nextval('patient_vitals_vital_id_seq'::regclass) |  |
-| patient_vitals | visit_id | integer | int4 | NO |  |  |
+| patient_vitals | visit_id | integer | int4 | YES |  |  |
 | patient_vitals | blood_pressure | character varying | varchar | YES |  | 20 |
 | patient_vitals | heart_rate | integer | int4 | YES |  |  |
 | patient_vitals | temperature | integer | int4 | YES |  |  |
@@ -3236,6 +3539,7 @@ _(none)_
 | patient_vitals | height | integer | int4 | YES |  |  |
 | patient_vitals | recorded_at | timestamp without time zone | timestamp | YES | CURRENT_TIMESTAMP |  |
 | patient_vitals | blood_group | character varying | varchar | YES |  | 20 |
+| patient_vitals | admission_id | integer | int4 | YES |  |  |
 
 
 ### Primary key
@@ -3249,6 +3553,7 @@ _(none)_
 
 | table_name | column_name | ref_table | ref_column | update_rule | delete_rule | constraint_name |
 | --- | --- | --- | --- | --- | --- | --- |
+| patient_vitals | admission_id | admission | admission_id | NO ACTION | NO ACTION | patient_vitals_admission_id_fkey |
 | patient_vitals | visit_id | visit | visit_id | NO ACTION | CASCADE | patient_vitals_visit_id_fkey |
 
 
@@ -3263,8 +3568,8 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
+| patient_vitals | ck_vitals_anchor | ((visit_id IS NOT NULL) OR (admission_id IS NOT NULL)) |
 | patient_vitals | patient_vitals_blood_group_check | ((blood_group)::text = ANY (ARRAY[('A+'::character varying)::text, ('A-'::character varying)::text, ('B+'::character varying)::text, ('B-'::character varying)::text, ('O+'::character varying)::text, ('O-'::character varying)::text, ('AB+'::character varying)::text, ('AB-'::character varying)::text])) |
-| patient_vitals | patient_vitals_visit_id_not_null | visit_id IS NOT NULL |
 | patient_vitals | patient_vitals_vital_id_not_null | vital_id IS NOT NULL |
 
 

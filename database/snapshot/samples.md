@@ -301,11 +301,11 @@
 
 ## patient_vitals
 
-| vital_id | visit_id | blood_pressure | heart_rate | temperature | weight | height | recorded_at | blood_group |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | 1 | 120/80 | 72 | 99 | 65 | 165 | "2026-02-06T06:42:40.173Z" | A+ |
-| 2 | 2 | 130/85 | 80 | 102 | 75 | 175 | "2026-02-06T06:42:40.173Z" | B+ |
-| 3 | 3 | 110/70 | 85 | 98 | 82 | 180 | "2026-02-06T06:42:40.173Z" | O- |
+| vital_id | visit_id | blood_pressure | heart_rate | temperature | weight | height | recorded_at | blood_group | admission_id |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | 1 | 120/80 | 72 | 99 | 65 | 165 | "2026-02-06T06:42:40.173Z" | A+ |  |
+| 2 | 2 | 130/85 | 80 | 102 | 75 | 175 | "2026-02-06T06:42:40.173Z" | B+ |  |
+| 3 | 3 | 110/70 | 85 | 98 | 82 | 180 | "2026-02-06T06:42:40.173Z" | O- |  |
 
 
 

@@ -57,6 +57,9 @@
 | public | doctor_encounter_note | doctor_encounter_note_visit_id_key | CREATE UNIQUE INDEX doctor_encounter_note_visit_id_key ON public.doctor_encounter_note USING btree (visit_id) |
 | public | doctor_encounter_note | idx_doctor_encounter_note_doctor | CREATE INDEX idx_doctor_encounter_note_doctor ON public.doctor_encounter_note USING btree (doctor_id) |
 | public | doctor_encounter_note | idx_doctor_encounter_note_patient | CREATE INDEX idx_doctor_encounter_note_patient ON public.doctor_encounter_note USING btree (patient_id) |
+| public | doctor_order | doctor_order_pkey | CREATE UNIQUE INDEX doctor_order_pkey ON public.doctor_order USING btree (order_id) |
+| public | doctor_order | idx_doctor_order_admission | CREATE INDEX idx_doctor_order_admission ON public.doctor_order USING btree (admission_id) |
+| public | doctor_order | idx_doctor_order_status | CREATE INDEX idx_doctor_order_status ON public.doctor_order USING btree (status) |
 | public | doctor_security_sessions | doctor_security_sessions_pkey | CREATE UNIQUE INDEX doctor_security_sessions_pkey ON public.doctor_security_sessions USING btree (session_id) |
 | public | doctor_security_sessions | idx_doctor_security_sessions_doctor_revoked | CREATE INDEX idx_doctor_security_sessions_doctor_revoked ON public.doctor_security_sessions USING btree (doctor_id, revoked_at) |
 | public | doctor_security_sessions | idx_doctor_security_sessions_last_seen | CREATE INDEX idx_doctor_security_sessions_last_seen ON public.doctor_security_sessions USING btree (last_seen_at DESC) |
@@ -102,6 +105,8 @@
 | public | finance_expense_category | finance_expense_category_pkey | CREATE UNIQUE INDEX finance_expense_category_pkey ON public.finance_expense_category USING btree (code) |
 | public | finance_expense_entry | finance_expense_entry_pkey | CREATE UNIQUE INDEX finance_expense_entry_pkey ON public.finance_expense_entry USING btree (expense_id) |
 | public | finance_expense_entry | idx_finance_expense_entry_date | CREATE INDEX idx_finance_expense_entry_date ON public.finance_expense_entry USING btree (expense_date DESC, category) |
+| public | intake_output | idx_intake_output_admission | CREATE INDEX idx_intake_output_admission ON public.intake_output USING btree (admission_id) |
+| public | intake_output | intake_output_pkey | CREATE UNIQUE INDEX intake_output_pkey ON public.intake_output USING btree (io_id) |
 | public | lab_order | idx_lab_order_visit_id | CREATE INDEX idx_lab_order_visit_id ON public.lab_order USING btree (visit_id) |
 | public | lab_order | lab_order_pkey | CREATE UNIQUE INDEX lab_order_pkey ON public.lab_order USING btree (order_id) |
 | public | lab_result | lab_result_pkey | CREATE UNIQUE INDEX lab_result_pkey ON public.lab_result USING btree (result_id) |
@@ -116,6 +121,10 @@
 | public | leave_employee_quota_override | leave_employee_quota_override_pkey | CREATE UNIQUE INDEX leave_employee_quota_override_pkey ON public.leave_employee_quota_override USING btree (override_id) |
 | public | leave_role_quota | leave_role_quota_pkey | CREATE UNIQUE INDEX leave_role_quota_pkey ON public.leave_role_quota USING btree (role_quota_id) |
 | public | leave_role_quota | leave_role_quota_role_name_leave_type_id_key | CREATE UNIQUE INDEX leave_role_quota_role_name_leave_type_id_key ON public.leave_role_quota USING btree (role_name, leave_type_id) |
+| public | medication_administration | idx_mar_med_order | CREATE INDEX idx_mar_med_order ON public.medication_administration USING btree (med_order_id) |
+| public | medication_administration | medication_administration_pkey | CREATE UNIQUE INDEX medication_administration_pkey ON public.medication_administration USING btree (mar_id) |
+| public | medication_order | idx_medication_order_order | CREATE INDEX idx_medication_order_order ON public.medication_order USING btree (order_id) |
+| public | medication_order | medication_order_pkey | CREATE UNIQUE INDEX medication_order_pkey ON public.medication_order USING btree (med_order_id) |
 | public | medicine | idx_medicine_active | CREATE INDEX idx_medicine_active ON public.medicine USING btree (is_active) |
 | public | medicine | idx_medicine_barcode | CREATE INDEX idx_medicine_barcode ON public.medicine USING btree (barcode) |
 | public | medicine | idx_medicine_category_id | CREATE INDEX idx_medicine_category_id ON public.medicine USING btree (category_id) |
@@ -140,6 +149,8 @@
 | public | medicine_transaction | medicine_transaction_pkey | CREATE UNIQUE INDEX medicine_transaction_pkey ON public.medicine_transaction USING btree (txn_id) |
 | public | menstrual_history | menstrual_history_pkey | CREATE UNIQUE INDEX menstrual_history_pkey ON public.menstrual_history USING btree (menstrual_history_id) |
 | public | menstrual_history | uq_menstrual_history_patient_id | CREATE UNIQUE INDEX uq_menstrual_history_patient_id ON public.menstrual_history USING btree (patient_id) |
+| public | nursing_note | idx_nursing_note_admission | CREATE INDEX idx_nursing_note_admission ON public.nursing_note USING btree (admission_id) |
+| public | nursing_note | nursing_note_pkey | CREATE UNIQUE INDEX nursing_note_pkey ON public.nursing_note USING btree (note_id) |
 | public | obstetric_history | obstetric_history_pkey | CREATE UNIQUE INDEX obstetric_history_pkey ON public.obstetric_history USING btree (obstetric_history_id) |
 | public | obstetric_history | unique_patient_id_obs_history | CREATE UNIQUE INDEX unique_patient_id_obs_history ON public.obstetric_history USING btree (patient_id) |
 | public | para_details | para_details_pkey | CREATE UNIQUE INDEX para_details_pkey ON public.para_details USING btree (para_id) |
@@ -148,6 +159,9 @@
 | public | party_payment | party_payment_pkey | CREATE UNIQUE INDEX party_payment_pkey ON public.party_payment USING btree (payment_id) |
 | public | patient | patient_pkey | CREATE UNIQUE INDEX patient_pkey ON public.patient USING btree (patient_id) |
 | public | patient | uq_patient_cnic | CREATE UNIQUE INDEX uq_patient_cnic ON public.patient USING btree (cnic) WHERE ((cnic IS NOT NULL) AND (btrim((cnic)::text) <> ''::text)) |
+| public | patient_allergy | idx_patient_allergy_patient | CREATE INDEX idx_patient_allergy_patient ON public.patient_allergy USING btree (patient_id) WHERE is_active |
+| public | patient_allergy | patient_allergy_pkey | CREATE UNIQUE INDEX patient_allergy_pkey ON public.patient_allergy USING btree (allergy_id) |
+| public | patient_vitals | idx_patient_vitals_admission | CREATE INDEX idx_patient_vitals_admission ON public.patient_vitals USING btree (admission_id) |
 | public | patient_vitals | patient_vitals_pkey | CREATE UNIQUE INDEX patient_vitals_pkey ON public.patient_vitals USING btree (vital_id) |
 | public | patient_vitals | unique_patient_vitals | CREATE UNIQUE INDEX unique_patient_vitals ON public.patient_vitals USING btree (visit_id) |
 | public | payroll_line_item | idx_payroll_line_item_person | CREATE INDEX idx_payroll_line_item_person ON public.payroll_line_item USING btree (account_type, person_id, created_at DESC) |
