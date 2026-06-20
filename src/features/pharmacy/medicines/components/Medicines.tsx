@@ -228,10 +228,10 @@ export const Medicines: React.FC = () => {
   );
 
   return (
-    <div className="flex flex-col h-full bg-slate-50 p-6 gap-6">
+    <div className="flex flex-col h-full bg-muted p-6 gap-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-3">
-          <div className="p-2.5 bg-indigo-500 text-white rounded-xl shadow-lg shadow-indigo-500/20">
+        <h2 className="text-2xl font-bold text-foreground flex items-center gap-3">
+          <div className="p-2.5 bg-primary text-white rounded-xl shadow-lg ">
             <Package size={20} />
           </div>
           Products Management
@@ -245,7 +245,7 @@ export const Medicines: React.FC = () => {
               <button
                 key={type}
                 onClick={() => openMasterManager(type)}
-                className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700"
+                className="flex items-center gap-2 rounded-xl border border-border bg-white px-4 py-2.5 text-sm font-medium text-foreground transition hover:border-indigo-300 hover:bg-primary/10 hover:text-primary"
               >
                 <Icon size={16} />
                 <span>{meta.label}</span>
@@ -254,7 +254,7 @@ export const Medicines: React.FC = () => {
           })}
           <button
             onClick={handleAdd}
-            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-md shadow-indigo-200"
+            className="flex items-center gap-2 bg-primary hover:bg-primary text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-md "
           >
             <PlusCircle size={18} />
             <span>Add Product</span>
@@ -262,9 +262,9 @@ export const Medicines: React.FC = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-[2rem] shadow-sm border border-slate-200 flex flex-col flex-1 overflow-hidden p-6 gap-6">
+      <div className="bg-white rounded-lg shadow-sm border border-border flex flex-col flex-1 overflow-hidden p-6 gap-6">
         <div className="relative w-full max-w-md">
-          <label className="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
+          <label className="absolute inset-y-0 left-0 flex items-center pl-4 text-muted-foreground">
             <Search size={18} />
           </label>
           <input
@@ -272,57 +272,57 @@ export const Medicines: React.FC = () => {
             placeholder="Search by product/brand, base/generic name, or category..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-slate-400"
+            className="w-full pl-11 pr-4 py-3 bg-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring transition-all placeholder:text-muted-foreground"
           />
         </div>
 
-        <div className="flex-1 overflow-auto rounded-xl border border-slate-200">
+        <div className="flex-1 overflow-auto rounded-xl border border-border">
           <table className="w-full text-left border-collapse">
-            <thead className="bg-slate-50 sticky top-0 z-10 shadow-sm">
+            <thead className="bg-muted sticky top-0 z-10 shadow-sm">
               <tr>
-                <th className="py-4 px-6 font-semibold text-slate-600 border-b border-slate-200">ID</th>
-                <th className="py-4 px-6 font-semibold text-slate-600 border-b border-slate-200">Brand Name</th>
-                <th className="py-4 px-6 font-semibold text-slate-600 border-b border-slate-200">Generic Name</th>
-                <th className="py-4 px-6 font-semibold text-slate-600 border-b border-slate-200">Category</th>
-                <th className="py-4 px-6 font-semibold text-slate-600 border-b border-slate-200 text-center">Stock</th>
-                <th className="py-4 px-6 font-semibold text-slate-600 border-b border-slate-200 text-center">Active</th>
-                <th className="py-4 px-6 font-semibold text-slate-600 border-b border-slate-200 text-right">Actions</th>
+                <th className="py-4 px-6 font-semibold text-muted-foreground border-b border-border">ID</th>
+                <th className="py-4 px-6 font-semibold text-muted-foreground border-b border-border">Brand Name</th>
+                <th className="py-4 px-6 font-semibold text-muted-foreground border-b border-border">Generic Name</th>
+                <th className="py-4 px-6 font-semibold text-muted-foreground border-b border-border">Category</th>
+                <th className="py-4 px-6 font-semibold text-muted-foreground border-b border-border text-center">Stock</th>
+                <th className="py-4 px-6 font-semibold text-muted-foreground border-b border-border text-center">Active</th>
+                <th className="py-4 px-6 font-semibold text-muted-foreground border-b border-border text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="py-8 text-center text-slate-500">
+                  <td colSpan={7} className="py-8 text-center text-muted-foreground">
                     Loading products...
                   </td>
                 </tr>
               ) : filteredMedicines.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-8 text-center text-slate-500">
+                  <td colSpan={7} className="py-8 text-center text-muted-foreground">
                     No products found.
                   </td>
                 </tr>
               ) : (
                 filteredMedicines.map((medicine) => (
-                  <tr key={medicine.medicine_id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="py-3 px-6 text-slate-500 text-sm">#{medicine.medicine_id}</td>
-                    <td className="py-3 px-6 font-medium text-slate-800">{medicine.brand_name}</td>
-                    <td className="py-3 px-6 text-slate-600">{medicine.generic_name}</td>
+                  <tr key={medicine.medicine_id} className="hover:bg-muted/50 transition-colors">
+                    <td className="py-3 px-6 text-muted-foreground text-sm">#{medicine.medicine_id}</td>
+                    <td className="py-3 px-6 font-medium text-foreground">{medicine.brand_name}</td>
+                    <td className="py-3 px-6 text-muted-foreground">{medicine.generic_name}</td>
                     <td className="py-3 px-6">
-                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700">
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
                         {medicine.category}
                       </span>
                     </td>
-                    <td className="py-3 px-6 text-center text-slate-600 font-mono text-sm">
+                    <td className="py-3 px-6 text-center text-muted-foreground font-mono text-sm">
                       {medicine.stock_quantity || 0}
                     </td>
                     <td className="py-3 px-6 text-center">
-                      <span className={`inline-flex items-center justify-center w-3 h-3 rounded-full ${medicine.is_active ? 'bg-emerald-500' : 'bg-slate-300'}`} title={medicine.is_active ? 'Active' : 'Inactive'} />
+                      <span className={`inline-flex items-center justify-center w-3 h-3 rounded-full ${medicine.is_active ? 'bg-primary' : 'bg-slate-300'}`} title={medicine.is_active ? 'Active' : 'Inactive'} />
                     </td>
                     <td className="py-3 px-6 text-right">
                       <button
                         onClick={() => handleEdit(medicine)}
-                        className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                        className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
                         title="Edit Product"
                       >
                         <Edit2 size={16} />
@@ -347,24 +347,24 @@ export const Medicines: React.FC = () => {
       {activeMasterType ? (
         <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm">
           <div className="flex h-[min(760px,calc(100dvh-2rem))] w-full max-w-3xl flex-col overflow-hidden rounded-[28px] border border-white/70 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.24)]">
-            <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-5">
+            <div className="flex items-start justify-between gap-4 border-b border-border px-6 py-5">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-600">Master records</p>
-                <h3 className="mt-1 text-2xl font-semibold text-slate-900">{MASTER_META[activeMasterType].label}</h3>
-                <p className="mt-1 text-sm text-slate-500">Browse existing records and add new ones directly to the database.</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Master records</p>
+                <h3 className="mt-1 text-2xl font-semibold text-foreground">{MASTER_META[activeMasterType].label}</h3>
+                <p className="mt-1 text-sm text-muted-foreground">Browse existing records and add new ones directly to the database.</p>
               </div>
               <button
                 type="button"
                 onClick={closeMasterManager}
-                className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 hover:text-slate-700"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-border text-muted-foreground transition hover:bg-muted hover:text-foreground"
               >
                 <X size={18} />
               </button>
             </div>
 
-            <div className="grid gap-4 border-b border-slate-200 px-6 py-5 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
+            <div className="grid gap-4 border-b border-border px-6 py-5 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
               <div className="relative">
-                <label className="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
+                <label className="absolute inset-y-0 left-0 flex items-center pl-4 text-muted-foreground">
                   <Search size={18} />
                 </label>
                 <input
@@ -372,7 +372,7 @@ export const Medicines: React.FC = () => {
                   value={masterSearch}
                   onChange={(event) => setMasterSearch(event.target.value)}
                   placeholder={`Search ${MASTER_META[activeMasterType].label.toLowerCase()}...`}
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100"
+                  className="w-full rounded-md border border-border bg-muted py-3 pl-11 pr-4 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-ring focus:bg-white focus:ring-4 focus:ring-ring/20"
                 />
               </div>
               <input
@@ -380,13 +380,13 @@ export const Medicines: React.FC = () => {
                 value={newMasterName}
                 onChange={(event) => setNewMasterName(event.target.value)}
                 placeholder={`New ${MASTER_META[activeMasterType].label.slice(0, -1).toLowerCase()} name`}
-                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
+                className="w-full rounded-md border border-border bg-white px-4 py-3 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-ring focus:ring-4 focus:ring-ring/20"
               />
               <button
                 type="button"
                 onClick={handleCreateMaster}
                 disabled={masterSaving || !newMasterName.trim()}
-                className="rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-md bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {masterSaving ? "Saving..." : "Add"}
               </button>
@@ -394,26 +394,26 @@ export const Medicines: React.FC = () => {
 
             <div className="flex-1 overflow-y-auto px-6 py-5">
               {masterLoading ? (
-                <div className="rounded-2xl border border-dashed border-slate-200 px-6 py-10 text-center text-sm text-slate-500">
+                <div className="rounded-md border border-dashed border-border px-6 py-10 text-center text-sm text-muted-foreground">
                   Loading {MASTER_META[activeMasterType].label.toLowerCase()}...
                 </div>
               ) : masterItems.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-slate-200 px-6 py-10 text-center text-sm text-slate-500">
+                <div className="rounded-md border border-dashed border-border px-6 py-10 text-center text-sm text-muted-foreground">
                   No records found.
                 </div>
               ) : (
                 <div className="grid gap-3 sm:grid-cols-2">
                   {masterItems.map((item) => (
-                    <div key={item.id} className="flex items-start justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                    <div key={item.id} className="flex items-start justify-between gap-3 rounded-md border border-border bg-muted px-4 py-3">
                       <div className="min-w-0">
-                        <div className="truncate text-sm font-semibold text-slate-900">{item.name}</div>
-                        <div className="mt-1 text-xs text-slate-500">ID #{item.id}</div>
+                        <div className="truncate text-sm font-semibold text-foreground">{item.name}</div>
+                        <div className="mt-1 text-xs text-muted-foreground">ID #{item.id}</div>
                       </div>
                       <button
                         type="button"
                         onClick={() => void handleDeleteMaster(item)}
                         disabled={masterDeletingId === item.id}
-                        className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-rose-200 bg-white text-rose-500 transition hover:bg-rose-50 hover:text-rose-600 disabled:cursor-wait disabled:opacity-60"
+                        className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-destructive/30 bg-white text-destructive transition hover:bg-destructive/10 hover:text-destructive disabled:cursor-wait disabled:opacity-60"
                         title={`Delete ${item.name}`}
                       >
                         <Trash2 size={16} />

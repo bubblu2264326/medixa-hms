@@ -59,17 +59,17 @@ function fmtDate(value: string | null | undefined, timeZone: string) {
 function TypeBadge({ type }: { type: LedgerEntry['type'] }) {
   const config = {
     Purchase: {
-      bg: 'bg-red-50 text-red-600 border-red-100',
+      bg: 'bg-destructive/10 text-destructive border-destructive/30',
       icon: <ArrowDownLeft size={12} />,
       label: 'Purchase',
     },
     Return: {
-      bg: 'bg-blue-50 text-blue-600 border-blue-100',
+      bg: 'bg-info/10 text-info border-info/30',
       icon: <ArrowUpRight size={12} />,
       label: 'Return',
     },
     Payment: {
-      bg: 'bg-emerald-50 text-emerald-600 border-emerald-100',
+      bg: 'bg-primary/10 text-primary border-primary/30',
       icon: <CreditCard size={12} />,
       label: 'Payment',
     },
@@ -77,7 +77,7 @@ function TypeBadge({ type }: { type: LedgerEntry['type'] }) {
 
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-black uppercase ${config.bg}`}
+      className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase ${config.bg}`}
     >
       {config.icon}
       {config.label}
@@ -223,19 +223,19 @@ export function PartyDetailModal({
         onClick={onClose}
       />
       <div className="fixed inset-0 z-[140] animate-in fade-in zoom-in-95 duration-200">
-        <div className="flex h-screen w-full flex-col bg-slate-50">
-          <div className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 px-6 py-4 backdrop-blur">
+        <div className="flex h-screen w-full flex-col bg-muted">
+          <div className="sticky top-0 z-10 border-b border-border bg-white/95 px-6 py-4 backdrop-blur">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h3 className="text-xl font-black text-slate-800">{party.name}</h3>
-                <p className="text-xs font-semibold text-slate-400">
+                <h3 className="text-xl font-semibold text-foreground">{party.name}</h3>
+                <p className="text-xs font-semibold text-muted-foreground">
                   {party.contact_number ?? 'No contact'}{' '}
                   {party.gst_number ? `• GST: ${party.gst_number}` : ''}
                 </p>
               </div>
               <button
                 onClick={onClose}
-                className="rounded-xl p-2 text-slate-500 transition hover:bg-slate-100"
+                className="rounded-xl p-2 text-muted-foreground transition hover:bg-muted"
               >
                 <X size={18} />
               </button>
@@ -247,8 +247,8 @@ export function PartyDetailModal({
                   onClick={() => setActiveTab('ledger')}
                   className={`rounded-xl px-4 py-2 text-sm font-bold transition ${
                     activeTab === 'ledger'
-                      ? 'bg-emerald-500 text-white'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      ? 'bg-primary text-white'
+                      : 'bg-muted text-muted-foreground hover:bg-muted'
                   }`}
                 >
                   Ledger
@@ -258,8 +258,8 @@ export function PartyDetailModal({
                 onClick={() => setActiveTab('supplies')}
                 className={`rounded-xl px-4 py-2 text-sm font-bold transition ${
                     activeTab === 'supplies'
-                      ? 'bg-emerald-500 text-white'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      ? 'bg-primary text-white'
+                      : 'bg-muted text-muted-foreground hover:bg-muted'
                   }`}
               >
                 Supplies / Batches
@@ -268,8 +268,8 @@ export function PartyDetailModal({
                 onClick={() => setActiveTab('insights')}
                 className={`rounded-xl px-4 py-2 text-sm font-bold transition ${
                     activeTab === 'insights'
-                      ? 'bg-emerald-500 text-white'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      ? 'bg-primary text-white'
+                      : 'bg-muted text-muted-foreground hover:bg-muted'
                   }`}
               >
                 Insights / Stats
@@ -281,40 +281,40 @@ export function PartyDetailModal({
             {activeTab === 'ledger' && canViewFinancials ? (
               <div className="space-y-4">
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                  <div className="rounded-2xl border border-red-100 bg-red-50 p-4">
-                    <p className="text-xs font-black uppercase tracking-wide text-red-500">Total Purchases</p>
-                    <p className="mt-1 text-xl font-black text-red-600">Rs. {fmtMoney(ledgerTotals.totalDebit)}</p>
+                  <div className="rounded-md border border-destructive/30 bg-destructive/10 p-4">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-destructive">Total Purchases</p>
+                    <p className="mt-1 text-xl font-semibold text-destructive">Rs. {fmtMoney(ledgerTotals.totalDebit)}</p>
                   </div>
-                  <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
-                    <p className="text-xs font-black uppercase tracking-wide text-emerald-500">Paid / Returns</p>
-                    <p className="mt-1 text-xl font-black text-emerald-600">Rs. {fmtMoney(ledgerTotals.totalCredit)}</p>
+                  <div className="rounded-md border border-primary/30 bg-primary/10 p-4">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-primary">Paid / Returns</p>
+                    <p className="mt-1 text-xl font-semibold text-primary">Rs. {fmtMoney(ledgerTotals.totalCredit)}</p>
                   </div>
-                  <div className="rounded-2xl border border-orange-100 bg-orange-50 p-4">
-                    <p className="text-xs font-black uppercase tracking-wide text-orange-500">Outstanding</p>
-                    <p className="mt-1 text-xl font-black text-orange-600">Rs. {fmtMoney(Math.abs(ledgerTotals.outstanding))}</p>
+                  <div className="rounded-md border border-orange-100 bg-orange-50 p-4">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-orange-500">Outstanding</p>
+                    <p className="mt-1 text-xl font-semibold text-orange-600">Rs. {fmtMoney(Math.abs(ledgerTotals.outstanding))}</p>
                   </div>
                 </div>
 
                 <button
                   onClick={() => setShowPayment(true)}
-                  className="inline-flex items-center gap-2 rounded-xl bg-teal-500 px-4 py-2.5 text-sm font-black text-white transition hover:bg-teal-600"
+                  className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-primary"
                 >
                   <DollarSign size={16} />
                   Record Payment to Party
                 </button>
 
-                <div className="overflow-auto rounded-2xl border border-slate-200 bg-white">
+                <div className="overflow-auto rounded-md border border-border bg-white">
                   {ledgerLoading ? (
-                    <div className="flex h-32 items-center justify-center text-sm font-semibold text-slate-500">Loading ledger...</div>
+                    <div className="flex h-32 items-center justify-center text-sm font-semibold text-muted-foreground">Loading ledger...</div>
                   ) : ledgerWithBalance.length === 0 ? (
-                    <div className="flex h-32 items-center justify-center gap-2 text-sm font-semibold text-slate-500">
+                    <div className="flex h-32 items-center justify-center gap-2 text-sm font-semibold text-muted-foreground">
                       <TrendingDown size={16} />
                       No transactions yet
                     </div>
                   ) : (
                     <table className="w-full text-sm">
-                      <thead className="sticky top-0 bg-slate-50">
-                        <tr className="text-left text-xs font-black uppercase text-slate-400">
+                      <thead className="sticky top-0 bg-muted">
+                        <tr className="text-left text-xs font-semibold uppercase text-muted-foreground">
                           <th className="px-4 py-3">Date</th>
                           <th className="px-4 py-3">Type</th>
                           <th className="px-4 py-3">Reference</th>
@@ -326,16 +326,16 @@ export function PartyDetailModal({
                       <tbody className="divide-y divide-slate-100">
                         {ledgerWithBalance.map((entry, index) => (
                           <tr key={`${entry.type}-${entry.id}-${index}`}>
-                            <td className="px-4 py-3 text-xs font-semibold text-slate-600">{fmtDate(entry.date, systemTimezone)}</td>
+                            <td className="px-4 py-3 text-xs font-semibold text-muted-foreground">{fmtDate(entry.date, systemTimezone)}</td>
                             <td className="px-4 py-3"><TypeBadge type={entry.type} /></td>
-                            <td className="px-4 py-3 text-xs font-semibold text-slate-600">{entry.reference ?? '—'}</td>
-                            <td className="px-4 py-3 text-right text-xs font-bold text-red-600">
+                            <td className="px-4 py-3 text-xs font-semibold text-muted-foreground">{entry.reference ?? '—'}</td>
+                            <td className="px-4 py-3 text-right text-xs font-bold text-destructive">
                               {Number(entry.debit) > 0 ? `Rs. ${fmtMoney(entry.debit)}` : '—'}
                             </td>
-                            <td className="px-4 py-3 text-right text-xs font-bold text-emerald-600">
+                            <td className="px-4 py-3 text-right text-xs font-bold text-primary">
                               {Number(entry.credit) > 0 ? `Rs. ${fmtMoney(entry.credit)}` : '—'}
                             </td>
-                            <td className="px-4 py-3 text-right text-xs font-black text-orange-600">
+                            <td className="px-4 py-3 text-right text-xs font-semibold text-orange-600">
                               Rs. {fmtMoney(Math.abs(entry.balance))}
                             </td>
                           </tr>
@@ -359,8 +359,8 @@ export function PartyDetailModal({
                     }}
                     className={`rounded-xl px-4 py-2 text-sm font-bold transition ${
                       groupBy === 'batch'
-                        ? 'bg-emerald-500 text-white'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        ? 'bg-primary text-white'
+                        : 'bg-muted text-muted-foreground hover:bg-muted'
                     }`}
                   >
                     Batch / Lot View
@@ -374,63 +374,63 @@ export function PartyDetailModal({
                     }}
                     className={`rounded-xl px-4 py-2 text-sm font-bold transition ${
                       groupBy === 'invoice'
-                        ? 'bg-emerald-500 text-white'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        ? 'bg-primary text-white'
+                        : 'bg-muted text-muted-foreground hover:bg-muted'
                     }`}
                   >
                     Invoice / Order View
                   </button>
                 </div>
 
-                <div className="grid grid-cols-1 gap-3 rounded-2xl border border-slate-200 bg-white p-4 md:grid-cols-4">
+                <div className="grid grid-cols-1 gap-3 rounded-md border border-border bg-white p-4 md:grid-cols-4">
                   <div>
-                    <label className="mb-1 block text-xs font-black uppercase text-slate-400">From</label>
+                    <label className="mb-1 block text-xs font-semibold uppercase text-muted-foreground">From</label>
                     <input
                       type="date"
                       value={supplyFilters.from}
                       onChange={(event) =>
                         setSupplyFilters((previous) => ({ ...previous, from: event.target.value, page: 1 }))
                       }
-                      className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700"
+                      className="w-full rounded-xl border border-border px-3 py-2 text-sm font-semibold text-foreground"
                     />
                   </div>
                   <div>
-                    <label className="mb-1 block text-xs font-black uppercase text-slate-400">To</label>
+                    <label className="mb-1 block text-xs font-semibold uppercase text-muted-foreground">To</label>
                     <input
                       type="date"
                       value={supplyFilters.to}
                       onChange={(event) =>
                         setSupplyFilters((previous) => ({ ...previous, to: event.target.value, page: 1 }))
                       }
-                      className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700"
+                      className="w-full rounded-xl border border-border px-3 py-2 text-sm font-semibold text-foreground"
                     />
                   </div>
                   <div className="md:col-span-2">
-                    <label className="mb-1 block text-xs font-black uppercase text-slate-400">Product / Medicine / Batch / Invoice</label>
+                    <label className="mb-1 block text-xs font-semibold uppercase text-muted-foreground">Product / Medicine / Batch / Invoice</label>
                     <input
                       value={supplyFilters.medicine}
                       onChange={(event) =>
                         setSupplyFilters((previous) => ({ ...previous, medicine: event.target.value, page: 1 }))
                       }
                       placeholder="Search by product, batch, or invoice..."
-                      className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700"
+                      className="w-full rounded-xl border border-border px-3 py-2 text-sm font-semibold text-foreground"
                     />
                   </div>
                 </div>
 
-                <div className="overflow-auto rounded-2xl border border-slate-200 bg-white">
+                <div className="overflow-auto rounded-md border border-border bg-white">
                   {suppliesLoading ? (
-                    <div className="flex h-32 items-center justify-center text-sm font-semibold text-slate-500">Loading supplies...</div>
+                    <div className="flex h-32 items-center justify-center text-sm font-semibold text-muted-foreground">Loading supplies...</div>
                   ) : supplies.groups.length === 0 ? (
-                    <div className="flex h-32 items-center justify-center gap-2 text-sm font-semibold text-slate-500">
+                    <div className="flex h-32 items-center justify-center gap-2 text-sm font-semibold text-muted-foreground">
                       <Package size={16} />
                       No grouped records found
                     </div>
                   ) : (
                     <table className="w-full text-sm">
-                      <thead className="sticky top-0 bg-slate-50">
+                      <thead className="sticky top-0 bg-muted">
                         {groupBy === 'batch' ? (
-                          <tr className="text-left text-xs font-black uppercase text-slate-400">
+                          <tr className="text-left text-xs font-semibold uppercase text-muted-foreground">
                             <th className="px-4 py-3">Batch / Lot</th>
                             <th className="px-4 py-3">Code</th>
                             <th className="px-4 py-3">Expiry</th>
@@ -440,7 +440,7 @@ export function PartyDetailModal({
                             <th className="px-4 py-3 text-right">Products</th>
                           </tr>
                         ) : (
-                          <tr className="text-left text-xs font-black uppercase text-slate-400">
+                          <tr className="text-left text-xs font-semibold uppercase text-muted-foreground">
                             <th className="px-4 py-3">Invoice</th>
                             <th className="px-4 py-3">Date</th>
                             <th className="px-4 py-3 text-right">Units</th>
@@ -457,34 +457,34 @@ export function PartyDetailModal({
                             <Fragment key={group.group_id}>
                               {groupBy === 'batch' ? (
                                 <tr
-                                  className="cursor-pointer hover:bg-slate-50"
+                                  className="cursor-pointer hover:bg-muted"
                                   onClick={() =>
                                     setExpandedGroupId((previous) => (previous === group.group_id ? null : group.group_id))
                                   }
                                 >
-                                  <td className="px-4 py-3 font-bold text-slate-800">{group.batch_number || 'No Batch'}</td>
-                                  <td className="px-4 py-3 text-xs font-semibold text-slate-600">{group.batch_code || '—'}</td>
-                                  <td className="px-4 py-3 text-xs font-semibold text-slate-600">{fmtDate(group.expiry_date, systemTimezone)}</td>
-                                  <td className="px-4 py-3 text-right text-xs font-bold text-slate-700">{group.total_units}</td>
-                                  <td className="px-4 py-3 text-right text-xs font-bold text-slate-700">{group.total_sub_units}</td>
-                                  <td className="px-4 py-3 text-right text-xs font-bold text-slate-700">{group.supply_events}</td>
-                                  <td className="px-4 py-3 text-right text-xs font-bold text-emerald-600">
+                                  <td className="px-4 py-3 font-bold text-foreground">{group.batch_number || 'No Batch'}</td>
+                                  <td className="px-4 py-3 text-xs font-semibold text-muted-foreground">{group.batch_code || '—'}</td>
+                                  <td className="px-4 py-3 text-xs font-semibold text-muted-foreground">{fmtDate(group.expiry_date, systemTimezone)}</td>
+                                  <td className="px-4 py-3 text-right text-xs font-bold text-foreground">{group.total_units}</td>
+                                  <td className="px-4 py-3 text-right text-xs font-bold text-foreground">{group.total_sub_units}</td>
+                                  <td className="px-4 py-3 text-right text-xs font-bold text-foreground">{group.supply_events}</td>
+                                  <td className="px-4 py-3 text-right text-xs font-bold text-primary">
                                     {expanded ? 'Hide' : 'Show'} ({group.children_count})
                                   </td>
                                 </tr>
                               ) : (
                                 <tr
-                                  className="cursor-pointer hover:bg-slate-50"
+                                  className="cursor-pointer hover:bg-muted"
                                   onClick={() =>
                                     setExpandedGroupId((previous) => (previous === group.group_id ? null : group.group_id))
                                   }
                                 >
-                                  <td className="px-4 py-3 font-bold text-slate-800">{group.invoice_no || `#${group.purchase_id}`}</td>
-                                  <td className="px-4 py-3 text-xs font-semibold text-slate-600">{fmtDate(group.invoice_timestamp, systemTimezone)}</td>
-                                  <td className="px-4 py-3 text-right text-xs font-bold text-slate-700">{group.total_units}</td>
-                                  <td className="px-4 py-3 text-right text-xs font-bold text-slate-700">{group.total_sub_units}</td>
-                                  <td className="px-4 py-3 text-right text-xs font-bold text-slate-700">{group.supply_events}</td>
-                                  <td className="px-4 py-3 text-right text-xs font-bold text-emerald-600">
+                                  <td className="px-4 py-3 font-bold text-foreground">{group.invoice_no || `#${group.purchase_id}`}</td>
+                                  <td className="px-4 py-3 text-xs font-semibold text-muted-foreground">{fmtDate(group.invoice_timestamp, systemTimezone)}</td>
+                                  <td className="px-4 py-3 text-right text-xs font-bold text-foreground">{group.total_units}</td>
+                                  <td className="px-4 py-3 text-right text-xs font-bold text-foreground">{group.total_sub_units}</td>
+                                  <td className="px-4 py-3 text-right text-xs font-bold text-foreground">{group.supply_events}</td>
+                                  <td className="px-4 py-3 text-right text-xs font-bold text-primary">
                                     {expanded ? 'Hide' : 'Show'} ({group.children_count})
                                   </td>
                                 </tr>
@@ -492,10 +492,10 @@ export function PartyDetailModal({
 
                               {expanded ? (
                                 <tr>
-                                  <td className="bg-slate-50 px-4 py-3" colSpan={groupBy === 'batch' ? 7 : 6}>
-                                    <div className="overflow-auto rounded-xl border border-slate-200 bg-white">
+                                  <td className="bg-muted px-4 py-3" colSpan={groupBy === 'batch' ? 7 : 6}>
+                                    <div className="overflow-auto rounded-xl border border-border bg-white">
                                       <table className="w-full text-xs">
-                                        <thead className="bg-slate-50 text-left font-black uppercase text-slate-400">
+                                        <thead className="bg-muted text-left font-semibold uppercase text-muted-foreground">
                                           <tr>
                                             <th className="px-3 py-2">Product</th>
                                             <th className="px-3 py-2">Category</th>
@@ -509,15 +509,15 @@ export function PartyDetailModal({
                                         <tbody className="divide-y divide-slate-100">
                                           {group.children.map((child, index) => (
                                             <tr key={`${group.group_id}-child-${child.medicine_id}-${index}`}>
-                                              <td className="px-3 py-2 font-semibold text-slate-700">
+                                              <td className="px-3 py-2 font-semibold text-foreground">
                                                 {child.brand_name || child.generic_name || 'Unnamed'}
                                               </td>
-                                              <td className="px-3 py-2 text-slate-500">{child.category || '—'}</td>
-                                              <td className="px-3 py-2 text-slate-500">{child.batch_number || '—'}</td>
-                                              <td className="px-3 py-2 text-slate-500">{child.batch_code || '—'}</td>
-                                              <td className="px-3 py-2 text-slate-500">{fmtDate(child.expiry_date, systemTimezone)}</td>
-                                              <td className="px-3 py-2 text-right font-bold text-slate-700">{child.quantity}</td>
-                                              <td className="px-3 py-2 text-right font-bold text-slate-700">{child.sub_quantity}</td>
+                                              <td className="px-3 py-2 text-muted-foreground">{child.category || '—'}</td>
+                                              <td className="px-3 py-2 text-muted-foreground">{child.batch_number || '—'}</td>
+                                              <td className="px-3 py-2 text-muted-foreground">{child.batch_code || '—'}</td>
+                                              <td className="px-3 py-2 text-muted-foreground">{fmtDate(child.expiry_date, systemTimezone)}</td>
+                                              <td className="px-3 py-2 text-right font-bold text-foreground">{child.quantity}</td>
+                                              <td className="px-3 py-2 text-right font-bold text-foreground">{child.sub_quantity}</td>
                                             </tr>
                                           ))}
                                         </tbody>
@@ -535,7 +535,7 @@ export function PartyDetailModal({
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-semibold text-slate-500">
+                  <p className="text-xs font-semibold text-muted-foreground">
                     Showing page {supplies.page} of {supplies.totalPages} ({supplies.total}{' '}
                     {groupBy === 'batch' ? 'batches' : 'invoices'})
                   </p>
@@ -548,7 +548,7 @@ export function PartyDetailModal({
                           page: Math.max(1, previous.page - 1),
                         }))
                       }
-                      className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 disabled:opacity-40"
+                      className="rounded-lg border border-border px-3 py-1.5 text-xs font-bold text-muted-foreground disabled:opacity-40"
                     >
                       Prev
                     </button>
@@ -560,7 +560,7 @@ export function PartyDetailModal({
                           page: Math.min(supplies.totalPages, previous.page + 1),
                         }))
                       }
-                      className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 disabled:opacity-40"
+                      className="rounded-lg border border-border px-3 py-1.5 text-xs font-bold text-muted-foreground disabled:opacity-40"
                     >
                       Next
                     </button>
@@ -572,71 +572,71 @@ export function PartyDetailModal({
             {activeTab === 'insights' ? (
               <div className="space-y-4">
                 {insightsLoading ? (
-                  <div className="flex h-32 items-center justify-center text-sm font-semibold text-slate-500">Loading insights...</div>
+                  <div className="flex h-32 items-center justify-center text-sm font-semibold text-muted-foreground">Loading insights...</div>
                 ) : insights ? (
                   <>
                     <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
-                      <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                        <p className="text-xs font-black uppercase tracking-wide text-slate-400">Expired Batches</p>
-                        <p className="mt-1 text-2xl font-black text-rose-600">{insights.inventoryHealth.expiredBatchesCount}</p>
+                      <div className="rounded-md border border-border bg-white p-4">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Expired Batches</p>
+                        <p className="mt-1 text-2xl font-semibold text-destructive">{insights.inventoryHealth.expiredBatchesCount}</p>
                       </div>
-                      <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                        <p className="text-xs font-black uppercase tracking-wide text-slate-400">Expired Stock Units</p>
-                        <p className="mt-1 text-2xl font-black text-rose-600">{fmtMoney(insights.inventoryHealth.expiredStockUnits)}</p>
+                      <div className="rounded-md border border-border bg-white p-4">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Expired Stock Units</p>
+                        <p className="mt-1 text-2xl font-semibold text-destructive">{fmtMoney(insights.inventoryHealth.expiredStockUnits)}</p>
                       </div>
-                      <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                        <p className="text-xs font-black uppercase tracking-wide text-slate-400">Dead Stock Batches</p>
-                        <p className="mt-1 text-2xl font-black text-amber-600">{insights.inventoryHealth.deadStockBatches}</p>
+                      <div className="rounded-md border border-border bg-white p-4">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Dead Stock Batches</p>
+                        <p className="mt-1 text-2xl font-semibold text-warning-foreground">{insights.inventoryHealth.deadStockBatches}</p>
                       </div>
-                      <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                        <p className="text-xs font-black uppercase tracking-wide text-slate-400">Dead Stock Units</p>
-                        <p className="mt-1 text-2xl font-black text-amber-600">{fmtMoney(insights.inventoryHealth.deadStockUnits)}</p>
-                        <p className="mt-1 text-[11px] font-semibold text-slate-400">Threshold: {insights.inventoryHealth.deadStockDays} days</p>
+                      <div className="rounded-md border border-border bg-white p-4">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Dead Stock Units</p>
+                        <p className="mt-1 text-2xl font-semibold text-warning-foreground">{fmtMoney(insights.inventoryHealth.deadStockUnits)}</p>
+                        <p className="mt-1 text-[11px] font-semibold text-muted-foreground">Threshold: {insights.inventoryHealth.deadStockDays} days</p>
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
-                      <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                        <p className="text-xs font-black uppercase tracking-wide text-slate-400">Sell-through %</p>
-                        <p className="mt-1 text-2xl font-black text-emerald-600">{insights.performance.sellThroughPercent.toFixed(2)}%</p>
+                      <div className="rounded-md border border-border bg-white p-4">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Sell-through %</p>
+                        <p className="mt-1 text-2xl font-semibold text-primary">{insights.performance.sellThroughPercent.toFixed(2)}%</p>
                       </div>
-                      <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                        <p className="text-xs font-black uppercase tracking-wide text-slate-400">Active Products</p>
-                        <p className="mt-1 text-2xl font-black text-slate-800">{insights.performance.activeProducts}</p>
+                      <div className="rounded-md border border-border bg-white p-4">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Active Products</p>
+                        <p className="mt-1 text-2xl font-semibold text-foreground">{insights.performance.activeProducts}</p>
                       </div>
-                      <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                        <p className="text-xs font-black uppercase tracking-wide text-slate-400">Purchased Units</p>
-                        <p className="mt-1 text-2xl font-black text-slate-800">{fmtMoney(insights.performance.purchasedStockUnits)}</p>
+                      <div className="rounded-md border border-border bg-white p-4">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Purchased Units</p>
+                        <p className="mt-1 text-2xl font-semibold text-foreground">{fmtMoney(insights.performance.purchasedStockUnits)}</p>
                       </div>
-                      <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                        <p className="text-xs font-black uppercase tracking-wide text-slate-400">Sold Units</p>
-                        <p className="mt-1 text-2xl font-black text-slate-800">{fmtMoney(insights.performance.soldStockUnits)}</p>
+                      <div className="rounded-md border border-border bg-white p-4">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Sold Units</p>
+                        <p className="mt-1 text-2xl font-semibold text-foreground">{fmtMoney(insights.performance.soldStockUnits)}</p>
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-                      <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                        <p className="text-xs font-black uppercase tracking-wide text-emerald-500">Fast-moving Products</p>
+                      <div className="rounded-md border border-border bg-white p-4">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-primary">Fast-moving Products</p>
                         <div className="mt-3 space-y-2">
                           {insights.performance.fastMovingProducts.length === 0 ? (
-                            <p className="text-sm font-semibold text-slate-500">No movement data</p>
+                            <p className="text-sm font-semibold text-muted-foreground">No movement data</p>
                           ) : insights.performance.fastMovingProducts.map((item) => (
-                            <div key={`fast-${item.medicine_id}`} className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2">
-                              <span className="text-sm font-semibold text-slate-700">{item.brand_name || item.generic_name || 'Unnamed'}</span>
-                              <span className="text-sm font-black text-emerald-600">{fmtMoney(item.sold_units)}</span>
+                            <div key={`fast-${item.medicine_id}`} className="flex items-center justify-between rounded-xl bg-muted px-3 py-2">
+                              <span className="text-sm font-semibold text-foreground">{item.brand_name || item.generic_name || 'Unnamed'}</span>
+                              <span className="text-sm font-semibold text-primary">{fmtMoney(item.sold_units)}</span>
                             </div>
                           ))}
                         </div>
                       </div>
-                      <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                        <p className="text-xs font-black uppercase tracking-wide text-amber-500">Slow / No-movement Products</p>
+                      <div className="rounded-md border border-border bg-white p-4">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-amber-500">Slow / No-movement Products</p>
                         <div className="mt-3 space-y-2">
                           {insights.performance.slowMovingProducts.length === 0 ? (
-                            <p className="text-sm font-semibold text-slate-500">No movement data</p>
+                            <p className="text-sm font-semibold text-muted-foreground">No movement data</p>
                           ) : insights.performance.slowMovingProducts.map((item) => (
-                            <div key={`slow-${item.medicine_id}`} className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2">
-                              <span className="text-sm font-semibold text-slate-700">{item.brand_name || item.generic_name || 'Unnamed'}</span>
-                              <span className="text-sm font-black text-amber-600">{fmtMoney(item.sold_units)}</span>
+                            <div key={`slow-${item.medicine_id}`} className="flex items-center justify-between rounded-xl bg-muted px-3 py-2">
+                              <span className="text-sm font-semibold text-foreground">{item.brand_name || item.generic_name || 'Unnamed'}</span>
+                              <span className="text-sm font-semibold text-warning-foreground">{fmtMoney(item.sold_units)}</span>
                             </div>
                           ))}
                         </div>
@@ -645,39 +645,39 @@ export function PartyDetailModal({
 
                     {insights.canViewFinancials && insights.financial ? (
                       <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
-                        <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                          <p className="text-xs font-black uppercase tracking-wide text-slate-400">Total Purchases</p>
-                          <p className="mt-1 text-xl font-black text-red-600">Rs. {fmtMoney(insights.financial.totalPurchasesAmount)}</p>
+                        <div className="rounded-md border border-border bg-white p-4">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Total Purchases</p>
+                          <p className="mt-1 text-xl font-semibold text-destructive">Rs. {fmtMoney(insights.financial.totalPurchasesAmount)}</p>
                         </div>
-                        <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                          <p className="text-xs font-black uppercase tracking-wide text-slate-400">Total Paid</p>
-                          <p className="mt-1 text-xl font-black text-emerald-600">Rs. {fmtMoney(insights.financial.totalPaidAmount)}</p>
+                        <div className="rounded-md border border-border bg-white p-4">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Total Paid</p>
+                          <p className="mt-1 text-xl font-semibold text-primary">Rs. {fmtMoney(insights.financial.totalPaidAmount)}</p>
                         </div>
-                        <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                          <p className="text-xs font-black uppercase tracking-wide text-slate-400">Outstanding</p>
-                          <p className="mt-1 text-xl font-black text-orange-600">Rs. {fmtMoney(Math.abs(insights.financial.outstandingAmount))}</p>
+                        <div className="rounded-md border border-border bg-white p-4">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Outstanding</p>
+                          <p className="mt-1 text-xl font-semibold text-orange-600">Rs. {fmtMoney(Math.abs(insights.financial.outstandingAmount))}</p>
                         </div>
-                        <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                          <p className="text-xs font-black uppercase tracking-wide text-slate-400">Return Amount</p>
-                          <p className="mt-1 text-xl font-black text-blue-600">Rs. {fmtMoney(insights.financial.totalReturnAmount)}</p>
+                        <div className="rounded-md border border-border bg-white p-4">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Return Amount</p>
+                          <p className="mt-1 text-xl font-semibold text-info">Rs. {fmtMoney(insights.financial.totalReturnAmount)}</p>
                         </div>
-                        <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                          <p className="text-xs font-black uppercase tracking-wide text-slate-400">Return Rate</p>
-                          <p className="mt-1 text-xl font-black text-slate-800">{(insights.financial.returnRate * 100).toFixed(2)}%</p>
+                        <div className="rounded-md border border-border bg-white p-4">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Return Rate</p>
+                          <p className="mt-1 text-xl font-semibold text-foreground">{(insights.financial.returnRate * 100).toFixed(2)}%</p>
                         </div>
-                        <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                          <p className="text-xs font-black uppercase tracking-wide text-slate-400">Avg Purchase Ticket</p>
-                          <p className="mt-1 text-xl font-black text-slate-800">Rs. {fmtMoney(insights.financial.averagePurchaseTicket)}</p>
+                        <div className="rounded-md border border-border bg-white p-4">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Avg Purchase Ticket</p>
+                          <p className="mt-1 text-xl font-semibold text-foreground">Rs. {fmtMoney(insights.financial.averagePurchaseTicket)}</p>
                         </div>
                       </div>
                     ) : (
-                      <div className="rounded-2xl border border-slate-200 bg-white p-5 text-sm font-semibold text-slate-500">
+                      <div className="rounded-md border border-border bg-white p-5 text-sm font-semibold text-muted-foreground">
                         Financial insights are restricted for your role.
                       </div>
                     )}
                   </>
                 ) : (
-                  <div className="flex h-32 items-center justify-center gap-2 text-sm font-semibold text-slate-500">
+                  <div className="flex h-32 items-center justify-center gap-2 text-sm font-semibold text-muted-foreground">
                     <LineChart size={16} />
                     Unable to load insights
                   </div>

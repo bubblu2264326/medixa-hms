@@ -34,14 +34,14 @@ type Transaction = {
 };
 
 const TYPE_CONFIG = {
-  purchase: { label: 'Purchase In', color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100', icon: <ArrowDownLeft size={14} /> },
-  sale: { label: 'Sale Out', color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100', icon: <ShoppingCart size={14} /> },
+  purchase: { label: 'Purchase In', color: 'text-info', bg: 'bg-info/10', border: 'border-info/30', icon: <ArrowDownLeft size={14} /> },
+  sale: { label: 'Sale Out', color: 'text-primary', bg: 'bg-primary/10', border: 'border-primary/30', icon: <ShoppingCart size={14} /> },
   sale_return: { label: 'Sale Return', color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-100', icon: <RotateCcw size={14} /> },
-  purchase_return: { label: 'Pur. Return', color: 'text-rose-600', bg: 'bg-rose-50', border: 'border-rose-100', icon: <ArrowUpRight size={14} /> },
-  adjustment: { label: 'Adjustment', color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-100', icon: <Activity size={14} /> },
+  purchase_return: { label: 'Pur. Return', color: 'text-destructive', bg: 'bg-destructive/10', border: 'border-destructive/30', icon: <ArrowUpRight size={14} /> },
+  adjustment: { label: 'Adjustment', color: 'text-primary', bg: 'bg-primary/10', border: 'border-primary/30', icon: <Activity size={14} /> },
 };
 
-const DEFAULT_CONFIG = { label: 'Other', color: 'text-slate-600', bg: 'bg-slate-50', border: 'border-slate-100', icon: <Activity size={14} /> };
+const DEFAULT_CONFIG = { label: 'Other', color: 'text-muted-foreground', bg: 'bg-muted', border: 'border-border', icon: <Activity size={14} /> };
 
 export function TransactionsView() {
   const router = useRouter();
@@ -85,38 +85,38 @@ export function TransactionsView() {
       {/* Header section */}
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-indigo-500 text-white rounded-2xl shadow-lg shadow-indigo-500/20">
+          <div className="p-2.5 bg-primary text-white rounded-md shadow-lg ">
             <Activity size={20} />
           </div>
           <div>
-            <h2 className="text-xl font-black text-slate-800 tracking-tight">Medicine Transactions</h2>
-            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-0.5">Real-time Movement Log</p>
+            <h2 className="text-xl font-semibold text-foreground tracking-tight">Medicine Transactions</h2>
+            <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest mt-0.5">Real-time Movement Log</p>
           </div>
         </div>
       </div>
 
       {/* Control Bar */}
-      <div className="flex items-center gap-4 bg-white/50 backdrop-blur-md p-2 rounded-2xl border border-slate-200/50">
+      <div className="flex items-center gap-4 bg-white/50 backdrop-blur-md p-2 rounded-md border border-border/50">
         <div className="relative flex-1">
-          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by medicine, supplier, or invoice..."
-            className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200/60 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-sm"
+            className="w-full pl-12 pr-4 py-3 bg-white border border-border/60 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring transition-all shadow-sm"
           />
         </div>
         
-        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200/60 overflow-x-auto max-w-full">
+        <div className="flex items-center gap-1 bg-muted p-1 rounded-xl border border-border/60 overflow-x-auto max-w-full">
           {['all', 'purchase', 'sale', 'sale_return', 'purchase_return', 'adjustment'].map((t) => (
             <button
               key={t}
               onClick={() => setTypeFilter(t)}
               className={`
-                px-4 py-2 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all
+                px-4 py-2 rounded-lg text-[11px] font-semibold uppercase tracking-wider transition-all
                 ${typeFilter === t 
-                  ? "bg-white text-indigo-600 shadow-sm border border-slate-200/60" 
-                  : "text-slate-500 hover:text-slate-800 hover:bg-white/40"
+                  ? "bg-white text-primary shadow-sm border border-border/60" 
+                  : "text-muted-foreground hover:text-foreground hover:bg-white/40"
                 }
               `}
             >
@@ -127,21 +127,21 @@ export function TransactionsView() {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 overflow-auto bg-white rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/40 relative">
+      <div className="flex-1 overflow-auto bg-white rounded-lg border border-border shadow-xl  relative">
         {loading ? (
           <div className="flex flex-col items-center justify-center h-full p-12 gap-4">
-            <div className="w-12 h-12 border-4 border-indigo-100 border-t-indigo-500 rounded-full animate-spin" />
-            <p className="font-black text-slate-400 text-xs uppercase tracking-widest animate-pulse">Tracking movements...</p>
+            <div className="w-12 h-12 border-4 border-primary/30 border-t-indigo-500 rounded-full animate-spin" />
+            <p className="font-semibold text-muted-foreground text-xs uppercase tracking-widest animate-pulse">Tracking movements...</p>
           </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full p-12 opacity-40">
-            <Activity size={48} className="text-slate-300" />
-            <p className="font-bold text-slate-500 mt-4 text-sm">No transactions matched your search</p>
+            <Activity size={48} className="text-muted-foreground" />
+            <p className="font-bold text-muted-foreground mt-4 text-sm">No transactions matched your search</p>
           </div>
         ) : (
           <table className="w-full text-left">
-            <thead className="sticky top-0 bg-slate-50/90 backdrop-blur-md border-b border-slate-100 z-10">
-              <tr className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+            <thead className="sticky top-0 bg-muted/90 backdrop-blur-md border-b border-border z-10">
+              <tr className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                 <th className="px-6 py-4">Status & Type</th>
                 <th className="px-6 py-4">Medicine & Movement</th>
                 <th className="px-6 py-4">Ref / Entity</th>
@@ -153,17 +153,17 @@ export function TransactionsView() {
               {filtered.map((txn) => {
                 const config = TYPE_CONFIG[txn.txn_type] || DEFAULT_CONFIG;
                 return (
-                  <tr key={txn.txn_id} className="group hover:bg-slate-50/50 transition-all duration-300">
+                  <tr key={txn.txn_id} className="group hover:bg-muted/50 transition-all duration-300">
                     <td className="px-6 py-5">
                       <div className="flex flex-col gap-2">
                         <div className={`
-                          inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10px] font-black uppercase tracking-tight w-fit
+                          inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10px] font-semibold uppercase tracking-tight w-fit
                           ${config.bg} ${config.color} ${config.border}
                         `}>
                           {config.icon}
                           {config.label}
                         </div>
-                        <div className="flex items-center gap-2 text-slate-400 ml-1">
+                        <div className="flex items-center gap-2 text-muted-foreground ml-1">
                           <Calendar size={12} />
                           <span className="text-[11px] font-bold">
                             {formatDateInTimezone(txn.created_at, systemTimezone, { day: '2-digit', month: 'short' })} • {formatDateTimeInTimezone(txn.created_at, systemTimezone, { day: undefined, month: undefined, year: undefined })}
@@ -174,11 +174,11 @@ export function TransactionsView() {
                     
                     <td className="px-6 py-5">
                       <div className="flex flex-col gap-1">
-                        <span className="text-sm font-black text-slate-700 leading-tight group-hover:text-indigo-600 transition-colors">
+                        <span className="text-sm font-semibold text-foreground leading-tight group-hover:text-primary transition-colors">
                           {txn.medicine_name}
                         </span>
-                        <div className="flex items-center gap-1.5 font-bold text-[11px] text-slate-400">
-                          <Box size={10} className="text-indigo-400" />
+                        <div className="flex items-center gap-1.5 font-bold text-[11px] text-muted-foreground">
+                          <Box size={10} className="text-primary" />
                           <span>{txn.quantity} {txn.unit}</span>
                           {txn.sub_quantity > 0 && (
                             <>
@@ -193,14 +193,14 @@ export function TransactionsView() {
                     <td className="px-6 py-5">
                       <div className="flex flex-col gap-1.5">
                         <div className="flex items-center gap-1.5">
-                          <FileText size={12} className="text-slate-400" />
-                          <span className="text-[11px] font-black text-slate-500 uppercase">
+                          <FileText size={12} className="text-muted-foreground" />
+                          <span className="text-[11px] font-semibold text-muted-foreground uppercase">
                             {txn.invoice_no || (txn.sale_id ? `Receipt #${txn.sale_id}` : '—')}
                           </span>
                         </div>
                         <div className="flex items-center gap-1.5">
-                          <User size={12} className="text-slate-400" />
-                          <span className="text-xs font-bold text-slate-500">
+                          <User size={12} className="text-muted-foreground" />
+                          <span className="text-xs font-bold text-muted-foreground">
                             {txn.party_name || (txn.sale_id ? 'Store Dispensing' : 'Internal')}
                           </span>
                         </div>
@@ -209,8 +209,8 @@ export function TransactionsView() {
 
                     <td className="px-6 py-5">
                       <div className="flex flex-col gap-1">
-                        <span className="text-xs font-black text-slate-600 tracking-tight">#{txn.batch_number}</span>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        <span className="text-xs font-semibold text-muted-foreground tracking-tight">#{txn.batch_number}</span>
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                           Exp: {formatDateInTimezone(txn.expiry_date, systemTimezone)}
                         </span>
                       </div>
@@ -230,10 +230,10 @@ export function TransactionsView() {
                                   params.set('ref', txn.sale_id!.toString());
                                   router.push(`${pathname}?${params.toString()}`);
                               }}
-                              className="h-8 px-2 justify-start gap-1.5 rounded-lg text-amber-600 hover:bg-amber-50 hover:text-amber-700 bg-white shadow-sm border border-amber-100"
+                              className="h-8 px-2 justify-start gap-1.5 rounded-lg text-warning-foreground hover:bg-warning/15 hover:text-warning-foreground bg-white shadow-sm border border-amber-100"
                             >
                               <Pencil size={14} />
-                              <span className="text-[10px] font-black uppercase tracking-wider">Edit</span>
+                              <span className="text-[10px] font-semibold uppercase tracking-wider">Edit</span>
                             </Button>
                             <Button 
                               variant="ghost" 
@@ -245,10 +245,10 @@ export function TransactionsView() {
                                   params.set('ref', txn.sale_id!.toString());
                                   router.push(`${pathname}?${params.toString()}`);
                               }}
-                              className="h-8 px-2 justify-start gap-1.5 rounded-lg text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 bg-white shadow-sm border border-emerald-100"
+                              className="h-8 px-2 justify-start gap-1.5 rounded-lg text-primary hover:bg-primary/10 hover:text-primary bg-white shadow-sm border border-primary/30"
                             >
                               <RotateCcw size={14} />
-                              <span className="text-[10px] font-black uppercase tracking-wider">Return</span>
+                              <span className="text-[10px] font-semibold uppercase tracking-wider">Return</span>
                             </Button>
                           </>
                         )}
@@ -265,10 +265,10 @@ export function TransactionsView() {
                                   params.set('ref', txn.ref_purchase_id!.toString());
                                   router.push(`${pathname}?${params.toString()}`);
                               }}
-                              className="h-8 px-2 justify-start gap-1.5 rounded-lg text-amber-600 hover:bg-amber-50 hover:text-amber-700 bg-white shadow-sm border border-amber-100"
+                              className="h-8 px-2 justify-start gap-1.5 rounded-lg text-warning-foreground hover:bg-warning/15 hover:text-warning-foreground bg-white shadow-sm border border-amber-100"
                             >
                               <Pencil size={14} />
-                              <span className="text-[10px] font-black uppercase tracking-wider">Edit</span>
+                              <span className="text-[10px] font-semibold uppercase tracking-wider">Edit</span>
                             </Button>
                             {txn.invoice_no && (
                               <Button 
@@ -280,10 +280,10 @@ export function TransactionsView() {
                                     params.set('ref', txn.invoice_no!);
                                     router.push(`${pathname}?${params.toString()}`);
                                 }}
-                                className="h-8 px-2 justify-start gap-1.5 rounded-lg text-blue-600 hover:bg-blue-50 hover:text-blue-700 bg-white shadow-sm border border-blue-100"
+                                className="h-8 px-2 justify-start gap-1.5 rounded-lg text-info hover:bg-info/10 hover:text-info bg-white shadow-sm border border-info/30"
                               >
                                 <RotateCcw size={14} />
-                                <span className="text-[10px] font-black uppercase tracking-wider">Return</span>
+                                <span className="text-[10px] font-semibold uppercase tracking-wider">Return</span>
                               </Button>
                             )}
                           </>
@@ -301,18 +301,18 @@ export function TransactionsView() {
                                   params.set('ref', txn.sale_return_id!.toString());
                                   router.push(`${pathname}?${params.toString()}`);
                               }}
-                              className="h-8 px-2 justify-start gap-1.5 rounded-lg text-amber-600 hover:bg-amber-50 hover:text-amber-700 bg-white shadow-sm border border-amber-100"
+                              className="h-8 px-2 justify-start gap-1.5 rounded-lg text-warning-foreground hover:bg-warning/15 hover:text-warning-foreground bg-white shadow-sm border border-amber-100"
                             >
                               <Pencil size={14} />
-                              <span className="text-[10px] font-black uppercase tracking-wider">Edit</span>
+                              <span className="text-[10px] font-semibold uppercase tracking-wider">Edit</span>
                             </Button>
                             <Button 
                               variant="ghost" 
                               size="sm" 
-                              className="h-8 px-2 justify-start gap-1.5 rounded-lg text-slate-500 hover:bg-slate-50 hover:text-slate-700 group-hover:bg-white group-hover:shadow-sm border border-transparent group-hover:border-slate-200"
+                              className="h-8 px-2 justify-start gap-1.5 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground group-hover:bg-white group-hover:shadow-sm border border-transparent group-hover:border-border"
                             >
                               <Eye size={14} />
-                              <span className="text-[10px] font-black uppercase tracking-wider">View</span>
+                              <span className="text-[10px] font-semibold uppercase tracking-wider">View</span>
                             </Button>
                           </>
                         )}
@@ -321,10 +321,10 @@ export function TransactionsView() {
                            <Button 
                              variant="ghost" 
                              size="sm" 
-                             className="h-8 px-2 justify-start gap-1.5 rounded-lg text-slate-500 hover:bg-slate-50 hover:text-slate-700 group-hover:bg-white group-hover:shadow-sm border border-transparent group-hover:border-slate-200"
+                             className="h-8 px-2 justify-start gap-1.5 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground group-hover:bg-white group-hover:shadow-sm border border-transparent group-hover:border-border"
                            >
                              <Eye size={14} />
-                             <span className="text-[10px] font-black uppercase tracking-wider">View</span>
+                             <span className="text-[10px] font-semibold uppercase tracking-wider">View</span>
                            </Button>
                         )}
                       </div>

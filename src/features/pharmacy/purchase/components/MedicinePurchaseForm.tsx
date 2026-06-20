@@ -519,7 +519,7 @@ export default function MedicinePurchaseForm() {
     if (isLoading) {
         return (
             <div className="flex h-[400px] items-center justify-center">
-                <Loader2 className="animate-spin text-emerald-500" size={48} />
+                <Loader2 className="animate-spin text-primary" size={48} />
             </div>
         );
     }
@@ -527,28 +527,28 @@ export default function MedicinePurchaseForm() {
     return (
         <div
             ref={containerRef}
-            className={`flex flex-col gap-6 bg-slate-50/50 p-6 rounded-[2rem] transition-all ${isFullscreen ? 'fixed inset-0 z-[999] bg-white p-10 overflow-auto h-full' : ''}`}
+            className={`flex flex-col gap-6 bg-muted/50 p-6 rounded-lg transition-all ${isFullscreen ? 'fixed inset-0 z-[999] bg-white p-10 overflow-auto h-full' : ''}`}
         >
             {/* Top Header - Controls */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <div className="p-3 bg-emerald-600 text-white rounded-2xl shadow-lg shadow-emerald-500/30">
+                    <div className="p-3 bg-primary text-white rounded-md shadow-lg ">
                         <Layout size={20} />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-black text-slate-800 tracking-tight">Purchase Intake</h1>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Manage Inventory Stock</p>
+                        <h1 className="text-2xl font-semibold text-foreground tracking-tight">Purchase Intake</h1>
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">Manage Inventory Stock</p>
                     </div>
                 </div>
 
                 <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl border border-slate-200 shadow-sm text-[11px] font-bold text-slate-500 uppercase tracking-widest">
-                        <Keyboard size={14} className="text-slate-400" />
+                    <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl border border-border shadow-sm text-[11px] font-bold text-muted-foreground uppercase tracking-widest">
+                        <Keyboard size={14} className="text-muted-foreground" />
                         Use F1 for Search • Use Arrows to Navigate
                     </div>
                     <button
                         onClick={toggleFullscreen}
-                        className="p-3 bg-white hover:bg-slate-50 text-slate-400 hover:text-emerald-600 rounded-xl transition-all border border-slate-200 shadow-sm"
+                        className="p-3 bg-white hover:bg-muted text-muted-foreground hover:text-primary rounded-xl transition-all border border-border shadow-sm"
                     >
                         {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
                     </button>
@@ -559,15 +559,15 @@ export default function MedicinePurchaseForm() {
             <div className="space-y-6">
 
                 {/* 2. Top Bar: Supplier, Invoice, Batch */}
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 p-6 bg-white rounded-[2rem] border border-slate-200 shadow-sm">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 p-6 bg-white rounded-lg border border-border shadow-sm">
                     <div className="space-y-2">
-                        <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Supplier / Party</Label>
+                        <Label className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground ml-1">Supplier / Party</Label>
                         <select
                             ref={partyRef}
                             value={selectedParty}
                             onChange={(e) => setSelectedParty(Number(e.target.value))}
                             onKeyDown={(e) => e.key === 'Enter' && addItemToInvoice()}
-                            className="w-full h-12 px-4 rounded-xl border-2 border-slate-200 bg-white focus:border-emerald-500 outline-none transition-all font-bold text-slate-700"
+                            className="w-full h-12 px-4 rounded-xl border-2 border-border bg-white focus:border-ring outline-none transition-all font-bold text-foreground"
                         >
                             <option value="">Choose Supplier...</option>
                             {parties.map(p => (
@@ -577,12 +577,12 @@ export default function MedicinePurchaseForm() {
                     </div>
                     <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                            <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Supplier Batch / Lot No.</Label>
+                            <Label className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground ml-1">Supplier Batch / Lot No.</Label>
                             {formMetadata?.next_supplier_batch_number_suggestion && (
                                 <button
                                     type="button"
                                     onClick={() => setSupplierBatchNumber(formMetadata.next_supplier_batch_number_suggestion)}
-                                    className="text-[10px] font-black uppercase tracking-widest text-emerald-600 hover:text-emerald-500"
+                                    className="text-[10px] font-semibold uppercase tracking-widest text-primary hover:text-primary"
                                 >
                                     Use Suggested
                                 </button>
@@ -591,36 +591,36 @@ export default function MedicinePurchaseForm() {
                         <Input
                             value={supplierBatchNumber}
                             onChange={(e) => setSupplierBatchNumber(e.target.value.toUpperCase())}
-                            className="h-12 rounded-xl border-2 border-slate-200 font-bold focus:border-emerald-500 transition-all font-mono"
+                            className="h-12 rounded-xl border-2 border-border font-bold focus:border-ring transition-all font-mono"
                             placeholder="LOT-00001"
                         />
                     </div>
                     <div className="space-y-2">
-                        <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Invoice ID</Label>
+                        <Label className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground ml-1">Invoice ID</Label>
                         <Input
                             value={invoiceNo}
                             onChange={(e) => isEditing && setInvoiceNo(e.target.value)}
                             readOnly={!isEditing}
-                            className={`h-12 rounded-xl border-2 border-slate-200 font-bold transition-all ${isEditing ? 'focus:border-emerald-500' : 'bg-slate-50 text-slate-500'}`}
+                            className={`h-12 rounded-xl border-2 border-border font-bold transition-all ${isEditing ? 'focus:border-ring' : 'bg-muted text-muted-foreground'}`}
                             placeholder="Auto-generated on save"
                         />
                     </div>
                     <div className="space-y-2">
-                        <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Internal Batch Code</Label>
+                        <Label className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground ml-1">Internal Batch Code</Label>
                         <Input
                             value={batchCodePreview}
                             readOnly
-                            className="h-12 rounded-xl border-2 border-indigo-100 bg-indigo-50/30 font-bold text-indigo-700 transition-all font-mono"
+                            className="h-12 rounded-xl border-2 border-primary/30 bg-primary/10/30 font-bold text-primary transition-all font-mono"
                             placeholder="BATCH-00001"
                         />
                     </div>
                 </div>
 
                 {/* 3. Prominent Search Bar */}
-                <div className="bg-white border border-slate-200 rounded-[2rem] p-6 shadow-sm flex flex-col gap-4">
+                <div className="bg-white border border-border rounded-lg p-6 shadow-sm flex flex-col gap-4">
                     <div className="flex items-center justify-between">
-                        <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Search Medicine</Label>
-                        <div className="flex items-center gap-2 px-3 py-1 bg-emerald-50 rounded-lg text-[10px] font-black text-emerald-600 uppercase tracking-widest">
+                        <Label className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground ml-1">Search Medicine</Label>
+                        <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-lg text-[10px] font-semibold text-primary uppercase tracking-widest">
                             <span className="animate-pulse">●</span> Active Selection Mode
                         </div>
                     </div>
@@ -634,20 +634,20 @@ export default function MedicinePurchaseForm() {
                         placeholder="Type Brand or Generic Name (Press F1)..."
                     />
                     {medStats && (
-                        <div className="flex flex-wrap gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 animate-in fade-in slide-in-from-top-2">
+                        <div className="flex flex-wrap gap-4 p-4 bg-muted rounded-md border border-border animate-in fade-in slide-in-from-top-2">
                             <div className="flex flex-col gap-1">
-                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Stock Available</span>
-                                <span className="text-sm font-black text-slate-700">{medStats.total_stock || 0} Units</span>
+                                <span className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">Stock Available</span>
+                                <span className="text-sm font-semibold text-foreground">{medStats.total_stock || 0} Units</span>
                             </div>
-                            <div className="w-px h-8 bg-slate-200 self-center hidden sm:block" />
+                            <div className="w-px h-8 bg-muted self-center hidden sm:block" />
                             <div className="flex flex-col gap-1">
-                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Last Cost</span>
-                                <span className="text-sm font-black text-emerald-600">Rs. {medStats.latest_purchase_price || 0}</span>
+                                <span className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">Last Cost</span>
+                                <span className="text-sm font-semibold text-primary">Rs. {medStats.latest_purchase_price || 0}</span>
                             </div>
-                            <div className="w-px h-8 bg-slate-200 self-center hidden sm:block" />
+                            <div className="w-px h-8 bg-muted self-center hidden sm:block" />
                             <div className="flex flex-col gap-1">
-                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Nearest Expiry</span>
-                                <span className={`text-sm font-black ${new Date(medStats.nearest_expiry) < new Date() ? 'text-rose-500' : 'text-amber-600'}`}>
+                                <span className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">Nearest Expiry</span>
+                                <span className={`text-sm font-semibold ${new Date(medStats.nearest_expiry) < new Date() ? 'text-destructive' : 'text-warning-foreground'}`}>
                                     {medStats.nearest_expiry ? formatDateInTimezone(medStats.nearest_expiry, systemTimezone) : 'N/A'}
                                 </span>
                             </div>
@@ -656,18 +656,18 @@ export default function MedicinePurchaseForm() {
                 </div>
 
                 {/* 4. Entry Matrix - Horizontal Row */}
-                <div className={`p-5 rounded-[2rem] border-2 transition-all duration-500 flex flex-col gap-4 ${selectedMed ? 'bg-emerald-50 border-emerald-200 shadow-xl' : 'bg-slate-100 border-slate-200 opacity-60'}`}>
+                <div className={`p-5 rounded-lg border-2 transition-all duration-500 flex flex-col gap-4 ${selectedMed ? 'bg-primary/10 border-primary/30 shadow-xl' : 'bg-muted border-border opacity-60'}`}>
                     <div className="flex items-center justify-between">
-                        <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Entry Details</Label>
+                        <Label className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Entry Details</Label>
                         <div className="flex items-center gap-4">
                             {editingItemIndex !== null && (
-                                <div className="flex items-center gap-2 rounded-xl bg-amber-50 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-amber-700">
+                                <div className="flex items-center gap-2 rounded-xl bg-warning/15 px-3 py-2 text-[10px] font-semibold uppercase tracking-widest text-warning-foreground">
                                     <Pencil size={12} />
                                     Editing cart line
                                     <button
                                         type="button"
                                         onClick={resetEntryFields}
-                                        className="text-amber-800/80 hover:text-amber-900"
+                                        className="text-warning-foreground/80 hover:text-amber-900"
                                     >
                                         Cancel
                                     </button>
@@ -679,15 +679,15 @@ export default function MedicinePurchaseForm() {
                                     id="autoCalc"
                                     checked={autoCalc}
                                     onChange={(e) => setAutoCalc(e.target.checked)}
-                                    className="h-4 w-4 rounded text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+                                    className="h-4 w-4 rounded text-primary focus:ring-ring/20 cursor-pointer"
                                 />
-                                <Label htmlFor="autoCalc" className="text-xs font-bold text-slate-600 cursor-pointer">Auto-sync Sub-Unit Prices</Label>
+                                <Label htmlFor="autoCalc" className="text-xs font-bold text-muted-foreground cursor-pointer">Auto-sync Sub-Unit Prices</Label>
                             </div>
                         </div>
                     </div>
                     <div className="flex flex-wrap xl:flex-nowrap items-end gap-3">
                         <div className="shrink-0 w-28 space-y-2">
-                            <Label className="text-[10px] font-black uppercase text-slate-400">Qty</Label>
+                            <Label className="text-[10px] font-semibold uppercase text-muted-foreground">Qty</Label>
                             <Input
                                 ref={qtyInputRef}
                                 type="number"
@@ -695,22 +695,22 @@ export default function MedicinePurchaseForm() {
                                 onChange={(e) => setBatchInfo({ ...batchInfo, quantity: Number(e.target.value) })}
                                 onFocus={(e) => e.target.select()}
                                 onKeyDown={(e) => e.key === 'Enter' && addItemToInvoice()}
-                                className="h-12 border-slate-200 rounded-xl font-bold bg-white"
+                                className="h-12 border-border rounded-xl font-bold bg-white"
                             />
                         </div>
                         <div className="shrink-0 w-24 space-y-2">
-                            <Label className="text-[10px] font-black uppercase text-slate-400">Sub Qty</Label>
+                            <Label className="text-[10px] font-semibold uppercase text-muted-foreground">Sub Qty</Label>
                             <Input
                                 type="number"
                                 value={batchInfo.subQuantity}
                                 onChange={(e) => setBatchInfo({ ...batchInfo, subQuantity: Number(e.target.value) })}
                                 onFocus={(e) => e.target.select()}
                                 onKeyDown={(e) => e.key === 'Enter' && addItemToInvoice()}
-                                className="h-12 border-slate-200 rounded-xl font-bold bg-white"
+                                className="h-12 border-border rounded-xl font-bold bg-white"
                             />
                         </div>
                         <div className="shrink-0 w-24 space-y-2">
-                            <Label className="text-[10px] font-black uppercase text-slate-400">Unit Cost</Label>
+                            <Label className="text-[10px] font-semibold uppercase text-muted-foreground">Unit Cost</Label>
                             <Input
                                 ref={costInputRef}
                                 type="number"
@@ -718,11 +718,11 @@ export default function MedicinePurchaseForm() {
                                 onChange={(e) => handleUnitCostChange(Number(e.target.value))}
                                 onFocus={(e) => e.target.select()}
                                 onKeyDown={(e) => e.key === 'Enter' && addItemToInvoice()}
-                                className="h-12 border-slate-200 rounded-xl font-bold bg-white"
+                                className="h-12 border-border rounded-xl font-bold bg-white"
                             />
                         </div>
                         <div className="shrink-0 w-28 space-y-2">
-                            <Label className="text-[10px] font-black uppercase text-slate-400">Sub Cost</Label>
+                            <Label className="text-[10px] font-semibold uppercase text-muted-foreground">Sub Cost</Label>
                             <Input
                                 type="number"
                                 step="0.01"
@@ -730,34 +730,34 @@ export default function MedicinePurchaseForm() {
                                 onChange={(e) => handleSubUnitCostChange(Number(e.target.value))}
                                 onFocus={(e) => e.target.select()}
                                 onKeyDown={(e) => e.key === 'Enter' && addItemToInvoice()}
-                                className="h-12 border-slate-200 rounded-xl font-bold bg-white"
+                                className="h-12 border-border rounded-xl font-bold bg-white"
                             />
                         </div>
                         {/* Removed local batch ID from line entry */}
                         <div className="shrink-0 w-36 space-y-2">
-                            <Label className="text-[10px] font-black uppercase text-slate-400">Expiry</Label>
+                            <Label className="text-[10px] font-semibold uppercase text-muted-foreground">Expiry</Label>
                             <Input
                                 ref={expiryInputRef}
                                 type="date"
                                 value={batchInfo.expiryDate}
                                 onChange={(e) => setBatchInfo({ ...batchInfo, expiryDate: e.target.value })}
                                 onKeyDown={(e) => e.key === 'Enter' && addItemToInvoice()}
-                                className="h-12 border-slate-200 rounded-xl font-bold bg-white"
+                                className="h-12 border-border rounded-xl font-bold bg-white"
                             />
                         </div>
                         <div className="shrink-0 w-28 space-y-2">
-                            <Label className="text-[10px] font-black uppercase text-slate-400">Sale Price</Label>
+                            <Label className="text-[10px] font-semibold uppercase text-muted-foreground">Sale Price</Label>
                             <Input
                                 ref={salePriceInputRef}
                                 type="number"
                                 value={batchInfo.salePrice}
                                 onChange={(e) => handleSalePriceChange(Number(e.target.value))}
                                 onKeyDown={(e) => e.key === 'Enter' && addItemToInvoice()}
-                                className="h-12 border-slate-200 rounded-xl font-bold bg-white text-emerald-600"
+                                className="h-12 border-border rounded-xl font-bold bg-white text-primary"
                             />
                         </div>
                         <div className="shrink-0 w-28 space-y-2">
-                            <Label className="text-[10px] font-black uppercase text-slate-400">Sub Sale</Label>
+                            <Label className="text-[10px] font-semibold uppercase text-muted-foreground">Sub Sale</Label>
                             <Input
                                 type="number"
                                 step="0.01"
@@ -765,17 +765,17 @@ export default function MedicinePurchaseForm() {
                                 onChange={(e) => handleSaleSubUnitPriceChange(Number(e.target.value))}
                                 onFocus={(e) => e.target.select()}
                                 onKeyDown={(e) => e.key === 'Enter' && addItemToInvoice()}
-                                className="h-12 border-slate-200 rounded-xl font-bold bg-white text-emerald-600"
+                                className="h-12 border-border rounded-xl font-bold bg-white text-primary"
                             />
                         </div>
-                        <div className="flex-1 px-4 py-2 bg-white/50 rounded-xl border border-slate-200/50 flex flex-col justify-center overflow-hidden">
-                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Entry Summary</span>
-                            <span className="font-bold text-slate-700 truncate">{selectedMed ? `${selectedMed.brand_name} (Stock: ${selectedMed.stock_quantity ?? 0}${selectedMed.stock_sub_quantity ? ` + ${selectedMed.stock_sub_quantity} ${selectedMed.sub_unit || 'sub-units'}` : ''})` : 'No Product Selected'}</span>
+                        <div className="flex-1 px-4 py-2 bg-white/50 rounded-xl border border-border/50 flex flex-col justify-center overflow-hidden">
+                            <span className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest leading-none mb-1">Entry Summary</span>
+                            <span className="font-bold text-foreground truncate">{selectedMed ? `${selectedMed.brand_name} (Stock: ${selectedMed.stock_quantity ?? 0}${selectedMed.stock_sub_quantity ? ` + ${selectedMed.stock_sub_quantity} ${selectedMed.sub_unit || 'sub-units'}` : ''})` : 'No Product Selected'}</span>
                         </div>
                         <div className="shrink-0">
                             <Button
                                 onClick={addItemToInvoice}
-                                className="h-12 w-12 bg-emerald-600 hover:bg-emerald-500 rounded-xl p-0 flex items-center justify-center shadow-lg shadow-emerald-500/20"
+                                className="h-12 w-12 bg-primary hover:bg-primary rounded-xl p-0 flex items-center justify-center shadow-lg "
                                 title={editingItemIndex !== null ? 'Update cart line' : 'Add to cart'}
                             >
                                 {editingItemIndex !== null ? <Pencil size={20} /> : <Plus size={24} />}
@@ -787,76 +787,76 @@ export default function MedicinePurchaseForm() {
 
             <div className="flex gap-6">
                 {/* 3. Left - Cart List */}
-                <div className="flex-1 bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-sm flex flex-col">
+                <div className="flex-1 bg-white border border-border rounded-lg p-8 shadow-sm flex flex-col">
                     <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-lg font-black text-slate-800 flex items-center gap-2 uppercase tracking-tight">
-                            <Package className="text-emerald-500" size={18} /> Purchase Cart
+                        <h3 className="text-lg font-semibold text-foreground flex items-center gap-2 uppercase tracking-tight">
+                            <Package className="text-primary" size={18} /> Purchase Cart
                         </h3>
-                        <span className="px-3 py-1 bg-slate-100 rounded-lg text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                        <span className="px-3 py-1 bg-muted rounded-lg text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
                             {items.length} Medicines in Basket
                         </span>
                     </div>
 
                     <div className="flex-1 overflow-auto custom-scrollbar">
                         {items.length === 0 ? (
-                            <div className="h-full flex flex-col items-center justify-center text-slate-300 gap-4">
-                                <div className="p-10 bg-slate-50 rounded-full">
+                            <div className="h-full flex flex-col items-center justify-center text-muted-foreground gap-4">
+                                <div className="p-10 bg-muted rounded-full">
                                     <ShoppingCart size={64} className="opacity-10" />
                                 </div>
-                                <p className="font-black uppercase text-[10px] tracking-[0.3em]">No items added yet</p>
+                                <p className="font-semibold uppercase text-[10px] tracking-[0.3em]">No items added yet</p>
                             </div>
                         ) : (
                             <table className="w-full border-collapse">
-                                <thead className="sticky top-0 bg-white z-10 border-b border-slate-50">
+                                <thead className="sticky top-0 bg-white z-10 border-b border-border">
                                     <tr className="text-left">
-                                        <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Medicine</th>
-                                        <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Batch</th>
-                                        <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Qty / Sub</th>
-                                        <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Unit / Sub Cost</th>
-                                        <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Total</th>
+                                        <th className="pb-4 text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Medicine</th>
+                                        <th className="pb-4 text-[10px] font-semibold text-muted-foreground uppercase tracking-widest text-center">Batch</th>
+                                        <th className="pb-4 text-[10px] font-semibold text-muted-foreground uppercase tracking-widest text-center">Qty / Sub</th>
+                                        <th className="pb-4 text-[10px] font-semibold text-muted-foreground uppercase tracking-widest text-right">Unit / Sub Cost</th>
+                                        <th className="pb-4 text-[10px] font-semibold text-muted-foreground uppercase tracking-widest text-right">Total</th>
                                         <th className="pb-4"></th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-50">
                                     {items.map((item, idx) => (
-                                        <tr key={idx} className="group hover:bg-slate-50/50 transition-colors">
+                                        <tr key={idx} className="group hover:bg-muted/50 transition-colors">
                                             <td className="py-5">
                                                 <div className="flex flex-col">
-                                                    <span className="font-black text-slate-800 leading-none mb-1">{item.medicine_name}</span>
-                                                    <span className="text-[10px] font-bold text-slate-400 uppercase">EXP: {item.expiry_date} • SALE: {item.sale_price}{(item.sale_sub_unit_price > 0) ? ` / ${item.sale_sub_unit_price} SUB` : ''}</span>
+                                                    <span className="font-semibold text-foreground leading-none mb-1">{item.medicine_name}</span>
+                                                    <span className="text-[10px] font-bold text-muted-foreground uppercase">EXP: {item.expiry_date} • SALE: {item.sale_price}{(item.sale_sub_unit_price > 0) ? ` / ${item.sale_sub_unit_price} SUB` : ''}</span>
                                                 </div>
                                             </td>
                                             <td className="py-5 text-center">
-                                                <span className="inline-block px-3 py-1 bg-emerald-50 text-emerald-600 rounded-lg text-[11px] font-black ring-1 ring-emerald-100">
+                                                <span className="inline-block px-3 py-1 bg-primary/10 text-primary rounded-lg text-[11px] font-semibold ring-1 ring-ring/20">
                                                     {item.batch_number}
                                                 </span>
                                             </td>
                                             <td className="py-5 text-center">
                                                 <div className="flex flex-col">
-                                                    <span className="font-black text-lg text-slate-700">{item.quantity}</span>
-                                                    {item.sub_quantity > 0 && <span className="text-[10px] font-bold text-slate-400">+{item.sub_quantity} sub</span>}
+                                                    <span className="font-semibold text-lg text-foreground">{item.quantity}</span>
+                                                    {item.sub_quantity > 0 && <span className="text-[10px] font-bold text-muted-foreground">+{item.sub_quantity} sub</span>}
                                                 </div>
                                             </td>
                                             <td className="py-5 text-right">
                                                 <div className="flex flex-col">
-                                                    <span className="font-bold text-slate-500">{item.unit_cost.toLocaleString()}</span>
-                                                    {(item.sub_unit_cost || 0) > 0 && <span className="text-[10px] font-bold text-slate-400">{item.sub_unit_cost.toLocaleString()} sub</span>}
+                                                    <span className="font-bold text-muted-foreground">{item.unit_cost.toLocaleString()}</span>
+                                                    {(item.sub_unit_cost || 0) > 0 && <span className="text-[10px] font-bold text-muted-foreground">{item.sub_unit_cost.toLocaleString()} sub</span>}
                                                 </div>
                                             </td>
-                                            <td className="py-5 text-right font-black text-slate-800 tracking-tighter">
+                                            <td className="py-5 text-right font-semibold text-foreground tracking-tighter">
                                                 Rs. {((item.quantity * item.unit_cost) + (item.sub_quantity * (item.sub_unit_cost || 0))).toLocaleString()}
                                             </td>
                                             <td className="py-5 text-right pl-4">
                                                 <button
                                                     onClick={() => handleEditItem(idx)}
-                                                    className="mr-1 p-2 text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+                                                    className="mr-1 p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-xl transition-all"
                                                     title="Edit"
                                                 >
                                                     <Pencil size={16} />
                                                 </button>
                                                 <button
                                                     onClick={() => removeItem(idx)}
-                                                    className="p-2 text-rose-200 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
+                                                    className="p-2 text-white/85 hover:text-destructive hover:bg-destructive/10 rounded-xl transition-all"
                                                 >
                                                     <Trash2 size={16} />
                                                 </button>
@@ -871,27 +871,27 @@ export default function MedicinePurchaseForm() {
 
                 {/* 4. Right - Finalize Panel */}
                 <div className="w-full xl:w-[320px] flex flex-col gap-6">
-                    <div className="flex-1 bg-slate-900 rounded-[2.5rem] p-8 shadow-2xl flex flex-col">
+                    <div className="flex-1 bg-foreground rounded-lg p-8 shadow-2xl flex flex-col">
                         <h2 className="text-xl font-bold text-white mb-8 flex items-center gap-3">
-                            <div className="w-1.5 h-6 bg-emerald-500 rounded-full"></div>
+                            <div className="w-1.5 h-6 bg-primary rounded-full"></div>
                             Finalize Invoice
                         </h2>
 
                         <div className="space-y-6 flex-1">
-                            <div className="p-6 bg-white/5 rounded-2xl border border-white/10 space-y-4">
+                            <div className="p-6 bg-white/5 rounded-md border border-white/10 space-y-4">
                                 <div className="flex justify-between items-center">
-                                    <span className="text-[10px] font-black text-slate-500 uppercase">Items Counts</span>
+                                    <span className="text-[10px] font-semibold text-muted-foreground uppercase">Items Counts</span>
                                     <span className="text-white font-bold">{items.length}</span>
                                 </div>
                                 <div className="flex justify-between items-end border-t border-white/5 pt-4">
-                                    <span className="text-[10px] font-black text-slate-500 uppercase">Grand Total</span>
-                                    <span className="text-3xl font-black text-emerald-400 tracking-tighter">Rs. {calculateTotal().toLocaleString()}</span>
+                                    <span className="text-[10px] font-semibold text-muted-foreground uppercase">Grand Total</span>
+                                    <span className="text-3xl font-semibold text-emerald-400 tracking-tighter">Rs. {calculateTotal().toLocaleString()}</span>
                                 </div>
                             </div>
 
-                            <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-4 flex items-start gap-3">
-                                <Save className="text-emerald-500 shrink-0 mt-1" size={16} />
-                                <p className="text-[11px] text-emerald-200/80 leading-relaxed font-medium">
+                            <div className="bg-primary/10 border border-emerald-500/20 rounded-md p-4 flex items-start gap-3">
+                                <Save className="text-primary shrink-0 mt-1" size={16} />
+                                <p className="text-[11px] text-primary-foreground/85 leading-relaxed font-medium">
                                     {isEditing
                                         ? 'Updating this invoice will adjust stock based on the changes made to items.'
                                         : 'Saving this invoice will immediately increase your stock and record the purchase in audit logs.'
@@ -903,7 +903,7 @@ export default function MedicinePurchaseForm() {
                         <Button
                             onClick={handleSaveInvoice}
                             disabled={isSubmitting || items.length === 0}
-                            className="w-full h-20 bg-emerald-600 hover:bg-emerald-500 text-white rounded-[1.5rem] text-xl font-black uppercase tracking-widest shadow-xl shadow-emerald-500/20 transition-all active:scale-95 flex items-center justify-center gap-3 disabled:opacity-50"
+                            className="w-full h-20 bg-primary hover:bg-primary text-white rounded-[1.5rem] text-xl font-semibold uppercase tracking-widest shadow-xl  transition-all active:scale-95 flex items-center justify-center gap-3 disabled:opacity-50"
                         >
                             {isSubmitting ? <Loader2 className="animate-spin" /> : <Save size={24} />}
                             {isEditing ? 'Update Invoice' : 'Post Invoice'}

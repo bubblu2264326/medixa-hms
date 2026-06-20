@@ -67,7 +67,7 @@ export const PurchaseMedicineSearch: React.FC<PurchaseMedicineSearchProps> = ({
     return (
         <div className="relative w-full">
             <div className="relative group">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={20} />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={20} />
                 <input
                     ref={inputRef}
                     type="text"
@@ -86,15 +86,15 @@ export const PurchaseMedicineSearch: React.FC<PurchaseMedicineSearchProps> = ({
             w-full h-14 
             pl-12 pr-12
             text-lg font-bold
-            bg-white border-2 border-slate-200 rounded-2xl
+            bg-white border-2 border-border rounded-md
             outline-none transition-all
-            focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10
-            placeholder:text-slate-400 placeholder:font-normal
+            focus:border-ring focus:ring-4 focus:ring-ring/20
+            placeholder:text-muted-foreground placeholder:font-normal
           "
                 />
                 {isSearching && (
                     <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                        <Loader2 className="animate-spin text-emerald-500" size={20} />
+                        <Loader2 className="animate-spin text-primary" size={20} />
                     </div>
                 )}
                 {!isSearching && query && (
@@ -103,7 +103,7 @@ export const PurchaseMedicineSearch: React.FC<PurchaseMedicineSearchProps> = ({
                             onSearch('');
                             setShowResults(false);
                         }}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-muted-foreground"
                     >
                         <X size={20} />
                     </button>
@@ -111,7 +111,7 @@ export const PurchaseMedicineSearch: React.FC<PurchaseMedicineSearchProps> = ({
             </div>
 
             {showResults && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 overflow-hidden max-h-[400px] overflow-y-auto p-1.5 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-border rounded-md shadow-2xl z-50 overflow-hidden max-h-[400px] overflow-y-auto p-1.5 animate-in fade-in slide-in-from-top-2 duration-200">
                     {results.map((medicine, index) => (
                         <button
                             key={medicine.id}
@@ -122,28 +122,28 @@ export const PurchaseMedicineSearch: React.FC<PurchaseMedicineSearchProps> = ({
                             onMouseEnter={() => setFocusedIndex(index)}
                             className={`
                 w-full p-4 flex items-center justify-between rounded-xl transition-all text-left
-                ${index === focusedIndex ? "bg-emerald-600 text-white shadow-lg" : "hover:bg-slate-50 text-slate-700"}
+                ${index === focusedIndex ? "bg-primary text-white shadow-lg" : "hover:bg-muted text-foreground"}
               `}
                         >
                             <div className="flex flex-col">
-                                <span className="font-black tracking-tight">{medicine.brand_name}</span>
-                                <span className={`text-[10px] font-bold uppercase tracking-widest ${index === focusedIndex ? "text-emerald-100" : "text-slate-400"}`}>
+                                <span className="font-semibold tracking-tight">{medicine.brand_name}</span>
+                                <span className={`text-[10px] font-bold uppercase tracking-widest ${index === focusedIndex ? "text-primary-foreground/85" : "text-muted-foreground"}`}>
                                     {medicine.generic_name} • {medicine.form}
                                 </span>
                                 {medicine.manufacturer && (
-                                    <span className={`text-[10px] font-medium truncate mt-0.5 ${index === focusedIndex ? 'text-emerald-100/80' : 'text-slate-500'}`}>
+                                    <span className={`text-[10px] font-medium truncate mt-0.5 ${index === focusedIndex ? 'text-primary-foreground/85' : 'text-muted-foreground'}`}>
                                         Manufacturer: {medicine.manufacturer}
                                     </span>
                                 )}
                             </div>
                             <div className="flex items-center gap-3">
-                                <div className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase ${index === focusedIndex ? "bg-white/20" : "bg-slate-100 text-slate-500"}`}>
+                                <div className={`px-2 py-1 rounded-lg text-[10px] font-semibold uppercase ${index === focusedIndex ? "bg-white/20" : "bg-muted text-muted-foreground"}`}>
                                     {medicine.dosage_value}{medicine.dosage_unit}
                                 </div>
-                                <div className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase ${index === focusedIndex ? "bg-white/20" : "bg-emerald-100 text-emerald-600"}`}>
+                                <div className={`px-2 py-1 rounded-lg text-[10px] font-semibold uppercase ${index === focusedIndex ? "bg-white/20" : "bg-primary/10 text-primary"}`}>
                                     Stk: {medicine.stock_quantity ?? 0}
                                 </div>
-                                <div className={`font-black text-sm ${index === focusedIndex ? "text-white" : "text-emerald-600"}`}>
+                                <div className={`font-semibold text-sm ${index === focusedIndex ? "text-white" : "text-primary"}`}>
                                     MRP: {medicine.display_mrp !== null ? medicine.display_mrp.toLocaleString() : "N/A"}
                                 </div>
                             </div>

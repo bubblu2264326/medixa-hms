@@ -155,11 +155,11 @@ function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-[24px] border border-slate-200 bg-white/95 p-4 shadow-[0_12px_32px_rgba(15,23,42,0.05)] sm:p-5">
+    <section className="rounded-[24px] border border-border bg-white/95 p-4 shadow-[0_12px_32px_rgba(15,23,42,0.05)] sm:p-5">
       <div className="mb-3 flex flex-col gap-1">
         <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-cyan-700">{eyebrow}</span>
-        <h4 className="text-lg font-semibold text-slate-900">{title}</h4>
-        {description ? <p className="max-w-2xl text-sm text-slate-600">{description}</p> : null}
+        <h4 className="text-lg font-semibold text-foreground">{title}</h4>
+        {description ? <p className="max-w-2xl text-sm text-muted-foreground">{description}</p> : null}
       </div>
       {children}
     </section>
@@ -327,7 +327,7 @@ function Field({
 
   return (
     <div ref={fieldRef} className="space-y-1.5">
-      <label htmlFor={id} className="block text-sm font-semibold text-slate-800">
+      <label htmlFor={id} className="block text-sm font-semibold text-foreground">
         {required ? `${label} *` : label}
       </label>
       <div className="relative">
@@ -349,26 +349,26 @@ function Field({
           }}
           onKeyDown={handleKeyDown}
           aria-autocomplete={hasDropdown ? "list" : undefined}
-          className={`w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-100 ${hasDropdown ? "pr-12" : ""}`}
+          className={`w-full rounded-md border border-border bg-white px-4 py-3 text-sm text-foreground shadow-sm outline-none transition placeholder:text-muted-foreground focus:border-cyan-500 focus:ring-4 focus:ring-cyan-100 ${hasDropdown ? "pr-12" : ""}`}
         />
         {hasDropdown ? (
           <button
             type="button"
             aria-label={`Toggle ${label} suggestions`}
             onClick={() => setIsOpen((previous) => !previous)}
-            className="absolute inset-y-1.5 right-1.5 inline-flex w-10 items-center justify-center rounded-xl text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+            className="absolute inset-y-1.5 right-1.5 inline-flex w-10 items-center justify-center rounded-xl text-muted-foreground transition hover:bg-muted hover:text-foreground"
           >
             <ChevronDown size={18} className={`transition ${isOpen ? "rotate-180" : ""}`} />
           </button>
         ) : null}
         {helperText && (
-          <div className="absolute -bottom-5 left-1 text-[11px] font-medium text-slate-500 whitespace-nowrap">
+          <div className="absolute -bottom-5 left-1 text-[11px] font-medium text-muted-foreground whitespace-nowrap">
             {helperText}
           </div>
         )}
         {hasDropdown && isOpen ? (
-          <div className="absolute left-0 right-0 top-[calc(100%+0.55rem)] z-30 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_20px_45px_rgba(15,23,42,0.14)]">
-            <div className="border-b border-slate-100 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+          <div className="absolute left-0 right-0 top-[calc(100%+0.55rem)] z-30 overflow-hidden rounded-md border border-border bg-white shadow-[0_20px_45px_rgba(15,23,42,0.14)]">
+            <div className="border-b border-border px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
               Suggestions
             </div>
             <div className="max-h-60 overflow-y-auto p-2">
@@ -399,7 +399,7 @@ function Field({
                       event.preventDefault();
                       selectSuggestion(suggestion);
                     }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm transition ${isActive ? "bg-cyan-50 text-cyan-900" : "text-slate-700 hover:bg-slate-50"
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm transition ${isActive ? "bg-cyan-50 text-cyan-900" : "text-foreground hover:bg-muted"
                       }`}
                   >
                     <span>{suggestionText}</span>
@@ -408,14 +408,14 @@ function Field({
                 );
               })}
               {!visibleSuggestions.length && !canCreateCustomValue ? (
-                <div className="px-3 py-2.5 text-sm text-slate-500">No matching suggestions</div>
+                <div className="px-3 py-2.5 text-sm text-muted-foreground">No matching suggestions</div>
               ) : null}
-              {createError ? <div className="px-3 py-2 text-xs text-rose-600">{createError}</div> : null}
+              {createError ? <div className="px-3 py-2 text-xs text-destructive">{createError}</div> : null}
             </div>
           </div>
         ) : null}
       </div>
-      {helperText ? <p className="text-xs leading-4 text-slate-500">{helperText}</p> : null}
+      {helperText ? <p className="text-xs leading-4 text-muted-foreground">{helperText}</p> : null}
     </div>
   );
 }
@@ -438,7 +438,7 @@ function ToggleField({
   return (
     <label
       htmlFor={id}
-      className="flex cursor-pointer items-start gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm transition hover:border-slate-300"
+      className="flex cursor-pointer items-start gap-3 rounded-md border border-border bg-white px-4 py-3 shadow-sm transition hover:border-input"
     >
       <input
         id={id}
@@ -446,11 +446,11 @@ function ToggleField({
         name={name}
         checked={checked}
         onChange={onChange}
-        className="mt-0.5 h-4 w-4 rounded border-slate-300 text-cyan-600 focus:ring-cyan-500"
+        className="mt-0.5 h-4 w-4 rounded border-input text-cyan-600 focus:ring-cyan-500"
       />
       <span className="space-y-1">
-        <span className="block text-sm font-semibold text-slate-800">{label}</span>
-        {helperText ? <span className="block text-xs leading-5 text-slate-500">{helperText}</span> : null}
+        <span className="block text-sm font-semibold text-foreground">{label}</span>
+        {helperText ? <span className="block text-xs leading-5 text-muted-foreground">{helperText}</span> : null}
       </span>
     </label>
   );
@@ -674,7 +674,7 @@ export default function MedicineForm({ medicine, onClose, onSuccess }: MedicineF
   return createPortal(
     <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/55 p-2 backdrop-blur-md sm:p-4">
       <div className="flex h-[min(860px,calc(100dvh-1rem))] w-full max-w-6xl flex-col overflow-hidden rounded-[28px] border border-white/60 bg-[linear-gradient(180deg,#f8fbff_0%,#eef7ff_42%,#f7fbff_100%)] shadow-[0_30px_100px_rgba(15,23,42,0.32)] sm:h-[min(860px,calc(100dvh-2rem))]">
-        <div className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-200 bg-white/80 px-5 py-3 backdrop-blur sm:px-6 xl:px-8">
+        <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border bg-white/80 px-5 py-3 backdrop-blur sm:px-6 xl:px-8">
           <div className="space-y-1">
             <div className="flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center gap-2 rounded-full bg-cyan-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-cyan-800">
@@ -690,7 +690,7 @@ export default function MedicineForm({ medicine, onClose, onSuccess }: MedicineF
             type="button"
             aria-label="Close product form"
             onClick={onClose}
-            className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-border bg-white text-muted-foreground transition hover:border-input hover:bg-muted hover:text-foreground"
           >
             <X size={20} />
           </button>
@@ -914,12 +914,12 @@ export default function MedicineForm({ medicine, onClose, onSuccess }: MedicineF
           </form>
         </div>
 
-        <div className="flex shrink-0 flex-col gap-3 border-t border-slate-200 bg-white/95 px-5 py-3 backdrop-blur sm:flex-row sm:items-center sm:justify-end sm:px-6 xl:px-8">
+        <div className="flex shrink-0 flex-col gap-3 border-t border-border bg-white/95 px-5 py-3 backdrop-blur sm:flex-row sm:items-center sm:justify-end sm:px-6 xl:px-8">
           <div className="flex items-center justify-end gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+              className="rounded-md border border-border px-5 py-3 text-sm font-semibold text-foreground transition hover:border-input hover:bg-muted"
             >
               Cancel
             </button>
@@ -927,7 +927,7 @@ export default function MedicineForm({ medicine, onClose, onSuccess }: MedicineF
               form="medicine-form"
               type="submit"
               disabled={loading || pendingMasterCreates > 0}
-              className="rounded-2xl bg-slate-950 px-6 py-3 text-sm font-semibold text-white shadow-[0_18px_35px_rgba(15,23,42,0.25)] transition hover:bg-cyan-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-md bg-slate-950 px-6 py-3 text-sm font-semibold text-white shadow-[0_18px_35px_rgba(15,23,42,0.25)] transition hover:bg-cyan-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loading ? "Saving..." : pendingMasterCreates > 0 ? "Saving option..." : medicine ? "Save Changes" : "Add Product"}
             </button>
