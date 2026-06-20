@@ -1,4 +1,5 @@
 import React from "react";
+import { Check, Pencil, Trash2 } from "lucide-react";
 import { CartItem as CartItemType } from "../../types";
 import { formatCurrency } from "../../utils";
 
@@ -39,11 +40,11 @@ export const CartItem: React.FC<CartItemProps> = ({
   return (
     <div
       onClick={onSelect}
-      className={`group grid grid-cols-[3.5fr_1.2fr_0.8fr_0.8fr_1fr_1fr_1fr_1.2fr_1.5fr] gap-4 px-6 py-5 
-                  border-b border-slate-100/50 cursor-pointer transition-all duration-300
+      className={`group grid grid-cols-[3.5fr_1.2fr_0.8fr_0.8fr_1fr_1fr_1fr_1.2fr_1.5fr] gap-4 px-6 py-4
+                  border-b border-border cursor-pointer transition-colors
                   items-center relative overflow-hidden
-                  ${isSelected ? "bg-indigo-50/50 shadow-[inset_4px_0_0_#6366f1]" : "hover:bg-slate-50/50"}
-                  ${isExcludedByReturn ? "opacity-60 grayscale-[0.1]" : ""}`}
+                  ${isSelected ? "bg-accent shadow-[inset_3px_0_0_var(--primary)]" : "hover:bg-muted/50"}
+                  ${isExcludedByReturn ? "opacity-60" : ""}`}
     >
       {/* Product Column */}
       <div className="flex flex-col gap-0.5 min-w-0">
@@ -53,49 +54,49 @@ export const CartItem: React.FC<CartItemProps> = ({
               type="button"
               aria-label={isIncluded ? "Exclude item from return" : "Include item in return"}
               className={`mr-1 inline-flex h-5 w-5 items-center justify-center rounded-md border transition ${isIncluded
-                ? "border-indigo-400 bg-indigo-50 text-indigo-700"
-                : "border-slate-300 bg-white text-slate-400 hover:border-slate-400"}`}
+                ? "border-primary bg-primary text-primary-foreground"
+                : "border-input bg-background text-muted-foreground hover:border-ring"}`}
               onClick={(e) => {
                 e.stopPropagation();
                 onToggleInclude?.();
               }}
             >
-              {isIncluded ? "✓" : ""}
+              {isIncluded ? <Check className="h-3.5 w-3.5" aria-hidden /> : null}
             </button>
           ) : null}
-          <span className="font-black text-slate-800 text-[14px] tracking-tight truncate">{item.medicine.brand_name}</span>
+          <span className="font-semibold text-foreground text-sm truncate">{item.medicine.brand_name}</span>
           {isPrescriptionItem && (
-            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.18em] text-emerald-700">
+            <span className="rounded-full bg-success/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-success">
               Rx
             </span>
           )}
           {isExcludedByReturn && (
-            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.18em] text-slate-600">
+            <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
               Excluded
             </span>
           )}
           {isUnavailablePrescription && (
-            <span className="rounded-full bg-rose-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.18em] text-rose-700">
+            <span className="rounded-full bg-danger/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-danger">
               {item.availabilityStatus === "insufficient_stock" ? "Low Stock" : "Out of Stock"}
             </span>
           )}
           {isOverrideItem && (
-            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.18em] text-amber-700">
+            <span className="rounded-full bg-warning/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-warning-foreground">
               Override
             </span>
           )}
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">
+          <span className="text-[11px] font-medium text-muted-foreground truncate">
             {item.medicine.generic_name}
           </span>
-          <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
-          <span className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest whitespace-nowrap">
+          <span className="w-1 h-1 bg-border rounded-full"></span>
+          <span className="text-[11px] font-medium text-primary whitespace-nowrap">
             {item.medicine.form}
           </span>
         </div>
         {(item.availabilityNote || item.overrideReasonNote) && (
-          <div className="truncate text-[10px] text-slate-500">
+          <div className="truncate text-[11px] text-muted-foreground">
             {item.overrideReasonNote || item.availabilityNote}
           </div>
         )}
@@ -105,54 +106,54 @@ export const CartItem: React.FC<CartItemProps> = ({
       <div className="flex items-center">
         {item.batchNumber ? (
           <div className="flex flex-col">
-            <span className="text-[10px] font-mono bg-indigo-50 text-indigo-600 px-2 py-1 rounded-lg border border-indigo-100/50 shadow-sm">
+            <span className="text-[11px] font-mono bg-primary/10 text-primary px-2 py-1 rounded-md border border-primary/20">
               {item.batchNumber}
             </span>
             {item.batchCode ? (
-              <span className="mt-1 text-[9px] font-mono text-slate-400">
+              <span className="mt-1 text-[10px] font-mono text-muted-foreground">
                 Ref: {item.batchCode}
               </span>
             ) : null}
           </div>
         ) : (
-          <span className="text-[10px] text-slate-300 font-bold uppercase tracking-widest">No lot</span>
+          <span className="text-[11px] text-muted-foreground font-medium uppercase tracking-wide">No lot</span>
         )}
       </div>
 
       <div className="flex flex-col items-center justify-center">
-        <span className={`text-[18px] font-black tracking-tighter ${item.quantity === 0 ? 'text-slate-200' : 'text-slate-900'}`}>
+        <span className={`text-base font-semibold font-mono tabular-nums ${item.quantity === 0 ? 'text-muted-foreground/40' : 'text-foreground'}`}>
           {item.quantity}
         </span>
       </div>
 
       <div className="flex flex-col items-center justify-center">
-        <span className={`text-[14px] font-black ${item.subQuantity > 0 ? 'text-indigo-600' : 'text-slate-300'}`}>
+        <span className={`text-sm font-semibold font-mono tabular-nums ${item.subQuantity > 0 ? 'text-primary' : 'text-muted-foreground/40'}`}>
           {item.subQuantity}
         </span>
       </div>
 
       <div className="flex items-center justify-end pr-4">
-        <span className="text-[14px] text-slate-500 font-medium tracking-tight whitespace-nowrap">{formatCurrency(item.price)}</span>
+        <span className="text-sm text-muted-foreground font-mono tabular-nums whitespace-nowrap">{formatCurrency(item.price)}</span>
       </div>
 
       <div className="flex items-center justify-end pr-4">
-        <span className="text-[14px] text-indigo-600 font-bold tracking-tight whitespace-nowrap">{formatCurrency(item.discountedPrice)}</span>
+        <span className="text-sm text-foreground font-semibold font-mono tabular-nums whitespace-nowrap">{formatCurrency(item.discountedPrice)}</span>
       </div>
 
       <div className="flex items-center justify-center">
         {item.isBillable === false ? (
-          <span className="px-2.5 py-1 bg-slate-100 text-slate-500 rounded-lg text-[10px] font-black tracking-tighter">
+          <span className="px-2.5 py-1 bg-muted text-muted-foreground rounded-md text-[10px] font-semibold">
             Excluded
           </span>
         ) : (
-          <span className="px-2.5 py-1 bg-rose-50 text-rose-600 rounded-lg text-[10px] font-black tracking-tighter flex items-center gap-1">
-            {item.discountPercent.toFixed(1)}% <span className="text-[8px] opacity-60">OFF</span>
+          <span className="px-2.5 py-1 bg-success/10 text-success rounded-md text-[10px] font-semibold flex items-center gap-1 font-mono tabular-nums">
+            {item.discountPercent.toFixed(1)}% <span className="text-[8px] opacity-70 font-sans">OFF</span>
           </span>
         )}
       </div>
 
       <div className="flex items-center justify-end pr-10">
-        <span className="font-black text-slate-900 text-[18px] tracking-tighter whitespace-nowrap">
+        <span className="font-bold text-foreground text-base font-mono tabular-nums whitespace-nowrap">
           {formatCurrency(item.lineTotal)}
         </span>
       </div>
@@ -161,7 +162,7 @@ export const CartItem: React.FC<CartItemProps> = ({
         {isUnavailablePrescription && onResolveUnavailable ? (
           <button
             title="Include with override"
-            className="h-10 rounded-xl border border-amber-200 bg-amber-50 px-3 text-[10px] font-black uppercase tracking-[0.14em] text-amber-700 transition-all hover:bg-amber-100"
+            className="h-10 rounded-md border border-warning/40 bg-warning/10 px-3 text-[11px] font-semibold uppercase tracking-wide text-warning-foreground transition-all hover:bg-warning/20"
             onClick={(e) => {
               e.stopPropagation();
               onResolveUnavailable(item);
@@ -172,7 +173,8 @@ export const CartItem: React.FC<CartItemProps> = ({
         ) : null}
         <button
           title="Edit"
-          className="w-10 h-10 flex items-center justify-center text-slate-400 hover:bg-indigo-50 hover:text-indigo-600 rounded-xl transition-all disabled:cursor-not-allowed disabled:opacity-40"
+          aria-label="Edit item"
+          className="w-10 h-10 flex items-center justify-center text-muted-foreground hover:bg-accent hover:text-primary rounded-md transition-all disabled:cursor-not-allowed disabled:opacity-40"
           disabled={isUnavailablePrescription}
           onClick={(e) => {
             e.stopPropagation();
@@ -182,17 +184,18 @@ export const CartItem: React.FC<CartItemProps> = ({
             onEdit();
           }}
         >
-          <span className="text-lg">✎</span>
+          <Pencil className="h-4 w-4" aria-hidden />
         </button>
         <button
           title="Remove"
-          className="w-10 h-10 flex items-center justify-center text-slate-400 hover:bg-rose-50 hover:text-rose-600 rounded-xl transition-all"
+          aria-label="Remove item"
+          className="w-10 h-10 flex items-center justify-center text-muted-foreground hover:bg-destructive/10 hover:text-destructive rounded-md transition-all"
           onClick={(e) => {
             e.stopPropagation();
             onRemove();
           }}
         >
-          <span className="text-lg text-rose-400">🗑</span>
+          <Trash2 className="h-4 w-4" aria-hidden />
         </button>
       </div>
     </div>

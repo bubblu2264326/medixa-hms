@@ -536,7 +536,7 @@ const PharmacyPOS: React.FC = () => {
         setSubQuantity(existingInCart.subQuantity);
         setDiscountPercent(existingInCart.discountPercent);
         setCustomPrice(existingInCart.customPrice);
-        toast(`Editing existing item in cart`, { icon: '📝' });
+        toast(`Editing existing item in cart`);
       } else {
         setQuantity(1);
         setSubQuantity(0);
@@ -656,7 +656,7 @@ const PharmacyPOS: React.FC = () => {
       if (response.data.unavailableItems.length > 0) {
         toast(
           `${response.data.unavailableItems.length} prescription item${response.data.unavailableItems.length === 1 ? '' : 's'} need pharmacist review before billing.`,
-          { icon: '⚠️', duration: 5000 }
+          { icon: <TriangleAlert size={16} className="text-warning-foreground" />, duration: 5000 }
         );
       }
       return { success: true };
@@ -688,7 +688,7 @@ const PharmacyPOS: React.FC = () => {
       if (e.key === 'F1') {
         e.preventDefault();
         searchInputRef.current?.focus();
-        toast('Search Focused', { icon: '🔍', duration: 1000 });
+        toast('Search Focused', { duration: 1000 });
       }
       // F2: Complete / Pay
       if (e.key === 'F2') {
@@ -720,9 +720,7 @@ const PharmacyPOS: React.FC = () => {
           return;
         }
         setPosMode(prev => prev === 'SALE' ? 'RETURN' : (prev === 'RETURN' ? 'SALE' : 'SALE'));
-        toast(`Switched to Mode`, {
-          icon: '🔄'
-        });
+        toast(`Switched to Mode`);
       }
     };
 
@@ -1084,7 +1082,7 @@ const PharmacyPOS: React.FC = () => {
     if (e.key === 'ArrowRight') {
       e.preventDefault();
       checkoutRef.current?.focusAmountReceived();
-      toast('Payment Panel Focused', { icon: '💳', duration: 1000 });
+      toast('Payment Panel Focused', { duration: 1000 });
     }
   };
 
@@ -1103,7 +1101,7 @@ const PharmacyPOS: React.FC = () => {
     // Focus first input
     qtyInputRef.current?.focus();
 
-    toast.success(`Editing ${item.medicine.brand_name}`, { icon: '📝' });
+    toast.success(`Editing ${item.medicine.brand_name}`);
   }, [cart]);
 
   const handleSearchSelected = () => {
@@ -1127,7 +1125,7 @@ const PharmacyPOS: React.FC = () => {
           discountPercent,
           customPrice
         });
-        toast.success('Item updated', { icon: '✅' });
+        toast.success('Item updated');
       } else {
         addItem(itemSearched, quantity, subQuantity, discountPercent, customPrice);
       }
@@ -1182,7 +1180,7 @@ const PharmacyPOS: React.FC = () => {
     }
 
     setPosMode(tx.mode || 'SALE');
-    toast.success(`Resumed transaction ${tx.reference}`, { icon: '📥' });
+    toast.success(`Resumed transaction ${tx.reference}`);
   };
 
   const selectedMedicineStock = itemSearched ? getMedicineAvailability(itemSearched).available : null;
@@ -1696,16 +1694,16 @@ const PharmacyPOS: React.FC = () => {
         </div>
 
         {/* 2. Active Billing Cart (Bottom) */}
-        <div className="flex flex-col flex-1 bg-white/70 backdrop-blur-xl rounded-[2rem] px-6 py-6 shadow-[0_8px_40px_rgb(0,0,0,0.06)] border border-white/40 overflow-hidden min-h-[400px]">
-          <div className="flex items-center justify-between mb-6 px-2">
+        <div className="flex flex-col flex-1 bg-card rounded-lg px-6 py-5 shadow-sm border border-border overflow-hidden min-h-[400px]">
+          <div className="flex items-center justify-between mb-4 px-1">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-emerald-500 text-white rounded-2xl shadow-lg shadow-emerald-500/20">
+              <div className="p-2 bg-primary text-primary-foreground rounded-md">
                 <ShoppingCart size={18} />
               </div>
-              <h2 className="text-xl font-bold text-slate-800 tracking-tight">Active Billing Cart</h2>
+              <h2 className="text-lg font-semibold text-foreground tracking-tight">Active Billing Cart</h2>
             </div>
             <div className="flex items-center gap-2">
-              <span className="px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-[10px] font-black ring-1 ring-slate-200 uppercase tracking-wider">
+              <span className="px-3 py-1 bg-muted text-muted-foreground rounded-full text-[11px] font-semibold uppercase tracking-wide">
                 {cart.length} {cart.length === 1 ? 'Item' : 'Items'}
               </span>
             </div>
@@ -1731,18 +1729,15 @@ const PharmacyPOS: React.FC = () => {
         </div>
       </div>
 
-      {/* 3. Right Column: Real-Store Checkout Panel */}
+      {/* 3. Right Column: Checkout Panel */}
       <div className={`flex flex-col w-full xl:w-[420px] min-h-0 ${isFullscreen ? 'gap-4' : 'gap-6'}`}>
-        <div className={`bg-slate-900 rounded-[2.5rem] shadow-2xl ring-1 ring-white/10 flex flex-col h-full relative overflow-hidden ${isFullscreen ? 'p-6' : 'p-8'}`}>
-          {/* Subtle Ambient Background glow */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 blur-[80px] -mr-16 -mt-16"></div>
-
-          <h2 className={`text-2xl font-bold text-white flex items-center gap-3 relative z-10 ${isFullscreen ? 'mb-5' : 'mb-8'}`}>
-            <div className="w-2 h-8 bg-emerald-400 rounded-full shadow-[0_0_15px_rgba(52,211,153,0.5)]"></div>
-            Finalize Sale
+        <div className={`bg-card text-card-foreground rounded-lg shadow-sm border border-border flex flex-col h-full relative overflow-hidden ${isFullscreen ? 'p-5' : 'p-6'}`}>
+          <h2 className={`text-lg font-semibold text-foreground flex items-center gap-2.5 ${isFullscreen ? 'mb-4' : 'mb-6'}`}>
+            <span className="w-1 h-6 bg-primary rounded-full" aria-hidden></span>
+            {posMode === 'RETURN' ? 'Finalize Return' : 'Finalize Sale'}
           </h2>
 
-          <div className="flex-1 relative z-10">
+          <div className="flex-1">
             <CheckoutCard
               ref={checkoutRef}
               cart={selectedReturnCart}
@@ -1769,16 +1764,6 @@ const PharmacyPOS: React.FC = () => {
               onAdjustmentChange={setAdjustment}
               onBackToSearch={() => searchInputRef.current?.focus()}
             />
-          </div>
-
-          <div className="mt-8 pt-6 border-t border-white/5 relative z-10">
-            <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 uppercase tracking-widest">
-              <span className="flex items-center gap-1.5">
-                <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
-                Secure Terminal
-              </span>
-              <span className="text-slate-600 font-mono">v1.2 // OPS-PRO</span>
-            </div>
           </div>
         </div>
       </div>

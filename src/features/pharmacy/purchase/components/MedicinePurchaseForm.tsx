@@ -204,7 +204,7 @@ export default function MedicinePurchaseForm() {
             if (e.key === 'F1') {
                 e.preventDefault();
                 searchInputRef.current?.focus();
-                toast('Search Focused', { icon: '🔍', duration: 1000 });
+                toast('Search Focused', { duration: 1000 });
             }
             if (e.key === 'F2' && items.length > 0) {
                 e.preventDefault();

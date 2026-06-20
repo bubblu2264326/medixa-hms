@@ -1,7 +1,7 @@
 "use client"
 import React, { useState } from 'react';
 import { CartItem, PaymentDetails, PaymentType } from '../../types';
-import { CreditCard, Banknote, ShieldCheck, Save, Printer, Play, RefreshCw, Trash2, RotateCcw, CheckCircle2, ListFilter } from 'lucide-react';
+import { CreditCard, Banknote, ShieldCheck, Save, Printer, RefreshCw, Trash2, RotateCcw, CheckCircle2, ListFilter } from 'lucide-react';
 import { HeldTransactionsModal } from './HeldTransactionsModal';
 import { submitTransaction, submitReturn, updateTransaction, updateSaleReturn, holdTransaction, openCashDrawer } from '../../api';
 import { generateReference, formatCurrency } from '../../utils';
@@ -272,40 +272,42 @@ export const CheckoutCard = React.forwardRef<CheckoutCardHandle, CheckoutCardPro
         }
     };
 
+    const isReturn = mode === 'RETURN';
+
     return (
-        <div className={`flex flex-col h-full min-h-0 ${isCompact ? 'gap-5' : 'gap-8'}`}>
+        <div className={`flex flex-col h-full min-h-0 ${isCompact ? 'gap-5' : 'gap-7'}`}>
             {/* 1. Value Summary Area */}
-            <div className={isCompact ? 'space-y-4' : 'space-y-6'}>
+            <div className={isCompact ? 'space-y-4' : 'space-y-5'}>
                 <div>
-                    <label className={`text-[11px] font-bold uppercase tracking-widest mb-2 block ${mode === 'SALE' ? 'text-slate-400' : 'text-rose-400'}`}>
-                        {mode === 'SALE' ? 'Total Payable' : 'Total Refundable'}
+                    <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1.5 block">
+                        {isReturn ? 'Total Refundable' : 'Total Payable'}
                     </label>
-                    <div className={`${isCompact ? 'text-4xl' : 'text-5xl'} font-black tracking-tight ${mode === 'SALE' ? 'text-white' : 'text-rose-400'}`}>
+                    <div className={`${isCompact ? 'text-4xl' : 'text-5xl'} font-bold tracking-tight font-mono tabular-nums ${isReturn ? 'text-danger' : 'text-foreground'}`}>
                         {formatCurrency(payment.payableAmount)}
                     </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                    <div className={`bg-white/5 border border-white/10 rounded-2xl ${isCompact ? 'p-3' : 'p-4'}`}>
-                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1 block">Items Disc</label>
-                        <div className={`${isCompact ? 'text-lg' : 'text-xl'} font-bold text-emerald-400`}>{formatCurrency(payment.itemsDiscount)}</div>
+                <div className="grid grid-cols-2 gap-3">
+                    <div className={`bg-muted/50 border border-border rounded-lg ${isCompact ? 'p-3' : 'p-4'}`}>
+                        <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Items Disc.</label>
+                        <div className={`${isCompact ? 'text-lg' : 'text-xl'} font-semibold font-mono tabular-nums text-success`}>{formatCurrency(payment.itemsDiscount)}</div>
                     </div>
-                    <div className={`bg-white/5 border border-white/10 rounded-2xl ${isCompact ? 'p-3' : 'p-4'}`}>
-                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1 block">Total Savings</label>
-                        <div className={`${isCompact ? 'text-lg' : 'text-xl'} font-bold text-emerald-400`}>{formatCurrency(payment.totalDiscount)}</div>
+                    <div className={`bg-muted/50 border border-border rounded-lg ${isCompact ? 'p-3' : 'p-4'}`}>
+                        <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Total Savings</label>
+                        <div className={`${isCompact ? 'text-lg' : 'text-xl'} font-semibold font-mono tabular-nums text-success`}>{formatCurrency(payment.totalDiscount)}</div>
                     </div>
                 </div>
             </div>
 
             {/* 2. Payment Control Center */}
-            <div className={`bg-white/5 border border-white/10 rounded-3xl ${isCompact ? 'p-4 space-y-5' : 'p-6 space-y-6'}`}>
+            <div className={`bg-muted/30 border border-border rounded-lg ${isCompact ? 'p-4 space-y-4' : 'p-5 space-y-5'}`}>
                 {/* Bill Discount */}
-                {mode === 'SALE' ? (
-                    <div className={`rounded-2xl border border-white/10 bg-white/5 ${isCompact ? 'p-3' : 'p-4'}`}>
+                {!isReturn ? (
+                    <div className={`rounded-md border border-border bg-background ${isCompact ? 'p-3' : 'p-4'}`}>
                         <div className="flex items-center justify-between gap-3">
                             <div>
-                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Bill Discount</div>
-                                <div className="mt-1 text-xs text-slate-500">
+                                <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Bill Discount</div>
+                                <div className="mt-1 text-xs text-muted-foreground">
                                     {payment.adjustmentPercent > 0 ? (
                                         <span>
                                             {payment.adjustmentPercent}% • {formatCurrency(payment.adjustment)} off
@@ -326,9 +328,9 @@ export const CheckoutCard = React.forwardRef<CheckoutCardHandle, CheckoutCardPro
                                         const next = Math.max(0, Math.min(100, Number(e.target.value || 0)));
                                         onAdjustmentChange(next);
                                     }}
-                                    className={`w-20 rounded-xl border border-white/10 bg-transparent px-3 ${isCompact ? 'py-1.5' : 'py-2'} text-right text-sm font-black text-white outline-none focus:border-emerald-500/60 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
+                                    className={`w-20 rounded-md border border-input bg-background px-3 ${isCompact ? 'py-1.5' : 'py-2'} text-right text-sm font-semibold font-mono tabular-nums text-foreground outline-none focus:border-ring focus:ring-2 focus:ring-ring/20 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
                                 />
-                                <span className="text-sm font-black text-slate-400">%</span>
+                                <span className="text-sm font-semibold text-muted-foreground">%</span>
                             </div>
                         </div>
 
@@ -338,10 +340,10 @@ export const CheckoutCard = React.forwardRef<CheckoutCardHandle, CheckoutCardPro
                                     key={p}
                                     type="button"
                                     onClick={() => onAdjustmentChange(p)}
-                                    className={`rounded-xl px-3 py-2 text-[11px] font-black uppercase tracking-widest border transition ${
+                                    className={`rounded-md px-3 py-2 text-xs font-semibold border transition ${
                                         payment.adjustmentPercent === p
-                                            ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
-                                            : 'bg-transparent border-white/10 text-slate-400 hover:bg-white/5'
+                                            ? 'bg-primary/10 border-primary/40 text-primary'
+                                            : 'bg-background border-border text-muted-foreground hover:bg-accent'
                                     }`}
                                 >
                                     {p}%
@@ -351,12 +353,12 @@ export const CheckoutCard = React.forwardRef<CheckoutCardHandle, CheckoutCardPro
                     </div>
                 ) : null}
 
-                {mode === 'RETURN' ? (
-                    <div className={`rounded-2xl border border-white/10 bg-white/5 ${isCompact ? 'p-3' : 'p-4'}`}>
+                {isReturn ? (
+                    <div className={`rounded-md border border-border bg-background ${isCompact ? 'p-3' : 'p-4'}`}>
                         <div className="flex items-start justify-between gap-3">
                             <div>
-                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Bill Discount</div>
-                                <div className="mt-1 text-xs text-slate-500">
+                                <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Bill Discount</div>
+                                <div className="mt-1 text-xs text-muted-foreground">
                                     {payment.adjustmentPercent > 0 ? (
                                         <span>
                                             {payment.adjustmentPercent}% • {formatCurrency(payment.adjustment)} off
@@ -365,11 +367,11 @@ export const CheckoutCard = React.forwardRef<CheckoutCardHandle, CheckoutCardPro
                                         <span>No bill discount</span>
                                     )}
                                 </div>
-                                <div className="mt-1 text-[11px] text-slate-600">
+                                <div className="mt-1 text-[11px] text-muted-foreground">
                                     Refund total is net of invoice discount.
                                 </div>
                             </div>
-                            <div className="shrink-0 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-black text-rose-300">
+                            <div className="shrink-0 rounded-md border border-border bg-muted px-3 py-2 text-xs font-semibold font-mono tabular-nums text-danger">
                                 {payment.adjustmentPercent || 0}%
                             </div>
                         </div>
@@ -386,28 +388,28 @@ export const CheckoutCard = React.forwardRef<CheckoutCardHandle, CheckoutCardPro
                         <button
                             key={type.id}
                             onClick={() => onPaymentTypeChange(type.id)}
-                            className={`flex flex-col items-center justify-center gap-2 py-3 rounded-xl border transition-all ${payment.type === type.id
-                                ? 'bg-emerald-500 border-emerald-400 text-white shadow-lg shadow-emerald-500/20 scale-[1.02]'
-                                : 'bg-transparent border-white/10 text-slate-400 hover:bg-white/5'
+                            className={`flex flex-col items-center justify-center gap-1.5 h-16 rounded-md border transition-all ${payment.type === type.id
+                                ? 'bg-primary border-primary text-primary-foreground'
+                                : 'bg-background border-border text-muted-foreground hover:bg-accent hover:text-foreground'
                                 }`}
                         >
                             <type.icon size={18} />
-                            <span className="text-[10px] font-bold uppercase">{type.label}</span>
+                            <span className="text-[11px] font-semibold">{type.label}</span>
                         </button>
                     ))}
                 </div>
 
-                {mode === 'SALE' ? (
-                    <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-                        <div className="mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Settlement Mode</div>
+                {!isReturn ? (
+                    <div className="rounded-md border border-border bg-background p-3">
+                        <div className="mb-2 text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Settlement Mode</div>
                         <div className="grid grid-cols-2 gap-2">
                             <button
                                 type="button"
                                 onClick={() => setSettlementMode('collect_now')}
-                                className={`rounded-xl border px-3 py-2 text-[10px] font-black uppercase tracking-widest transition ${
+                                className={`rounded-md border px-3 py-2.5 text-xs font-semibold transition ${
                                     settlementMode === 'collect_now'
-                                        ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
-                                        : 'bg-transparent border-white/10 text-slate-400 hover:bg-white/5'
+                                        ? 'bg-primary/10 border-primary/40 text-primary'
+                                        : 'bg-background border-border text-muted-foreground hover:bg-accent'
                                 }`}
                             >
                                 Collect Now
@@ -415,17 +417,17 @@ export const CheckoutCard = React.forwardRef<CheckoutCardHandle, CheckoutCardPro
                             <button
                                 type="button"
                                 onClick={() => setSettlementMode('append_to_bill')}
-                                className={`rounded-xl border px-3 py-2 text-[10px] font-black uppercase tracking-widest transition ${
+                                className={`rounded-md border px-3 py-2.5 text-xs font-semibold transition ${
                                     settlementMode === 'append_to_bill'
-                                        ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
-                                        : 'bg-transparent border-white/10 text-slate-400 hover:bg-white/5'
+                                        ? 'bg-warning/15 border-warning/50 text-warning-foreground'
+                                        : 'bg-background border-border text-muted-foreground hover:bg-accent'
                                 }`}
                             >
                                 Append to Bill
                             </button>
                         </div>
                         {settlementMode === 'append_to_bill' ? (
-                            <p className="mt-2 text-[11px] text-amber-300/90">
+                            <p className="mt-2 text-[11px] text-warning-foreground">
                                 Medicines are dispensed now. Payment will be settled at cashier.
                             </p>
                         ) : null}
@@ -433,10 +435,10 @@ export const CheckoutCard = React.forwardRef<CheckoutCardHandle, CheckoutCardPro
                 ) : null}
 
                 {/* Amount Received / Change Area */}
-                <div className="space-y-4">
-                    <div className="relative group">
-                        <label className="absolute -top-2 left-4 px-1 bg-slate-900 text-[10px] font-bold text-slate-400 uppercase z-10">
-                            {mode === 'SALE' ? 'Amount Received' : 'Amount Refunded'}
+                <div className="space-y-3">
+                    <div>
+                        <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 block">
+                            {isReturn ? 'Amount Refunded' : 'Amount Received'}
                         </label>
                         <input
                             ref={amountInputRef}
@@ -451,34 +453,35 @@ export const CheckoutCard = React.forwardRef<CheckoutCardHandle, CheckoutCardPro
                                 onPaidAmountChange(next);
                             }}
                             onKeyDown={handleAmountKeyDown}
-                            className={`w-full bg-transparent border-2 border-white/10 group-hover:border-emerald-500/50 focus:border-emerald-500 rounded-2xl ${isCompact ? 'py-3 px-5 text-xl' : 'py-5 px-6 text-2xl'} font-bold text-white outline-none transition-all placeholder:text-white/10 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
+                            className={`w-full bg-background border-2 border-input hover:border-ring/50 focus:border-ring focus:ring-2 focus:ring-ring/20 rounded-md ${isCompact ? 'h-12 px-4 text-xl' : 'h-14 px-5 text-2xl'} font-semibold font-mono tabular-nums text-foreground outline-none transition-all placeholder:text-muted-foreground/40 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
                             placeholder="0.00"
                         />
                     </div>
 
-                    <div className="flex items-center justify-between px-2">
-                        <span className="text-sm font-bold text-slate-400">
-                            {mode === 'SALE' ? 'Change Due' : 'Balance Remaining'}
+                    <div className="flex items-center justify-between px-1">
+                        <span className="text-sm font-medium text-muted-foreground">
+                            {isReturn ? 'Balance Remaining' : 'Change Due'}
                         </span>
-                        <span className={`text-2xl font-black ${payment.changeAmount > 0 || (mode === 'RETURN' && payment.dueAmount === 0) ? 'text-emerald-400' : 'text-slate-600'}`}>
-                            {formatCurrency(mode === 'SALE' ? payment.changeAmount : payment.dueAmount)}
+                        <span className={`text-2xl font-bold font-mono tabular-nums ${payment.changeAmount > 0 || (isReturn && payment.dueAmount === 0) ? 'text-success' : 'text-muted-foreground'}`}>
+                            {formatCurrency(isReturn ? payment.dueAmount : payment.changeAmount)}
                         </span>
                     </div>
                 </div>
             </div>
 
             {/* 3. Operational Actions */}
-            <div className="flex flex-col gap-4 mt-auto">
+            <div className="flex flex-col gap-3 mt-auto">
                 {/* Auto-print Toggle (SALE only) */}
-                {mode === 'SALE' ? (
-                    <div className="flex items-center justify-between px-2 py-3 bg-white/5 rounded-xl border border-white/5">
+                {!isReturn ? (
+                    <div className="flex items-center justify-between px-3 py-2.5 bg-muted/40 rounded-md border border-border">
                         <div className="flex items-center gap-2">
-                            <Printer size={14} className="text-slate-500" />
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Auto-print receipt</span>
+                            <Printer size={14} className="text-muted-foreground" />
+                            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Auto-print receipt</span>
                         </div>
                         <button
                             onClick={() => setAutoPrint(!printerSettings.autoPrint)}
-                            className={`relative w-10 h-5 rounded-full transition-colors ${printerSettings.autoPrint ? 'bg-emerald-500' : 'bg-slate-700'}`}
+                            aria-label="Toggle auto-print receipt"
+                            className={`relative w-10 h-5 rounded-full transition-colors ${printerSettings.autoPrint ? 'bg-primary' : 'bg-muted-foreground/30'}`}
                         >
                             <div className={`absolute top-1 left-1 w-3 h-3 bg-white rounded-full transition-transform ${printerSettings.autoPrint ? 'translate-x-5' : 'translate-x-0'}`}></div>
                         </button>
@@ -490,28 +493,28 @@ export const CheckoutCard = React.forwardRef<CheckoutCardHandle, CheckoutCardPro
                         onClick={handleProcessSale}
                         data-pay-button
                         disabled={isProcessing || cart.length === 0}
-                        className={`col-span-2 disabled:opacity-50 disabled:grayscale text-white font-black ${isCompact ? 'py-4 text-base' : 'py-5 text-lg'} rounded-2xl shadow-xl flex items-center justify-center gap-3 transition-all active:scale-95 uppercase tracking-wider ${mode === 'SALE'
-                            ? 'bg-emerald-500 hover:bg-emerald-400 shadow-emerald-500/20'
-                            : 'bg-rose-500 hover:bg-rose-400 shadow-rose-500/20'
+                        className={`col-span-2 disabled:opacity-50 font-semibold ${isCompact ? 'h-12 text-base' : 'h-14 text-lg'} rounded-md shadow-sm flex items-center justify-center gap-2.5 transition-all active:scale-[0.99] ${isReturn
+                            ? 'bg-destructive text-white hover:bg-destructive/90'
+                            : 'bg-success text-success-foreground hover:bg-success/90'
                             }`}
                     >
                         {isProcessing ? (
-                            <RefreshCw className="animate-spin" />
+                            <RefreshCw className="animate-spin" size={20} />
                         ) : isEditing ? (
                             <CheckCircle2 size={20} />
-                        ) : mode === 'SALE' ? (
-                            <Play fill="currentColor" size={20} />
+                        ) : !isReturn ? (
+                            <CheckCircle2 size={20} />
                         ) : (
                             <RotateCcw size={20} />
                         )}
-                        {isEditing ? (mode === 'RETURN' ? 'Update Return' : 'Update Sale') : (mode === 'SALE' ? 'Complete Sale' : 'Process Return')}
+                        {isEditing ? (isReturn ? 'Update Return' : 'Update Sale') : (isReturn ? 'Process Return' : 'Complete Sale')}
                     </button>
 
-                    {mode === 'SALE' ? (
+                    {!isReturn ? (
                         <button
                             onClick={handleManualPrint}
                             disabled={isPrinting || !lastTransactionId}
-                            className={`col-span-2 bg-indigo-500/10 border border-indigo-500/20 hover:bg-indigo-500/20 disabled:opacity-30 text-indigo-400 font-bold ${isCompact ? 'py-3' : 'py-4'} rounded-xl flex items-center justify-center gap-2 text-xs uppercase transition-all`}
+                            className={`col-span-2 bg-background border border-border hover:bg-accent disabled:opacity-40 text-foreground font-medium ${isCompact ? 'h-10' : 'h-11'} rounded-md flex items-center justify-center gap-2 text-sm transition-all`}
                         >
                             {isPrinting ? <RefreshCw className="animate-spin" size={14} /> : <Printer size={14} />}
                             Print Last Receipt
@@ -520,7 +523,7 @@ export const CheckoutCard = React.forwardRef<CheckoutCardHandle, CheckoutCardPro
 
                     <button
                         onClick={() => setShowHoldModal(true)}
-                        className={`bg-indigo-500/10 border border-indigo-500/20 hover:bg-indigo-500/20 text-indigo-400 font-bold ${isCompact ? 'py-3' : 'py-4'} rounded-xl flex items-center justify-center gap-2 text-xs uppercase transition-all`}
+                        className={`bg-background border border-border hover:bg-accent text-foreground font-medium ${isCompact ? 'h-10' : 'h-11'} rounded-md flex items-center justify-center gap-2 text-sm transition-all`}
                     >
                         <ListFilter size={14} />
                         Load
@@ -530,7 +533,7 @@ export const CheckoutCard = React.forwardRef<CheckoutCardHandle, CheckoutCardPro
                         onClick={handleHold}
                         data-hold-button
                         disabled={isProcessing || cart.length === 0}
-                        className={`bg-white/5 border border-white/10 hover:bg-white/10 text-white font-bold ${isCompact ? 'py-3' : 'py-4'} rounded-xl flex items-center justify-center gap-2 text-xs uppercase transition-all`}
+                        className={`bg-background border border-border hover:bg-accent disabled:opacity-40 text-foreground font-medium ${isCompact ? 'h-10' : 'h-11'} rounded-md flex items-center justify-center gap-2 text-sm transition-all`}
                     >
                         <Save size={14} />
                         Hold
@@ -539,7 +542,7 @@ export const CheckoutCard = React.forwardRef<CheckoutCardHandle, CheckoutCardPro
                     <button
                         onClick={onClear}
                         disabled={isProcessing || (cart.length === 0 && !isEditing)}
-                        className={`col-span-2 bg-orange-500/10 border border-orange-500/20 hover:bg-orange-500/20 text-orange-500 font-bold ${isCompact ? 'py-3' : 'py-4'} rounded-xl flex items-center justify-center gap-2 text-xs uppercase transition-all`}
+                        className={`col-span-2 bg-background border border-destructive/30 hover:bg-destructive/5 disabled:opacity-40 text-destructive font-medium ${isCompact ? 'h-10' : 'h-11'} rounded-md flex items-center justify-center gap-2 text-sm transition-all`}
                     >
                         <Trash2 size={14} />
                         Clear Entire Sale

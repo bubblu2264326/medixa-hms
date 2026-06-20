@@ -38,17 +38,17 @@ export const CartTable: React.FC<CartTableProps> = ({
     returnMode && includedItemIds ? items.filter((item) => includedItemIds.has(item.id)).length : items.length;
 
   return (
-    <div className="flex flex-col flex-1 bg-white/50 backdrop-blur-xl border border-slate-200/50 rounded-2xl overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+    <div className="flex flex-col flex-1 bg-card border border-border rounded-lg overflow-hidden shadow-sm">
       {returnMode ? (
-        <div className="flex items-center justify-between gap-3 px-6 py-3 bg-white/60 border-b border-slate-200/40">
-          <div className="text-xs font-black uppercase tracking-widest text-slate-500">
+        <div className="flex items-center justify-between gap-3 px-6 py-3 bg-muted/50 border-b border-border">
+          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Selected {selectedCount}/{items.length}
           </div>
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={onSelectAll}
-              className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-[11px] font-black uppercase tracking-widest text-slate-700 transition hover:border-slate-300 hover:text-slate-900"
+              className="rounded-md border border-border bg-background px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-foreground transition hover:bg-accent disabled:opacity-40"
               disabled={!onSelectAll || items.length === 0}
             >
               Select All
@@ -56,7 +56,7 @@ export const CartTable: React.FC<CartTableProps> = ({
             <button
               type="button"
               onClick={onUnselectAll}
-              className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-[11px] font-black uppercase tracking-widest text-slate-700 transition hover:border-slate-300 hover:text-slate-900"
+              className="rounded-md border border-border bg-background px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-foreground transition hover:bg-accent disabled:opacity-40"
               disabled={!onUnselectAll || items.length === 0}
             >
               Unselect All
@@ -67,7 +67,7 @@ export const CartTable: React.FC<CartTableProps> = ({
       <CartHeader />
       <div className="flex-1 overflow-y-auto">
         {items.length === 0 ? (
-          <div className="flex items-center justify-center py-16 px-5 text-gray-400 text-base">
+          <div className="flex items-center justify-center py-16 px-5 text-muted-foreground text-base">
             No items in cart
           </div>
         ) : (
