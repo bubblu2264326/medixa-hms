@@ -177,11 +177,11 @@
 
 ## medicine
 
-| medicine_id | generic_name | brand_name | category | dosage_value | dosage_unit | form | created_at | barcode | sku | manufacturer | min_stock_level | max_stock_level | is_active | requires_prescription | search_vector | sub_unit | sub_units_per_unit | sub_unit_price | allow_sub_unit_sale | category_id | manufacturer_id | form_id |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 9 | Azithromycin | Azomax | Antibiotic | 250.00 | mg | Capsule | "2026-03-19T02:00:12.700Z" | HMS-AZOMAX-250 | AZOMAX-250 | Getz | 12 | 300 | true | true | 'antibiot':3B 'azithromycin':1A 'azomax':2A | Blister | 6 | 18.00 | true | 3 | 2 | 3 |
-| 10 | Loratadine | Claritek | Antihistamine | 10.00 | mg | Tablet | "2026-03-19T02:00:12.700Z" | HMS-CLARITEK-10 | CLARITEK-10 | Abbott | 8 | 200 | true | false | 'antihistamin':3B 'claritek':2A 'loratadin':1A | Strip | 10 | 2.20 | true | 4 | 1 | 2 |
-| 11 | Esomeprazole | Nexum | Gastroprotective | 20.00 | mg | Capsule | "2026-03-19T02:00:12.700Z" | HMS-NEXUM-20 | NEXUM-20 | GSK | 10 | 250 | true | false | 'esomeprazol':1A 'gastroprotect':3B 'nexum':2A | Strip | 10 | 5.50 | true | 2 | 3 | 3 |
+| medicine_id | generic_name | brand_name | category | dosage_value | dosage_unit | form | created_at | barcode | sku | manufacturer | min_stock_level | max_stock_level | is_active | requires_prescription | search_vector | sub_unit | sub_units_per_unit | sub_unit_price | allow_sub_unit_sale | category_id | manufacturer_id | form_id | is_controlled | controlled_schedule |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 9 | Azithromycin | Azomax | Antibiotic | 250.00 | mg | Capsule | "2026-03-19T02:00:12.700Z" | HMS-AZOMAX-250 | AZOMAX-250 | Getz | 12 | 300 | true | true | 'antibiot':3B 'azithromycin':1A 'azomax':2A | Blister | 6 | 18.00 | true | 3 | 2 | 3 | false |  |
+| 10 | Loratadine | Claritek | Antihistamine | 10.00 | mg | Tablet | "2026-03-19T02:00:12.700Z" | HMS-CLARITEK-10 | CLARITEK-10 | Abbott | 8 | 200 | true | false | 'antihistamin':3B 'claritek':2A 'loratadin':1A | Strip | 10 | 2.20 | true | 4 | 1 | 2 | false |  |
+| 11 | Esomeprazole | Nexum | Gastroprotective | 20.00 | mg | Capsule | "2026-03-19T02:00:12.700Z" | HMS-NEXUM-20 | NEXUM-20 | GSK | 10 | 250 | true | false | 'esomeprazol':1A 'gastroprotect':3B 'nexum':2A | Strip | 10 | 5.50 | true | 2 | 3 | 3 | false |  |
 
 
 

@@ -1,9 +1,9 @@
 # DB Snapshot — overview
 
-Generated: 2026-06-20T14:18:26.150Z
+Generated: 2026-06-20T14:21:31.563Z
 
 - Tables: 108
-- Views: 5
+- Views: 6
 - Functions/Procedures: 15
 - Triggers: 17
 - Enums: 0

@@ -138,6 +138,7 @@
 | public | medicine | idx_medicine_active | CREATE INDEX idx_medicine_active ON public.medicine USING btree (is_active) |
 | public | medicine | idx_medicine_barcode | CREATE INDEX idx_medicine_barcode ON public.medicine USING btree (barcode) |
 | public | medicine | idx_medicine_category_id | CREATE INDEX idx_medicine_category_id ON public.medicine USING btree (category_id) |
+| public | medicine | idx_medicine_controlled | CREATE INDEX idx_medicine_controlled ON public.medicine USING btree (medicine_id) WHERE is_controlled |
 | public | medicine | idx_medicine_form_id | CREATE INDEX idx_medicine_form_id ON public.medicine USING btree (form_id) |
 | public | medicine | idx_medicine_manufacturer_id | CREATE INDEX idx_medicine_manufacturer_id ON public.medicine USING btree (manufacturer_id) |
 | public | medicine | idx_medicine_search_vector | CREATE INDEX idx_medicine_search_vector ON public.medicine USING gin (search_vector) |

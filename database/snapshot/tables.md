@@ -3000,6 +3000,8 @@ _(none)_
 | medicine | category_id | integer | int4 | YES |  |  |
 | medicine | manufacturer_id | integer | int4 | YES |  |  |
 | medicine | form_id | integer | int4 | YES |  |  |
+| medicine | is_controlled | boolean | bool | NO | false |  |
+| medicine | controlled_schedule | character varying | varchar | YES |  | 20 |
 
 
 ### Primary key
@@ -3033,6 +3035,7 @@ _(none)_
 | medicine | medicine_brand_name_not_null | brand_name IS NOT NULL |
 | medicine | medicine_category_not_null | category IS NOT NULL |
 | medicine | medicine_generic_name_not_null | generic_name IS NOT NULL |
+| medicine | medicine_is_controlled_not_null | is_controlled IS NOT NULL |
 | medicine | medicine_medicine_id_not_null | medicine_id IS NOT NULL |
 
 
