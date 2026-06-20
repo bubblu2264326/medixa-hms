@@ -46,7 +46,16 @@ const TARGETS = [
   { route: "/pharmacy?tab=medicines", label: "ph-products", user: "STF002" },
   { route: "/pharmacy?tab=reports", label: "ph-reports", user: "STF002" },
   { route: "/pharmacy?tab=settings", label: "ph-settings", user: "STF002" },
+  // reception sub-tabs (client-state — reach via button clicks)
+  { route: "/receptionist", label: "rc-appointments", user: "SCN_RECEP", clicks: ["Appointments"] },
+  { route: "/receptionist", label: "rc-register", user: "SCN_RECEP", clicks: ["Register"] },
+  { route: "/receptionist", label: "rc-vitals", user: "SCN_RECEP", clicks: ["Vitals"] },
+  { route: "/receptionist", label: "rc-clinical", user: "SCN_RECEP", clicks: ["Clinical"] },
 ];
+
+// UX_ONLY=rc-,ph-products  -> run only labels containing any of these substrings
+const ONLY = (process.env.UX_ONLY || "").split(",").map((s) => s.trim()).filter(Boolean);
+const RUN = ONLY.length ? TARGETS.filter((t) => ONLY.some((o) => t.label.includes(o))) : TARGETS;
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: false });
 
@@ -87,7 +96,7 @@ async function main() {
   const browser = await chromium.launch();
   console.log(`base=${BASE} viewport=${VW}x${VH} full=${FULL}`);
 
-  for (const t of TARGETS) {
+  for (const t of RUN) {
     const context = await browser.newContext({
       viewport: { width: VW, height: VH },
       deviceScaleFactor: 1,
@@ -103,6 +112,15 @@ async function main() {
       const page = await context.newPage();
       await page.goto(`${BASE}${t.route}`, { waitUntil: "networkidle", timeout: 60000 }).catch(() => {});
       await page.waitForTimeout(1500); // let client fetches/animations settle
+      // client-state tabs: click to reach the sub-view before shooting
+      if (t.clicks) {
+        for (const label of t.clicks) {
+          try {
+            await page.getByRole("button", { name: label, exact: false }).first().click({ timeout: 5000 });
+            await page.waitForTimeout(900);
+          } catch { /* button not found — shoot current view */ }
+        }
+      }
       const path = `${OUT}/${t.label}.png`;
       await page.screenshot({ path, fullPage: FULL });
       console.log(`  ✓ ${t.label.padEnd(18)} ${t.route}  -> ${path}`);
