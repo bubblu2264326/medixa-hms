@@ -8,9 +8,9 @@ function cn(...classes: (string | undefined | null | false)[]) {
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   /** Button visual style */
-  variant?: "default" | "primary" | "secondary" | "outline" | "ghost" | "destructive";
-  /** Button size */
-  size?: "sm" | "md" | "lg";
+  variant?: "default" | "primary" | "secondary" | "outline" | "ghost" | "destructive" | "success";
+  /** Button size ("touch" = 48px, for POS/tablet) */
+  size?: "sm" | "md" | "lg" | "touch";
   /** Loading state with spinner */
   isLoading?: boolean;
   /** Full width button */
@@ -32,31 +32,27 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     },
     ref
   ) => {
-    // Base styles
+    // Base styles (token-driven; teal focus ring)
     const baseStyles =
-      "inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50";
+      "inline-flex items-center justify-center gap-2 rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50";
 
-    // Variant styles
+    // Variant styles — semantic tokens only
     const variantStyles = {
-      default:
-        "bg-gradient-to-r from-[#BBF6AB] to-[#36F5D4] text-black hover:opacity-90 focus:ring-green-400",
-      primary:
-        "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500",
-      secondary:
-        "bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-gray-400",
-      outline:
-        "border-2 border-gray-300 bg-transparent text-gray-700 hover:bg-gray-50 focus:ring-gray-400",
-      ghost:
-        "bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-400",
-      destructive:
-        "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500",
+      default: "bg-primary text-primary-foreground hover:bg-primary/90",
+      primary: "bg-primary text-primary-foreground hover:bg-primary/90",
+      secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+      outline: "border border-input bg-background text-foreground hover:bg-accent hover:text-accent-foreground",
+      ghost: "bg-transparent text-foreground hover:bg-accent hover:text-accent-foreground",
+      destructive: "bg-destructive text-white hover:bg-destructive/90",
+      success: "bg-success text-success-foreground hover:bg-success/90",
     };
 
-    // Size styles
+    // Size styles (heights give adequate touch targets; "touch" = 48px for POS)
     const sizeStyles = {
-      sm: "px-3 py-1.5 text-sm",
-      md: "px-4 py-2 text-base",
-      lg: "px-6 py-3 text-lg",
+      sm: "h-8 px-3 text-sm",
+      md: "h-10 px-4 text-sm",
+      lg: "h-11 px-6 text-base",
+      touch: "h-12 px-6 text-base",
     };
 
     return (
