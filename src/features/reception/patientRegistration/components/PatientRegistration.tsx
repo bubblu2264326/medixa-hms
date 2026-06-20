@@ -1,4 +1,5 @@
 "use client";
+import { Pencil, UserPlus } from "lucide-react";
 
 import { useEffect, useRef, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
@@ -147,7 +148,7 @@ export default function PatientRegistrationForm() {
               </span>
             )}
             <div className={`h-12 w-12 rounded-2xl flex items-center justify-center p-2 shadow-inner ${isEditMode ? "bg-amber-100" : "bg-emerald-100"}`}>
-              <span className="text-2xl">{isEditMode ? "✏️" : "👤"}</span>
+              {isEditMode ? <Pencil className="h-6 w-6 text-amber-700" aria-hidden /> : <UserPlus className="h-6 w-6 text-emerald-700" aria-hidden />}
             </div>
           </div>
         </div>

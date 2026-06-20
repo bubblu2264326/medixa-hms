@@ -7,6 +7,7 @@ import Image from "next/image";
 import { fetchPatientInfo } from "@/src/features/reception/queueManagement/api";
 import { useEffect, useState } from "react";
 import { SharedSearch } from "@/src/components/reception/SharedSearch";
+import { ClipboardList, CalendarDays, UserPlus, Thermometer, Stethoscope } from "lucide-react";
 
 export default function Receptionist({
   queue,
@@ -88,11 +89,11 @@ export default function Receptionist({
             {/* Dashboard Navigation Tabs */}
             <nav className="flex items-center gap-1 p-1 bg-slate-200/50 backdrop-blur-sm rounded-2xl w-fit border border-slate-200/50 shrink-0">
               {[
-                { id: "queue", label: "Queue", icon: "📋" },
-                { id: "appointments", label: "Appointments", icon: "📅" },
-                { id: "patientRegistration", label: "Register", icon: "👤" },
-                { id: "patientVitals", label: "Vitals", icon: "🌡️" },
-                { id: "clinicalDetails", label: "Clinical", icon: "🩺" },
+                { id: "queue", label: "Queue", icon: ClipboardList },
+                { id: "appointments", label: "Appointments", icon: CalendarDays },
+                { id: "patientRegistration", label: "Register", icon: UserPlus },
+                { id: "patientVitals", label: "Vitals", icon: Thermometer },
+                { id: "clinicalDetails", label: "Clinical", icon: Stethoscope },
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -103,7 +104,7 @@ export default function Receptionist({
                       : "text-slate-500 hover:bg-white/50 hover:text-slate-700"
                   }`}
                 >
-                  <span className="text-sm">{tab.icon}</span>
+                  <tab.icon className="h-4 w-4" aria-hidden />
                   {tab.label}
                 </button>
               ))}

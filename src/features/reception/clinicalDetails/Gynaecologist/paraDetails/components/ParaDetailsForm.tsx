@@ -1,6 +1,7 @@
 "use client";
 
 import { useFieldArray } from "react-hook-form";
+import { Inbox } from "lucide-react";
 import { useParaDetails } from "../hooks/useParaDetails";
 
 export default function ParaDetailsForm() {
@@ -154,7 +155,7 @@ export default function ParaDetailsForm() {
 
         {fields.length === 0 && (
           <div className="h-40 flex flex-col items-center justify-center border-2 border-dashed border-slate-100 rounded-[2rem] bg-slate-50/30 text-slate-300">
-            <span className="text-4xl mb-2 opacity-50">📭</span>
+            <Inbox className="h-10 w-10 mb-2 opacity-50" aria-hidden />
             <p className="text-[10px] font-black uppercase tracking-widest">No records added yet</p>
           </div>
         )}

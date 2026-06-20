@@ -1,7 +1,7 @@
 "use client";
 import { ChangeEvent, KeyboardEvent, useEffect, useRef } from "react";
 import Link from "next/link";
-import { Monitor } from "lucide-react";
+import { Search } from "lucide-react";
 import { usePatientForm } from "../hooks/usePatientForm";
 import { Input } from "@/src/components/ui/Input";
 import { Label } from "@/src/components/ui/Label";
@@ -223,7 +223,7 @@ export function PatientForm() {
                 className="bg-white/70 border-slate-200 focus:border-emerald-500 focus:ring-emerald-500/20 h-14 rounded-2xl transition-all shadow-sm group-hover:bg-white text-lg font-medium pl-12"
               />
               <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                🔍
+                <Search className="h-5 w-5" aria-hidden />
               </div>
               <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-black text-emerald-600/60 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100 tracking-wider">
                 AUTO-SEARCHING

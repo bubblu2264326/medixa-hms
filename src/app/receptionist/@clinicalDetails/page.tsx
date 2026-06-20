@@ -3,19 +3,19 @@
 import { usePatient } from "@/contexts/PatientIdContext";
 import { useState, useRef, useEffect } from "react";
 import Gynaecologist from "./Gynacologist/Gynaecologist";
-import { LayoutGrid, ChevronDown, Check } from "lucide-react";
+import { LayoutGrid, ChevronDown, Check, Stethoscope, Baby, UserRound, Droplet, HeartPulse, ClipboardList, Hash } from "lucide-react";
 
 const SPECIALIZATIONS = [
-  { id: "gynaecologist", label: "Gynaecologist", icon: "🩺" },
-  { id: "pediatrician", label: "Pediatrician", icon: "👶" },
-  { id: "general_physician", label: "General Physician", icon: "👨‍⚕️" },
+  { id: "gynaecologist", label: "Gynaecologist", icon: Stethoscope },
+  { id: "pediatrician", label: "Pediatrician", icon: Baby },
+  { id: "general_physician", label: "General Physician", icon: UserRound },
 ];
 
 const CLINICAL_TABS = [
-  { id: "Menstrual History", icon: "🩸", label: "Menstrual" },
-  { id: "Current Pregnancy", icon: "🤰", label: "Pregnancy" },
-  { id: "Obstetric History", icon: "📋", label: "Obstetric" },
-  { id: "Para Details", icon: "🔢", label: "Para" },
+  { id: "Menstrual History", icon: Droplet, label: "Menstrual" },
+  { id: "Current Pregnancy", icon: HeartPulse, label: "Pregnancy" },
+  { id: "Obstetric History", icon: ClipboardList, label: "Obstetric" },
+  { id: "Para Details", icon: Hash, label: "Para" },
 ];
 
 export default function ClinicalRecordsLayout() {
@@ -53,7 +53,7 @@ export default function ClinicalRecordsLayout() {
                 className="w-52 h-9 px-4 bg-white border border-slate-200 rounded-xl text-slate-700 font-bold flex items-center justify-between shadow-sm transition-all hover:border-emerald-300 hover:shadow-emerald-900/5 group"
               >
                 <span className="text-[12px] flex items-center gap-2">
-                  <span>{selectedSpecialization.icon}</span>
+                  <selectedSpecialization.icon className="h-4 w-4" aria-hidden />
                   {selectedSpecialization.label}
                 </span>
                 <ChevronDown className={`size-3.5 text-slate-400 transition-transform ${isDropdownOpen ? "rotate-180" : ""}`} />
@@ -77,7 +77,7 @@ export default function ClinicalRecordsLayout() {
                     }`}
                   >
                     <span className="flex items-center gap-2">
-                       <span>{spec.icon}</span>
+                       <spec.icon className="h-4 w-4" aria-hidden />
                        {spec.label}
                     </span>
                     {selectedSpecialization.id === spec.id && <Check className="size-4" />}
@@ -100,7 +100,7 @@ export default function ClinicalRecordsLayout() {
                       : "text-slate-400 hover:bg-white/40 hover:text-slate-600"
                   }`}
                 >
-                  <span className="text-sm leading-none">{tab.icon}</span>
+                  <tab.icon className="h-4 w-4" aria-hidden />
                   {tab.label}
                 </button>
               ))}
@@ -137,8 +137,8 @@ export default function ClinicalRecordsLayout() {
             </div>
           ) : (
             <div className="h-full flex flex-col items-center justify-center p-12 bg-white/20">
-              <div className="w-24 h-24 bg-white/40 backdrop-blur-xl border border-white/50 rounded-[2.5rem] flex items-center justify-center text-4xl mb-6 shadow-2xl shadow-slate-300/20 animate-bounce transition-all duration-[2000ms]">
-                👨‍⚕️
+              <div className="w-24 h-24 bg-white/40 backdrop-blur-xl border border-white/50 rounded-[2.5rem] flex items-center justify-center mb-6 shadow-2xl shadow-slate-300/20 transition-all duration-[2000ms]">
+                <Stethoscope className="h-10 w-10 text-emerald-600" aria-hidden />
               </div>
               <h3 className="text-xl font-black text-slate-800 uppercase tracking-widest leading-none mb-3">No Clinical Selection</h3>
               <p className="text-xs font-black text-slate-400 uppercase tracking-tighter max-w-xs text-center">

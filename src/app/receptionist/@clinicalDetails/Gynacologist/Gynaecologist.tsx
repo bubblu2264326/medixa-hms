@@ -3,12 +3,13 @@ import ParaDetailsForm from "./allForms/ParaDetaisl";
 import MenstrualHistory from "./allForms/MenstrualHistory";
 import CurrentPregnancy from "./allForms/CurrentPregnancy";
 import ObstetricHistory from "./allForms/ObstetricHistory";
+import { Droplet, HeartPulse, ClipboardList, Hash } from "lucide-react";
 
 const TABS = [
-  { id: "Menstrual History", icon: "🩸", label: "Menstrual History" },
-  { id: "Current Pregnancy", icon: "🤰", label: "Current Pregnancy" },
-  { id: "Obstetric History", icon: "📋", label: "Obstetric History" },
-  { id: "Para Details", icon: "🔢", label: "Para Details" },
+  { id: "Menstrual History", icon: Droplet, label: "Menstrual History" },
+  { id: "Current Pregnancy", icon: HeartPulse, label: "Current Pregnancy" },
+  { id: "Obstetric History", icon: ClipboardList, label: "Obstetric History" },
+  { id: "Para Details", icon: Hash, label: "Para Details" },
 ];
 
 export default function Gynaecologist({
@@ -41,7 +42,10 @@ export default function Gynaecologist({
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 bg-white/40 backdrop-blur-md border border-white rounded-[2rem] p-6 shadow-xl shadow-slate-200/50 min-h-[300px]">
                <div className="flex items-center gap-3 mb-6 border-b border-slate-100/60 pb-4">
                   <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl shadow-inner">
-                    <span className="text-lg leading-none">{TABS.find(t => t.id === activeTab)?.icon}</span>
+                    {(() => {
+                      const Icon = TABS.find((t) => t.id === activeTab)?.icon;
+                      return Icon ? <Icon className="h-5 w-5" aria-hidden /> : null;
+                    })()}
                   </div>
                   <div>
                     <h3 className="text-base font-black text-slate-800 leading-none">{TABS.find(t => t.id === activeTab)?.label}</h3>
@@ -60,7 +64,7 @@ export default function Gynaecologist({
                 >
                   <div className="flex items-center gap-3 mb-6 border-b border-slate-100/60 pb-3">
                     <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl shadow-inner">
-                      <span className="text-lg leading-none">{tab.icon}</span>
+                      <tab.icon className="h-5 w-5" aria-hidden />
                     </div>
                     <div>
                       <h3 className="text-base font-black text-slate-800 leading-none">{tab.label}</h3>

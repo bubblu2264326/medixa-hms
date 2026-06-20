@@ -1,5 +1,6 @@
 "use client";
 import { ChangeEvent } from "react";
+import { Search } from "lucide-react";
 import { useAppointments } from "../hooks/useAppointments";
 import { Appointment, AppointmentStatus } from "../types";
 import { Input } from "@/src/components/ui/Input";
@@ -87,7 +88,7 @@ export function Appointments() {
                 autoComplete="off"
                 className="bg-white/70 border-slate-200 h-12 rounded-2xl pl-11"
               />
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">🔍</div>
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"><Search className="h-4 w-4" aria-hidden /></div>
               {isSearching && (
                 <div className="absolute right-4 top-1/2 -translate-y-1/2">
                   <div className="animate-spin h-4 w-4 border-2 border-emerald-500 border-t-transparent rounded-full" />
