@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/database/db";
 import { AuthError, requireAdminOrSuperAdmin } from "@/src/lib/server/auth";
+import { assertPermitted } from "@/src/lib/server/permissions";
 import { logAuditEvent } from "@/src/lib/server/audit";
 
 type PermissionPolicyInput = {
@@ -16,7 +17,8 @@ type PermissionPolicyInput = {
 
 export async function GET(req: NextRequest) {
   try {
-    await requireAdminOrSuperAdmin(req);
+    const viewer = await requireAdminOrSuperAdmin(req);
+    await assertPermitted(viewer, "access_roles", "view");
     const { searchParams } = new URL(req.url);
     const staffId = Number(searchParams.get("staff_id") ?? 0) || null;
     const roleId = Number(searchParams.get("role_id") ?? 0) || null;
@@ -78,6 +80,7 @@ export async function GET(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     const actor = await requireAdminOrSuperAdmin(req);
+    await assertPermitted(actor, "access_roles", "edit");
     const body = await req.json();
     const policies: PermissionPolicyInput[] = Array.isArray(body?.policies) ? body.policies : [];
 

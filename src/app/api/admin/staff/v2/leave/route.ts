@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/database/db";
 import { AuthError, requireAdminOrSuperAdmin } from "@/src/lib/server/auth";
+import { assertPermitted } from "@/src/lib/server/permissions";
 import { logAuditEvent } from "@/src/lib/server/audit";
 
 export async function GET(req: NextRequest) {
   try {
-    await requireAdminOrSuperAdmin(req);
+    const viewer = await requireAdminOrSuperAdmin(req);
+    await assertPermitted(viewer, "leave", "view");
     const { searchParams } = new URL(req.url);
     const status = searchParams.get("status");
     const personId = Number(searchParams.get("person_id") ?? searchParams.get("staff_id") ?? 0) || null;
@@ -86,6 +88,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const actor = await requireAdminOrSuperAdmin(req);
+    await assertPermitted(actor, "leave", "create");
     const body = await req.json();
 
     const accountType = body?.account_type === "doctor" ? "doctor" : "staff";

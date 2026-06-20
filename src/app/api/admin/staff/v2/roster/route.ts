@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/database/db";
 import { AuthError, requireAdminOrSuperAdmin } from "@/src/lib/server/auth";
+import { assertPermitted } from "@/src/lib/server/permissions";
 import { logAuditEvent } from "@/src/lib/server/audit";
 
 export async function GET(req: NextRequest) {
   try {
-    await requireAdminOrSuperAdmin(req);
+    const viewer = await requireAdminOrSuperAdmin(req);
+    await assertPermitted(viewer, "roster", "view");
     const { searchParams } = new URL(req.url);
     const fromDate = searchParams.get("from") ?? new Date().toISOString().slice(0, 10);
     const toDate = searchParams.get("to") ?? fromDate;
@@ -74,6 +76,7 @@ export async function POST(req: NextRequest) {
   const requestStartedAtMs = Date.now();
   try {
     const actor = await requireAdminOrSuperAdmin(req);
+    await assertPermitted(actor, "roster", "create");
     const validationStartedAtMs = Date.now();
     const body = await req.json();
     const assignments = Array.isArray(body?.assignments) ? body.assignments : [];
