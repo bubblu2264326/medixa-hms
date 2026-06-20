@@ -73,6 +73,16 @@ const TARGETS = [
   { route: "/receptionist", label: "rc-register", user: "SCN_RECEP", clicks: ["Register"] },
   { route: "/receptionist", label: "rc-vitals", user: "SCN_RECEP", clicks: ["Vitals"] },
   { route: "/receptionist", label: "rc-clinical", user: "SCN_RECEP", clicks: ["Clinical"] },
+  // cashier sub-tabs (Worklist is default = 03-cashier)
+  { route: "/cashier", label: "cs-settle", user: "STF004", clicks: ["Settle"] },
+  { route: "/cashier", label: "cs-history", user: "STF004", clicks: ["History"] },
+  { route: "/cashier", label: "cs-drafts", user: "STF004", clicks: ["Drafts"] },
+  { route: "/cashier", label: "cs-overdue", user: "STF004", clicks: ["Overdue"] },
+  // lab sub-tabs (Sample Collection is default = 05-lab)
+  { route: "/lab", label: "lab-results", user: "STF003", clicks: ["Test Results"] },
+  { route: "/lab", label: "lab-orders", user: "STF003", clicks: ["Lab Orders"] },
+  // ipd sub-tabs (Admissions is default = 07-ipd)
+  { route: "/ipd", label: "ipd-bedboard", user: "ADM001", clicks: ["Bed Board"] },
 ];
 
 // UX_ONLY=rc-,ph-products  -> run only labels containing any of these substrings
