@@ -91,3 +91,37 @@ Line-height 1.4–1.5. Headings `font-semibold`, not `font-black`. Eyebrows: 11�
 **Empty states:** compact centered icon + one line (+ optional action). Never a full-height blank panel.
 
 These are enforced via the shared primitives (`PageHeader/FormField/FormGrid/Card/Toolbar/EmptyState/DataTable`) — compose those instead of hand-rolling sizes.
+
+---
+
+## Reference stack & module aesthetic (locked)
+
+We target a **healthcare-first feel with SaaS polish**. Priority of inspiration:
+
+| Priority | References | Borrow | Modules |
+|---|---|---|---|
+| Primary | **Doctolib, Practo, DrChrono** | clinical workflows, patient/role views, trustworthy-not-sterile feel, status/timeline patterns | Registration, Appointments, Doctor/Nurse, EHR/EMR, Pharmacy/Lab requests |
+| Strong 2nd | **Linear, Retool** | crisp dense tables, sidebars, keyboard-friendliness, role-based admin tools | Admin/HR, Inventory, Billing, Reports, role views |
+| Supporting | **Stripe** | minimal financial flows, invoices, money screens | Billing, claims, pharmacy sales, financial reports |
+| Nice-to-have | **Square / Shopify POS** | high-speed operational actions, big touch targets | Pharmacy counter, lab sample intake, front-desk check-in |
+
+**Measured validation (1536px):** Doctolib runs **14px / 12px** body text with a
+**trust-blue** accent on navy-slate neutrals — independently confirming the v2
+density spec above. Captures in `ux-shots/ref-*.png`.
+
+**Locked decisions:**
+- **Accent = teal (brand) stays primary.** Healthcare convention is blue; teal is
+  our on-brand trust variant and differentiator. The existing **`info` (blue)**
+  token carries informational cues. Do **not** switch the primary to blue. Text
+  neutrals stay navy-slate via `foreground`/`muted-foreground`.
+- **Navigation = per-role workspaces, polished.** Keep the role-segmented apps
+  (matches auth/routing). Make each workspace's nav clean and *consistent* — a
+  tidy left sidebar where one fits (admin/cashier), tidy top-tabs where that fits
+  (reception). Do **not** rebuild into a single unified module shell this pass.
+- **Power-user density** (uniform, not role-varied): dense info, scannable tables,
+  clear status chips, quick actions — clinicians are power users.
+
+**Consistency targets (every module must share these):** `Card`, data `DataTable`
+(dense rows, sticky header), `Dialog`/modal, `StatusBadge` (status/stock/severity
+— color + label), `PageHeader`, `Toolbar`, `EmptyState`, form `FormField`/`FormGrid`.
+Same control looks identical across reception, cashier, admin, etc.

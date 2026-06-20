@@ -155,22 +155,34 @@ loop per screen:
 3. Fix code → re-run harness → re-Read → iterate until it passes.
 4. Gate (`tsc`/`lint`/`build`/`test`) → commit that screen → pinned push.
 
-## 10. `/goal` prompt for the 6-hour session
+## 10. Locked decisions (from owner)
+
+- **Accent:** teal stays primary (brand); blue = `info` only. Do NOT switch primary to blue.
+- **Navigation:** keep per-role workspaces; polish nav to be clean + consistent. Do NOT build a unified module shell.
+- **Density:** uniform power-user density per the v2 spec (not role-varied).
+- **Reference feel:** healthcare-first (Doctolib/Practo/DrChrono) + SaaS polish (Linear/Retool/Stripe); POS borrows Square/Shopify touch density.
+
+## 11. `/goal` prompt for the 6-hour session
 
 > Run the HMS frontend UX overhaul per documentation/FRONTEND_UX_OVERHAUL_PLAN.md
-> and the DESIGN_SYSTEM.md "Density & sizing — v2" spec. Use the screenshot loop
-> (scripts/ux-shots.mjs at 1536×864) as the verification engine — actually Read
-> the ux-shots PNGs and iterate until each screen matches the spec. Phase 1
-> density foundation → Phase 2 primitives (h-9 desk controls, FormField/FormGrid/
-> PageHeader/EmptyState/Toolbar/DataTable) → Phase 3 screen-by-screen
-> (Reception → POS → Cashier → Doctor → Lab → IPD → Admin → Attendance/Login) →
-> Phase 4 polish + an ESLint guard banning hardcoded palette colors. Visual only;
-> no logic/DB changes; IPD safety logic byte-for-byte. Gate every screen
-> (tsc/lint/build/test green) and commit per screen with pinned push to
-> feat/hms-completion (gh auth switch bubblu2264326 first). Keep going until all
-> screens meet the v2 density spec at 1536px and the full gate is green.
+> and the DESIGN_SYSTEM.md "Density & sizing — v2" + "Reference stack" sections.
+> Honor the locked decisions: teal stays primary (blue = info only), keep per-role
+> nav (no unified shell), uniform power-user density, healthcare-first + SaaS-polish
+> feel. Use the screenshot loop (node --env-file=.env.local scripts/ux-shots.mjs at
+> 1536×864) as the verification engine — actually Read the ux-shots/*.png and iterate
+> until each screen matches the spec. Phase 1 density foundation (remove the no-op vw
+> clamp; encode the 14px-anchored scale + 36px desk control heights) → Phase 2
+> primitives (h-9 desk controls; FormField/FormGrid/PageHeader/EmptyState/Toolbar/
+> DataTable + a consistent Dialog/modal + StatusBadge usage) → Phase 3 screen-by-screen
+> (Reception → Pharmacy POS [fix the still-purple ADD TO BILL button] → Cashier →
+> Doctor → Lab → IPD → Admin → Attendance/Login) → Phase 4 polish + an ESLint guard
+> banning hardcoded Tailwind palette colors. Visual only; no logic/props/DB changes;
+> IPD patient-safety logic byte-for-byte. Gate every screen (npx tsc --noEmit, pnpm
+> lint 0 errors, pnpm build, pnpm test 181/181) and commit per screen with pinned push
+> to feat/hms-completion (gh auth switch --user bubblu2264326 before each push). Keep
+> going until all screens meet the v2 density spec at 1536px and the full gate is green.
 
-## 11. Pre-flight before starting `/goal`
+## 12. Pre-flight before starting `/goal`
 
 - Dev server running on **:3000** (the harness targets it). If down: `pnpm dev`.
 - On `feat/hms-completion`, working tree clean (this plan + harness committed).

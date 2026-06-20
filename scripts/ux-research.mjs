@@ -9,15 +9,23 @@ import { chromium } from "playwright";
 import { mkdirSync } from "node:fs";
 
 const OUT = "ux-shots";
-const SITES = [
+const ALL_SITES = [
   { name: "shadcn-ui", url: "https://ui.shadcn.com/" },
   { name: "shadcn-dashboard", url: "https://ui.shadcn.com/examples/dashboard" },
   { name: "tailwind", url: "https://tailwindcss.com/" },
   { name: "linear", url: "https://linear.app/" },
+  { name: "retool", url: "https://retool.com/" },
   { name: "stripe", url: "https://stripe.com/" },
   { name: "github", url: "https://github.com/" },
   { name: "square", url: "https://squareup.com/us/en/point-of-sale" },
+  // healthcare-first references (public/marketing — clinician product is login-gated)
+  { name: "doctolib", url: "https://www.doctolib.fr/" },
+  { name: "practo", url: "https://www.practo.com/" },
+  { name: "drchrono", url: "https://www.drchrono.com/" },
 ];
+// UX_ONLY=doctolib,practo,drchrono  -> run just those
+const only = (process.env.UX_ONLY || "").split(",").map((s) => s.trim()).filter(Boolean);
+const SITES = only.length ? ALL_SITES.filter((s) => only.includes(s.name)) : ALL_SITES;
 
 const MEASURE = () => {
   const round = (v) => Math.round(parseFloat(v));
@@ -47,6 +55,16 @@ const MEASURE = () => {
     return { fs: round(c.fontSize), lh: c.lineHeight, fw: c.fontWeight };
   };
   r.h1 = hx("h1"); r.h2 = hx("h2"); r.h3 = hx("h3"); r.p = hx("p");
+
+  // palette: most common non-transparent button backgrounds + link colors
+  const isColor = (c) => c && c !== "rgba(0, 0, 0, 0)" && c !== "transparent" && !/rgba\(0, 0, 0, 0\)/.test(c);
+  const strFreq = (arr) => {
+    const m = {};
+    arr.forEach((x) => { if (isColor(x)) m[x] = (m[x] || 0) + 1; });
+    return Object.entries(m).sort((a, b) => b[1] - a[1]).slice(0, 6);
+  };
+  r.buttonBg = strFreq(sample("button, a[role=button], .btn, a[class*=button]", (b) => getComputedStyle(b).backgroundColor));
+  r.linkColors = strFreq(sample("a", (a) => getComputedStyle(a).color));
   return r;
 };
 
