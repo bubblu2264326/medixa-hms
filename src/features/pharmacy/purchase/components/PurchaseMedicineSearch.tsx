@@ -115,6 +115,9 @@ export const PurchaseMedicineSearch: React.FC<PurchaseMedicineSearchProps> = ({
                     {results.map((medicine, index) => (
                         <button
                             key={medicine.id}
+                            // preventDefault keeps input focus so the onBlur close-timer
+                            // doesn't race the click and swallow the selection.
+                            onMouseDown={(e) => e.preventDefault()}
                             onClick={() => handleSelect(medicine)}
                             onMouseEnter={() => setFocusedIndex(index)}
                             className={`

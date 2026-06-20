@@ -124,6 +124,9 @@ export const PurchaseReturn: React.FC = () => {
                                 {invoices.map((inv, index) => (
                                     <button
                                         key={inv.purchase_id}
+                                        // preventDefault keeps input focus so the onBlur
+                                        // close-timer doesn't race the click selection.
+                                        onMouseDown={(e) => e.preventDefault()}
                                         onClick={() => handleSelectInvoice(inv)}
                                         onMouseEnter={() => setFocusedIndex(index)}
                                         className={`w-full p-6 flex items-center justify-between transition-all text-left rounded-3xl mb-1
