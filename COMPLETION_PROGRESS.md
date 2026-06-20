@@ -7,14 +7,15 @@ Running state of the autonomous completion build. Newest entries at the bottom. 
 - **Mode:** autonomous, Git-checkpointed; combined leftovers + FE↔BE↔DB sync, then full IPD, then HR/Admin UX, then gap-fill.
 - **Owner decisions:** cash-refund (M3); full IPD v1; granular RBAC via existing permission tables; PR to `main` per phase.
 - **Gate baseline (start):** build ✅ · tsc ✅ 0 · tests ✅ 138/138 · lint ✅ 0 errors · scenario suite ✅ 16/16 · invariants ✅ 8/8.
+- **Gate (current):** build ✅ · tsc ✅ 0 · tests ✅ **181/181** · lint ✅ 0 errors · scenario suite ✅ **22/22** · invariants ✅ **11/11** · schema **110 tables / 6 views**. All 4 phases addressed — see [COMPLETION_REPORT.md](COMPLETION_REPORT.md). Deferred (env/UX): external gateway/PRAL live-wiring, new-feature UIs + admin UI polish, advanced lab QC.
 
 ## Phase checklist
 - [x] **Phase 1** — Sync + leftovers. ✅ FE↔BE call-layer sync verified (relative-fetch sweep + FE→route audit, 0 real 404s).
   - [x] M3 cash-refund · [x] H2 admin-gated terminal reversal · [x] granular RBAC (mechanism + first surface) · [x] `lab/testParameters` implemented + `doctor/route.ts` stub removed.
 - [x] **Phase 2** — IPD / Nursing (full v1). ✅ schema (3 migrations) + backend (9 routes, lifecycle/billing/orders/MAR/charting) + nurse route + `/ipd` frontend + live e2e scenario + 2 IPD invariants.
-- [ ] **Phase 3** — HR + Admin wire + UX.
-- [ ] **Phase 4** — Gap-fill (allergies → appointments → FBR e-invoicing → WhatsApp/SMS → lab depth → narcotics/FEFO → panel/wallet).
-- [ ] **Final** — completion report.
+- [x] **Phase 3** — HR + Admin. ✅ functional substance present (20 admin pages + permission-matrix UI already wired) + RBAC deny-override enforcement extended. UI/UX polish deferred (owner).
+- [x] **Phase 4** — Gap-fill. ✅ backends to the buildable extent: allergies+drug-checks · appointments · narcotics+FEFO · WhatsApp/SMS outbox · FBR queue · lab depth (entry/critical/sign-off). External live-wiring (gateway send / PRAL submit) needs env credentials; advanced lab QC + new-feature UIs deferred.
+- [x] **Final** — completion report → [COMPLETION_REPORT.md](COMPLETION_REPORT.md). ✅
 
 ## Decisions made unattended
 *(log every non-obvious or behavior-affecting choice for later review)*
