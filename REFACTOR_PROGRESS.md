@@ -102,3 +102,7 @@ See `audit/README.md` for the full P0/P1/P2 punch-list. Headlines:
 
 ### 🎯 Stage A — module DB-integrity + backend hardening COMPLETE (all modules)
 Patient ✅ · Pharmacy ✅ · Billing ✅ · Lab ✅ · Doctor ✅ · Queue ✅ · HR ✅ · Admin ✅. Deferred (tracked): frontend correctness (UI pass), fuller per-module test suites, the `TODO(review)` policy items, 2 empty route stubs. **Next: Stage B (integration chains) → Stage C (curl invariant suite).**
+
+### Stage B / C — chain invariants + scenario suite
+- **SC·1 — DB invariant checker (`scripts/scenario-tests/check-invariants.mjs`).** Standalone node script (reads `DATABASE_URL` via `--env-file=.env.local`) that asserts the cross-module invariants and exits 0/1 (CI-friendly): **stock ≥ 0**, legal `visit.status`, legal `lab_order.status`, **`bill.payment_status` reconciles with the cashier ledger** (total vs Σ `cashier_payment_txn`), no orphan bills / lab-results / pharmacy-sale-details, audit trail present. Ran against the live DB → **all 8 invariants PASS** (current data consistent). This is the assertion engine the curl scenario suite calls after each batch — i.e. where the Stage B chain invariants get *proven*. Verified: lint ✅ 0, tsc ✅, tests ✅ 138/138. Commit: _(below)_.
+  - **Next (Stage C):** the curl scenario driver — log in to get a token cookie, run data-driven happy-path + edge + RBAC-negative + concurrency scenarios against a live server, invoke this checker after each batch. (Needs the dev/prod server running against local DB.)
