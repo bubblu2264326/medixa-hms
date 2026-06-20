@@ -39,36 +39,36 @@ export default function Gynaecologist({
       <div className="flex-1 overflow-auto custom-scrollbar p-6 pt-2">
         <div className="max-w-6xl mx-auto space-y-6">
           {layoutMode === "tabbed" ? (
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 bg-white/40 backdrop-blur-md border border-white rounded-[2rem] p-6 shadow-xl shadow-slate-200/50 min-h-[300px]">
-               <div className="flex items-center gap-3 mb-6 border-b border-slate-100/60 pb-4">
-                  <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl shadow-inner">
+            <div className="bg-card border border-border rounded-lg p-6 shadow-sm min-h-[300px]">
+               <div className="flex items-center gap-3 mb-6 border-b border-border pb-4">
+                  <div className="p-2 bg-primary/10 text-primary rounded-md">
                     {(() => {
                       const Icon = TABS.find((t) => t.id === activeTab)?.icon;
                       return Icon ? <Icon className="h-5 w-5" aria-hidden /> : null;
                     })()}
                   </div>
                   <div>
-                    <h3 className="text-base font-black text-slate-800 leading-none">{TABS.find(t => t.id === activeTab)?.label}</h3>
-                    <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">Documentation View</p>
+                    <h3 className="text-base font-semibold tracking-tight text-foreground leading-none">{TABS.find(t => t.id === activeTab)?.label}</h3>
+                    <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wide mt-1">Documentation View</p>
                   </div>
                </div>
                {renderForm(activeTab)}
             </div>
           ) : (
-            <div className="space-y-6 animate-in fade-in zoom-in-95 duration-500 pb-20">
+            <div className="space-y-6 pb-20">
               {TABS.map((tab) => (
-                <section 
-                  key={tab.id} 
-                  id={tab.id} 
-                  className="bg-white/40 backdrop-blur-md border border-white rounded-[2rem] p-6 shadow-xl shadow-slate-200/50"
+                <section
+                  key={tab.id}
+                  id={tab.id}
+                  className="bg-card border border-border rounded-lg p-6 shadow-sm"
                 >
-                  <div className="flex items-center gap-3 mb-6 border-b border-slate-100/60 pb-3">
-                    <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl shadow-inner">
+                  <div className="flex items-center gap-3 mb-6 border-b border-border pb-3">
+                    <div className="p-2 bg-primary/10 text-primary rounded-md">
                       <tab.icon className="h-5 w-5" aria-hidden />
                     </div>
                     <div>
-                      <h3 className="text-base font-black text-slate-800 leading-none">{tab.label}</h3>
-                      <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">Clinical Record Section</p>
+                      <h3 className="text-base font-semibold tracking-tight text-foreground leading-none">{tab.label}</h3>
+                      <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wide mt-1">Clinical Record Section</p>
                     </div>
                   </div>
                   {renderForm(tab.id)}

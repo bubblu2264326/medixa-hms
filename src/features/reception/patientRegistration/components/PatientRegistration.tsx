@@ -127,15 +127,15 @@ export default function PatientRegistrationForm() {
         ref={formRef}
         onSubmit={handleSubmit(onSubmit)}
         onKeyDown={handleFormKeyDown}
-        className="max-w-4xl mx-auto bg-white/40 backdrop-blur-xl border border-white/40 rounded-[2.5rem] shadow-2xl shadow-emerald-900/5 p-8"
+        className="max-w-4xl mx-auto bg-card border border-border rounded-lg shadow-sm p-8"
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-8 px-2">
           <div>
-            <h2 className="text-2xl font-bold text-slate-800">
+            <h2 className="text-2xl font-semibold tracking-tight text-foreground">
               {isEditMode ? "Update Patient Profile" : "Register New Patient"}
             </h2>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-muted-foreground">
               {isEditMode
                 ? `Editing record for Patient ID: ${loadedPatientId}`
                 : "Fill out the details below to create a new patient record"}
@@ -143,12 +143,12 @@ export default function PatientRegistrationForm() {
           </div>
           <div className="flex items-center gap-3">
             {isEditMode && (
-              <span className="text-xs font-black bg-amber-100 text-amber-700 px-3 py-1.5 rounded-xl tracking-wide">
+              <span className="text-xs font-semibold font-mono tabular-nums bg-warning/15 text-warning-foreground px-3 py-1.5 rounded-md tracking-wide">
                 ID: {loadedPatientId}
               </span>
             )}
-            <div className={`h-12 w-12 rounded-2xl flex items-center justify-center p-2 shadow-inner ${isEditMode ? "bg-amber-100" : "bg-emerald-100"}`}>
-              {isEditMode ? <Pencil className="h-6 w-6 text-amber-700" aria-hidden /> : <UserPlus className="h-6 w-6 text-emerald-700" aria-hidden />}
+            <div className={`h-12 w-12 rounded-md flex items-center justify-center p-2 ${isEditMode ? "bg-warning/15" : "bg-primary/10"}`}>
+              {isEditMode ? <Pencil className="h-6 w-6 text-warning-foreground" aria-hidden /> : <UserPlus className="h-6 w-6 text-primary" aria-hidden />}
             </div>
           </div>
         </div>
@@ -157,7 +157,7 @@ export default function PatientRegistrationForm() {
           {/* Patient Name — first field, gets focus after patient load */}
           <div className="flex flex-col space-y-1.5">
             <div className="ml-1 flex items-center justify-between gap-3">
-              <Label htmlFor="pname" className="text-slate-600 font-semibold">Patient Name</Label>
+              <Label htmlFor="pname" className="text-foreground font-semibold">Patient Name</Label>
               <div className="flex flex-wrap items-center justify-end gap-2">
                 {RELATION_TAGS.map((tag) => {
                   const selected = relationTag === tag;
@@ -166,10 +166,10 @@ export default function PatientRegistrationForm() {
                       key={tag}
                       type="button"
                       onClick={() => setRelationTag((prev) => (prev === tag ? "" : tag))}
-                      className={`rounded-full border px-2.5 py-1 text-[11px] font-black tracking-[0.12em] transition ${
+                      className={`rounded-md border px-2.5 py-1 text-[11px] font-semibold tracking-wide transition ${
                         selected
-                          ? "border-emerald-300 bg-emerald-50 text-emerald-700"
-                          : "border-slate-200 bg-white text-slate-600 hover:border-emerald-200 hover:text-emerald-700"
+                          ? "border-primary/40 bg-primary/10 text-primary"
+                          : "border-border bg-card text-muted-foreground hover:border-primary/20 hover:text-primary"
                       }`}
                       aria-pressed={selected}
                     >
@@ -184,43 +184,43 @@ export default function PatientRegistrationForm() {
               type="text"
               placeholder="Name / Reference Name"
               autoComplete="off"
-              className="h-12 bg-white/70 border-slate-200 focus:border-emerald-500 focus:ring-emerald-500/20 rounded-2xl transition-all shadow-sm hover:bg-white"
+              className="h-12 bg-background border-input focus:border-ring focus:ring-ring/20 rounded-md transition-all shadow-sm"
               {...register("patient_name")}
               ref={(el) => {
                 register("patient_name").ref(el);
                 (firstFieldRef as any).current = el;
               }}
             />
-            {errors.patient_name?.message && <p className="text-red-500 text-[10px] mt-1 ml-1">{errors.patient_name?.message}</p>}
+            {errors.patient_name?.message && <p className="text-destructive text-[10px] mt-1 ml-1">{errors.patient_name?.message}</p>}
           </div>
 
           {/* Age + Gender */}
           <div className="grid grid-cols-2 gap-4">
             <InputField label="Age" id="age" type="number" {...register("age")} err={errors.age?.message} placeholder="Years" />
             <div className="flex flex-col space-y-1.5">
-              <Label className="text-slate-600 font-semibold ml-1">Gender</Label>
+              <Label className="text-foreground font-semibold ml-1">Gender</Label>
               <select
                 {...register("gender")}
-                className="h-12 bg-white/70 border border-slate-200 focus:ring-2 focus:ring-emerald-500/20 rounded-2xl px-4 outline-none text-sm transition-all shadow-sm hover:bg-white"
+                className="h-12 bg-background border border-input focus:ring-2 focus:ring-ring/20 rounded-md px-4 outline-none text-sm transition-all shadow-sm"
               >
                 <option value="" hidden>Select</option>
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
               </select>
-              {errors.gender?.message && <p className="text-red-500 text-[10px] mt-1 ml-1">{errors.gender?.message}</p>}
+              {errors.gender?.message && <p className="text-destructive text-[10px] mt-1 ml-1">{errors.gender?.message}</p>}
             </div>
           </div>
 
           {/* ═══ CNIC — Masked Input ═══ */}
           <div className="flex flex-col space-y-1.5">
-            <Label htmlFor="cnic" className="text-slate-600 font-semibold ml-1">CNIC / Identity No.</Label>
+            <Label htmlFor="cnic" className="text-foreground font-semibold ml-1">CNIC / Identity No.</Label>
             <Controller
               name="cnic"
               control={control}
               render={({ field }) => (
                 <div className="relative">
                   {/* Static mask overlay */}
-                  <div className="absolute inset-0 h-12 flex items-center px-4 pointer-events-none font-mono tracking-[0.25em] text-slate-300 text-sm select-none">
+                  <div className="absolute inset-0 h-12 flex items-center px-4 pointer-events-none font-mono tracking-[0.25em] text-muted-foreground/50 text-sm select-none">
                     {(() => {
                       const digits = (field.value || "").replace(/\D/g, "");
                       // Show mask only for unfilled positions
@@ -242,7 +242,7 @@ export default function PatientRegistrationForm() {
                     type="text"
                     autoComplete="off"
                     maxLength={15}
-                    className="w-full h-12 bg-white/70 border border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 px-4 rounded-2xl outline-none text-sm transition-all shadow-sm hover:bg-white font-mono tracking-[0.25em]"
+                    className="w-full h-12 bg-background border border-input focus:border-ring focus:ring-4 focus:ring-ring/10 px-4 rounded-md outline-none text-sm transition-all shadow-sm font-mono tracking-[0.25em]"
                     value={formatCNIC(field.value || "")}
                     onChange={(e) => {
                       const formatted = formatCNIC(e.target.value);
@@ -252,12 +252,12 @@ export default function PatientRegistrationForm() {
                 </div>
               )}
             />
-            {errors.cnic?.message && <p className="text-red-500 text-[10px] mt-1 ml-1">{errors.cnic?.message}</p>}
+            {errors.cnic?.message && <p className="text-destructive text-[10px] mt-1 ml-1">{errors.cnic?.message}</p>}
           </div>
 
           {/* ═══ Contact Number — 03 prefix ═══ */}
           <div className="flex flex-col space-y-1.5">
-            <Label htmlFor="contact" className="text-slate-600 font-semibold ml-1">Contact Number</Label>
+            <Label htmlFor="contact" className="text-foreground font-semibold ml-1">Contact Number</Label>
             <Controller
               name="contact_number"
               control={control}
@@ -265,7 +265,7 @@ export default function PatientRegistrationForm() {
                 <div className="relative">
                   {/* Static 03 prefix badge */}
                   <div className="absolute left-0 top-0 h-12 flex items-center pl-4 pointer-events-none">
-                    <span className="font-mono text-sm font-bold text-emerald-600 tracking-wider">03</span>
+                    <span className="font-mono text-sm font-semibold text-primary tracking-wider">03</span>
                   </div>
                   <input
                     id="contact"
@@ -273,7 +273,7 @@ export default function PatientRegistrationForm() {
                     autoComplete="off"
                     maxLength={12}
                     placeholder="XX-XXXXXXX"
-                    className="w-full h-12 bg-white/70 border border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 rounded-2xl outline-none text-sm transition-all shadow-sm hover:bg-white font-mono tracking-wider pl-12"
+                    className="w-full h-12 bg-background border border-input focus:border-ring focus:ring-4 focus:ring-ring/10 rounded-md outline-none text-sm transition-all shadow-sm font-mono tracking-wider pl-12"
                     value={(() => {
                       // Display without the "03" prefix since it's shown as a badge
                       const formatted = formatPhone(field.value || "");
@@ -290,41 +290,41 @@ export default function PatientRegistrationForm() {
                 </div>
               )}
             />
-            {errors.contact_number?.message && <p className="text-red-500 text-[10px] mt-1 ml-1">{errors.contact_number?.message}</p>}
+            {errors.contact_number?.message && <p className="text-destructive text-[10px] mt-1 ml-1">{errors.contact_number?.message}</p>}
           </div>
 
           {/* Address */}
           <div className="flex flex-col col-span-2 space-y-1.5">
-            <Label className="text-slate-600 font-semibold ml-1">Permanent Address</Label>
+            <Label className="text-foreground font-semibold ml-1">Permanent Address</Label>
             <textarea
               id="address"
               {...register("address")}
               placeholder="House, Street, Area, City..."
               autoComplete="off"
-              className="w-full bg-white/70 border border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 p-4 rounded-2xl outline-none transition-all placeholder:text-gray-400 text-sm shadow-sm h-24 resize-none hover:bg-white"
+              className="w-full bg-background border border-input focus:border-ring focus:ring-4 focus:ring-ring/10 p-4 rounded-md outline-none transition-all placeholder:text-muted-foreground text-sm shadow-sm h-24 resize-none"
             />
-            {errors.address?.message && <p className="text-red-500 text-[10px] mt-1 ml-1">{errors.address?.message}</p>}
+            {errors.address?.message && <p className="text-destructive text-[10px] mt-1 ml-1">{errors.address?.message}</p>}
           </div>
 
           {/* ═══════ ACTION BUTTONS ═══════ */}
           <div className="col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
             <button
               type="submit"
-              className={`h-14 rounded-2xl font-bold text-lg transition-all active:scale-95 bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-100`}
+              className={`h-14 rounded-md font-semibold text-lg transition-all active:scale-95 bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm`}
             >
               {isEditMode ? "Update Patient" : "Add Patient"}
             </button>
             <button
               type="button"
               onClick={handleNewPatient}
-              className="h-14 rounded-2xl font-bold text-lg transition-all bg-slate-100 hover:bg-slate-200 text-slate-700"
+              className="h-14 rounded-md font-semibold text-lg transition-all bg-muted hover:bg-accent text-foreground"
             >
               New Patient
             </button>
             <button
               type="button"
               onClick={handleNewPatient}
-              className="h-14 rounded-2xl font-bold text-lg transition-all border-2 border-slate-200 hover:bg-slate-50 text-slate-500"
+              className="h-14 rounded-md font-semibold text-lg transition-all border border-border hover:bg-accent text-muted-foreground"
             >
               Reset Form
             </button>
@@ -340,16 +340,16 @@ export default function PatientRegistrationForm() {
 function InputField({ label, id, err, type = "text", placeholder, autoComplete = "off", ...rest }: any) {
   return (
     <div className="flex flex-col space-y-1.5">
-      <Label htmlFor={id} className="text-slate-600 font-semibold ml-1">{label}</Label>
+      <Label htmlFor={id} className="text-foreground font-semibold ml-1">{label}</Label>
       <Input
         id={id}
         type={type}
         placeholder={placeholder}
         autoComplete={autoComplete}
-        className="h-12 bg-white/70 border-slate-200 focus:border-emerald-500 focus:ring-emerald-500/20 rounded-2xl transition-all shadow-sm hover:bg-white"
+        className="h-12 bg-background border-input focus:border-ring focus:ring-ring/20 rounded-md transition-all shadow-sm"
         {...rest}
       />
-      {err && <p className="text-red-500 text-[10px] mt-1 ml-1">{err}</p>}
+      {err && <p className="text-destructive text-[10px] mt-1 ml-1">{err}</p>}
     </div>
   );
 }

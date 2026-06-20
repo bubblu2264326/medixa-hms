@@ -1,7 +1,7 @@
 "use client";
 import { ChangeEvent, KeyboardEvent, useEffect, useRef } from "react";
 import Link from "next/link";
-import { Search } from "lucide-react";
+import { Search, Plus } from "lucide-react";
 import { usePatientForm } from "../hooks/usePatientForm";
 import { Input } from "@/src/components/ui/Input";
 import { Label } from "@/src/components/ui/Label";
@@ -182,20 +182,20 @@ export function PatientForm() {
 
   return (
     <div className="w-full h-full p-2">
-      <div ref={formRef} onKeyDown={handleFormKeyDown} className="max-w-4xl mx-auto bg-white/40 backdrop-blur-xl border border-white/40 rounded-[2.5rem] shadow-2xl shadow-emerald-900/5 p-8">
+      <div ref={formRef} onKeyDown={handleFormKeyDown} className="max-w-4xl mx-auto bg-card border border-border rounded-lg shadow-sm p-8">
         <div className="flex items-center justify-between mb-8 px-2">
           <div>
-            <h2 className="text-2xl font-bold text-slate-800">Visit Registration</h2>
-            <p className="text-sm text-slate-500">Assign a patient to a doctor&apos;s queue</p>
+            <h2 className="text-2xl font-semibold tracking-tight text-foreground">Visit Registration</h2>
+            <p className="text-sm text-muted-foreground">Assign a patient to a doctor&apos;s queue</p>
           </div>
           <div className="text-right">
-            <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-md tracking-wider transition-colors ${visitType === "Emergency"
-              ? "text-red-600 bg-red-50"
-              : "text-emerald-600 bg-emerald-50"
+            <span className={`text-[10px] uppercase font-semibold px-2 py-1 rounded-md tracking-wide transition-colors ${visitType === "Emergency"
+              ? "text-destructive bg-destructive/10"
+              : "text-primary bg-primary/10"
               }`}>
               {visitType === "Emergency" ? "Emergency Code" : "Today's Clinic No"}
             </span>
-            <p className={`text-3xl font-black leading-none mt-1 transition-colors ${visitType === "Emergency" ? "text-red-600" : "text-slate-900"
+            <p className={`text-3xl font-bold font-mono tabular-nums leading-none mt-1 transition-colors ${visitType === "Emergency" ? "text-destructive" : "text-foreground"
               }`}>
               #{clinicNo || "---"}
             </p>
@@ -204,13 +204,13 @@ export function PatientForm() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
           {isExistingVisit && (
-            <div className="md:col-span-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
+            <div className="md:col-span-2 rounded-md border border-warning/50 bg-warning/15 px-4 py-3 text-sm font-medium text-warning-foreground">
               Existing active visit found. Updates will only affect visit #{selectedVisitId || "---"}.
             </div>
           )}
           {/* Unified Search Field */}
           <div className="md:col-span-2 space-y-1.5 relative">
-            <Label className="text-slate-600 font-semibold ml-1">Search Patient (Name or ID)</Label>
+            <Label className="text-foreground font-semibold ml-1">Search Patient (Name or ID)</Label>
             <div className="relative group">
               <Input
                 value={searchQuery}
@@ -220,17 +220,17 @@ export function PatientForm() {
                 onKeyDown={handleSearchKeyDown}
                 placeholder="Ex: 1001 or Patient Name..."
                 autoComplete="off"
-                className="bg-white/70 border-slate-200 focus:border-emerald-500 focus:ring-emerald-500/20 h-14 rounded-2xl transition-all shadow-sm group-hover:bg-white text-lg font-medium pl-12"
+                className="bg-background border-input focus:border-ring focus:ring-ring/20 h-14 rounded-md transition-all shadow-sm text-lg font-medium pl-12"
               />
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
                 <Search className="h-5 w-5" aria-hidden />
               </div>
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-black text-emerald-600/60 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100 tracking-wider">
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-semibold text-primary bg-primary/10 px-2.5 py-1 rounded-md border border-primary/20 tracking-wide">
                 AUTO-SEARCHING
               </div>
               {isSearching && (
                 <div className="absolute right-20 top-1/2 -translate-y-1/2">
-                  <div className="animate-spin h-4 w-4 border-2 border-emerald-500 border-t-transparent rounded-full" />
+                  <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full" />
                 </div>
               )}
             </div>
@@ -239,7 +239,7 @@ export function PatientForm() {
             {searchResults && searchResults.length > 0 && (
               <div
                 ref={dropdownRef}
-                className="absolute z-50 left-0 right-0 mt-2 bg-white/95 backdrop-blur-md border border-slate-200 rounded-2xl shadow-2xl max-h-64 overflow-y-auto overflow-x-hidden ring-1 ring-slate-900/5 py-2 scrollbar-thin scrollbar-thumb-slate-200"
+                className="absolute z-50 left-0 right-0 mt-2 bg-card border border-border rounded-md shadow-md max-h-64 overflow-y-auto overflow-x-hidden py-2 scrollbar-thin scrollbar-thumb-muted"
               >
                 {searchResults.map((p, idx) => (
                   <button
@@ -247,20 +247,20 @@ export function PatientForm() {
                     onClick={() => {
                       getPatientInfo(p.patient_id);
                     }}
-                    className={`w-full text-left px-4 py-3 transition-colors border-b border-slate-50 last:border-none group flex items-center justify-between ${highlightedIndex === idx ? "bg-emerald-50" : "hover:bg-slate-50"
+                    className={`w-full text-left px-4 py-3 transition-colors border-b border-border last:border-none group flex items-center justify-between ${highlightedIndex === idx ? "bg-accent" : "hover:bg-accent"
                       }`}
                   >
                     <div className="flex flex-col">
-                      <span className="font-bold text-slate-800 text-sm">{p.patient_name}</span>
-                      <span className="text-[10px] text-slate-500 font-medium">CNIC: {p.cnic || "N/A"} • ID: {p.patient_id}</span>
+                      <span className="font-semibold text-foreground text-sm">{p.patient_name}</span>
+                      <span className="text-[10px] text-muted-foreground font-medium">CNIC: {p.cnic || "N/A"} • ID: {p.patient_id}</span>
                     </div>
                     <div className="text-right flex items-center gap-4">
                       <div className="flex flex-col items-end">
-                        <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">{p.gender}</span>
-                        <span className="text-[10px] text-slate-400 mt-0.5">{p.age} Yrs</span>
+                        <span className="text-[10px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-md">{p.gender}</span>
+                        <span className="text-[10px] text-muted-foreground mt-0.5">{p.age} Yrs</span>
                       </div>
                       <span
-                        className="opacity-0 group-hover:opacity-100 transition-all bg-emerald-600 text-white text-[10px] font-black px-4 py-2 rounded-xl shadow-lg shadow-emerald-900/10 flex items-center gap-2"
+                        className="opacity-0 group-hover:opacity-100 transition-all bg-primary text-primary-foreground text-[10px] font-semibold px-4 py-2 rounded-md shadow-sm flex items-center gap-2"
                         aria-hidden="true"
                       >
                         ENTER <span>↵</span>
@@ -273,19 +273,19 @@ export function PatientForm() {
 
             {/* No results found - Add Patient button */}
             {searchQuery.length >= 2 && !isSearching && searchQuery !== patientName && (!searchResults || searchResults.length === 0) && highlightedIndex === -1 && (
-              <div className="absolute z-50 left-0 right-0 mt-2 bg-white border border-slate-200 rounded-2xl shadow-xl p-2 animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="absolute z-50 left-0 right-0 mt-2 bg-card border border-border rounded-md shadow-md p-2">
                 <button
                   onClick={() => {
                     window.dispatchEvent(new CustomEvent("switch-reception-tab", { detail: { tab: "patientRegistration" } }));
                   }}
-                  className="w-full flex items-center justify-between px-4 py-3 bg-emerald-50 rounded-xl border border-emerald-100 group transition-all hover:bg-emerald-600 hover:border-emerald-600"
+                  className="w-full flex items-center justify-between px-4 py-3 bg-primary/10 rounded-md border border-primary/20 group transition-all hover:bg-primary hover:border-primary"
                 >
                   <div className="flex flex-col text-left">
-                    <span className="font-bold text-slate-800 group-hover:text-white transition-colors">Patient Not Found</span>
-                    <span className="text-[10px] text-slate-500 group-hover:text-emerald-100 transition-colors uppercase tracking-wider font-bold">Register as new patient?</span>
+                    <span className="font-semibold text-foreground group-hover:text-primary-foreground transition-colors">Patient Not Found</span>
+                    <span className="text-[10px] text-muted-foreground group-hover:text-primary-foreground/80 transition-colors uppercase tracking-wide font-semibold">Register as new patient?</span>
                   </div>
-                  <div className="h-8 w-8 bg-white/80 group-hover:bg-white rounded-lg flex items-center justify-center text-emerald-600 shadow-sm transition-all group-active:scale-90">
-                    <span className="text-lg font-black">+</span>
+                  <div className="h-8 w-8 bg-card rounded-md flex items-center justify-center text-primary shadow-sm transition-all group-active:scale-90">
+                    <Plus className="h-4 w-4" aria-hidden />
                   </div>
                 </button>
               </div>
@@ -295,21 +295,21 @@ export function PatientForm() {
           {/* Age & Gender Row */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label className="text-slate-600 font-semibold ml-1">Age</Label>
+              <Label className="text-foreground font-semibold ml-1">Age</Label>
               <Input
                 type="number"
                 value={age}
                 readOnly
                 placeholder="Years"
                 autoComplete="off"
-                className="bg-slate-50 border-slate-200 text-slate-500 h-12 rounded-2xl transition-all shadow-sm cursor-not-allowed focus:ring-0"
+                className="bg-muted border-input text-muted-foreground h-12 rounded-md transition-all shadow-sm cursor-not-allowed focus:ring-0"
               />
             </div>
             <div className="space-y-1.5 flex flex-col">
-              <Label className="text-slate-600 font-semibold ml-1">Gender</Label>
+              <Label className="text-foreground font-semibold ml-1">Gender</Label>
               <select
                 disabled
-                className="bg-slate-50 border-slate-200 border rounded-2xl h-12 px-4 shadow-sm text-slate-500 text-sm cursor-not-allowed appearance-none"
+                className="bg-muted border-input border rounded-md h-12 px-4 shadow-sm text-muted-foreground text-sm cursor-not-allowed appearance-none"
                 value={gender}
                 onChange={(e: ChangeEvent<HTMLSelectElement>) => setGender(e.target.value)}
               >
@@ -322,17 +322,17 @@ export function PatientForm() {
 
           {/* Visit Type */}
           <div className="space-y-1.5 flex flex-col">
-            <Label className="text-slate-600 font-semibold ml-1">Visit Type</Label>
-            <div className="flex p-1 bg-slate-100 rounded-2xl h-12 items-center gap-1">
+            <Label className="text-foreground font-semibold ml-1">Visit Type</Label>
+            <div className="flex p-1 bg-muted rounded-md h-12 items-center gap-1">
               {["OPD", "Emergency"].map((type) => (
                 <button
                   key={type}
                   ref={type === "OPD" ? opdButtonRef : null}
                   type="button"
                   onClick={() => setVisitType(type)}
-                  className={`flex-1 h-full rounded-xl text-sm font-bold transition-all tab-button outline-none focus:ring-2 focus:ring-emerald-500/40 ${visitType === type
-                    ? "bg-white text-emerald-700 shadow-sm border border-slate-200"
-                    : "text-slate-500 hover:text-slate-700 focus:bg-white/50"
+                  className={`flex-1 h-full rounded-md text-sm font-semibold transition-all tab-button outline-none focus:ring-2 focus:ring-ring/40 ${visitType === type
+                    ? "bg-card text-primary shadow-sm border border-border"
+                    : "text-muted-foreground hover:text-foreground focus:bg-accent"
                     }`}
                 >
                   {type}
@@ -343,9 +343,9 @@ export function PatientForm() {
 
           {/* Select Doctor */}
           <div className="space-y-1.5 flex flex-col">
-            <Label className="text-slate-600 font-semibold ml-1">Assign Doctor</Label>
+            <Label className="text-foreground font-semibold ml-1">Assign Doctor</Label>
             <select
-              className="bg-white/70 border-slate-200 border rounded-2xl h-12 px-4 shadow-sm hover:bg-white focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all text-sm"
+              className="bg-background border-input border rounded-md h-12 px-4 shadow-sm focus:ring-2 focus:ring-ring/20 outline-none transition-all text-sm"
               value={doctor}
               onChange={(e: ChangeEvent<HTMLSelectElement>) => setDoctor(e.target.value)}
             >
@@ -360,13 +360,13 @@ export function PatientForm() {
 
           {/* Visit Reason */}
           <div className="space-y-1.5 flex flex-col">
-            <Label className="text-slate-600 font-semibold ml-1">Chief Complaint</Label>
+            <Label className="text-foreground font-semibold ml-1">Chief Complaint</Label>
             <Input
               value={visitReason}
               onChange={(e: ChangeEvent<HTMLInputElement>) => setVisitReason(e.target.value)}
               placeholder="Reason for visit..."
               autoComplete="off"
-              className="bg-white/70 border-slate-200 focus:border-emerald-500 focus:ring-emerald-500/20 h-12 rounded-2xl transition-all shadow-sm hover:bg-white"
+              className="bg-background border-input focus:border-ring focus:ring-ring/20 h-12 rounded-md transition-all shadow-sm"
             />
           </div>
 
@@ -376,15 +376,15 @@ export function PatientForm() {
               type="button"
               disabled={!canSubmit}
               onClick={() => isExistingVisit ? updateInfo() : addToQueue()}
-              className={`h-14 rounded-2xl font-bold text-lg transition-all active:scale-95 shadow-lg disabled:opacity-70 disabled:scale-100 flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-100`}
+              className={`h-14 rounded-md font-semibold text-lg transition-all active:scale-95 shadow-sm disabled:opacity-70 disabled:scale-100 flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground`}
             >
-              {isProcessing && <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />}
+              {isProcessing && <div className="animate-spin h-5 w-5 border-2 border-primary-foreground border-t-transparent rounded-full" />}
               {isExistingVisit ? "Update Visit" : "Add to Queue"}
             </button>
             <button
               type="button"
               onClick={() => resetInfo()}
-              className="h-14 rounded-2xl font-bold text-lg transition-all border-2 border-slate-200 hover:bg-slate-50 text-slate-500"
+              className="h-14 rounded-md font-semibold text-lg transition-all border border-border hover:bg-accent text-muted-foreground"
             >
               Reset Form
             </button>

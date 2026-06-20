@@ -56,18 +56,18 @@ export default function Receptionist({
 
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-[#f8fafc] overflow-hidden font-sans">
+    <div className="flex flex-col h-screen w-screen bg-background overflow-hidden font-sans">
       {/* Premium Clinic Header - Restored to match Pharmacy Module */}
-      <div className="px-6 py-3 border-b border-slate-200/60 bg-white shadow-sm flex items-center justify-between z-50">
+      <div className="px-6 py-3 border-b border-border bg-card shadow-sm flex items-center justify-between z-50">
         <div className="flex items-center gap-4">
-          <div className="relative h-10 w-10 bg-emerald-50 rounded-xl p-1.5 flex items-center justify-center border border-emerald-100/50">
+          <div className="relative h-10 w-10 bg-primary/10 rounded-md p-1.5 flex items-center justify-center border border-primary/20">
             <Image src="/logo.png" alt="Clinic Logo" width={28} height={28} />
           </div>
           <div>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-emerald-700 to-teal-800 bg-clip-text text-transparent leading-none">
+            <h1 className="text-xl font-semibold tracking-tight text-foreground leading-none">
               Fouzia Ishaq Clinic
             </h1>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Reception Portal</p>
+            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mt-1">Reception Portal</p>
           </div>
         </div>
 
@@ -75,10 +75,10 @@ export default function Receptionist({
       </div>
 
       {/* Main Content Area */}
-      <main className="flex flex-1 overflow-hidden p-4 gap-4 bg-slate-100/50">
+      <main className="flex flex-1 overflow-hidden p-4 gap-4 bg-muted/50">
         {/* Left Side: Queue (Fixed width for predictability) */}
-        <aside className="w-80 flex flex-col h-full animate-in slide-in-from-left-4 duration-500">
-          <div className="flex-1 bg-white/40 backdrop-blur-md border border-slate-200 rounded-[2.5rem] shadow-sm overflow-hidden flex flex-col">
+        <aside className="w-80 flex flex-col h-full">
+          <div className="flex-1 bg-card border border-border rounded-lg shadow-sm overflow-hidden flex flex-col">
             {queue}
           </div>
         </aside>
@@ -87,7 +87,7 @@ export default function Receptionist({
         <section className="flex-1 flex flex-col h-full space-y-4 min-w-0">
           <div className="flex items-center justify-between gap-4">
             {/* Dashboard Navigation Tabs */}
-            <nav className="flex items-center gap-1 p-1 bg-slate-200/50 backdrop-blur-sm rounded-2xl w-fit border border-slate-200/50 shrink-0">
+            <nav className="flex items-center gap-1 p-1 bg-muted rounded-md w-fit border border-border shrink-0">
               {[
                 { id: "queue", label: "Queue", icon: ClipboardList },
                 { id: "appointments", label: "Appointments", icon: CalendarDays },
@@ -98,10 +98,10 @@ export default function Receptionist({
                 <button
                   key={tab.id}
                   onClick={() => setSelectedTab(tab.id)}
-                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-md text-xs font-semibold uppercase tracking-wide transition-all ${
                     selectedTab === tab.id
-                      ? "bg-white text-emerald-700 shadow-sm border border-slate-100"
-                      : "text-slate-500 hover:bg-white/50 hover:text-slate-700"
+                      ? "bg-card text-primary shadow-sm border border-border"
+                      : "text-muted-foreground hover:bg-accent hover:text-foreground"
                   }`}
                 >
                   <tab.icon className="h-4 w-4" aria-hidden />
@@ -113,27 +113,27 @@ export default function Receptionist({
             <div className="flex items-center gap-4 flex-1 justify-end">
               {/* Active Patient Badge */}
               {activePatientData ? (
-                <div className="flex items-center gap-3 px-4 py-2 bg-emerald-50 border border-emerald-100 rounded-2xl animate-in fade-in slide-in-from-right-4 duration-500 shadow-sm">
-                  <div className="h-8 w-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center text-white text-[10px] font-black shadow-sm uppercase">
+                <div className="flex items-center gap-3 px-4 py-2 bg-primary/10 border border-primary/20 rounded-md shadow-sm">
+                  <div className="h-8 w-8 bg-primary rounded-md flex items-center justify-center text-primary-foreground text-[10px] font-semibold shadow-sm uppercase">
                     {activePatientData.patient_name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
                   </div>
                   <div className="flex flex-col min-w-0">
-                    <span className="text-xs font-black text-emerald-900 truncate uppercase tracking-tight">
+                    <span className="text-xs font-semibold text-foreground truncate tracking-tight">
                       {activePatientData.patient_name}
                     </span>
                     <div className="flex items-center gap-2">
-                      <span className="text-[9px] font-black text-emerald-600 bg-emerald-100/50 px-1.5 py-0.5 rounded-md border border-emerald-200/30">
+                      <span className="text-[9px] font-semibold font-mono tabular-nums text-primary bg-primary/10 px-1.5 py-0.5 rounded-md border border-primary/20">
                         ID: {patientId}
                       </span>
-                      <span className="text-[9px] font-black text-slate-400 uppercase">
+                      <span className="text-[9px] font-semibold text-muted-foreground uppercase">
                         • {activePatientData.gender}
                       </span>
                     </div>
                   </div>
                 </div>
               ) : (
-                  <div className="h-12 w-48 flex items-center justify-center bg-slate-200/30 border border-dashed border-slate-300 rounded-2xl">
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">No Active Patient</span>
+                  <div className="h-12 w-48 flex items-center justify-center bg-muted border border-dashed border-border rounded-md">
+                      <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">No Active Patient</span>
                   </div>
               )}
 
@@ -144,9 +144,9 @@ export default function Receptionist({
           </div>
 
           {/* Dynamic Content Window */}
-          <div className="flex-1 bg-white/40 backdrop-blur-sm border border-slate-200 rounded-[2.5rem] relative overflow-hidden shadow-inner flex flex-col">
+          <div className="flex-1 bg-card border border-border rounded-lg relative overflow-hidden shadow-sm flex flex-col">
             <div className="absolute inset-0 overflow-auto p-4 custom-scrollbar">
-              <div className="animate-in fade-in zoom-in-95 duration-300 h-full">
+              <div className="h-full">
                 {selectedTab === "queue" && queueManagement}
                 {selectedTab === "appointments" && appointments}
                 {selectedTab === "patientRegistration" && patientRegistration}

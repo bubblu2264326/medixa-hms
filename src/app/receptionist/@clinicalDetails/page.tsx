@@ -40,29 +40,29 @@ export default function ClinicalRecordsLayout() {
   return (
     <div className="flex flex-col h-full bg-transparent overflow-hidden">
       {/* Premium Header Section: Specialization, Tabs, and Layout Toggle */}
-      <div className="px-6 py-4 flex items-center justify-between gap-6 border-b border-slate-200/40 bg-white/40 backdrop-blur-md">
+      <div className="px-6 py-4 flex items-center justify-between gap-6 border-b border-border bg-card">
         <div className="flex items-center gap-6">
           {/* Custom Specialization Group */}
           <div className="relative" ref={dropdownRef}>
             <div className="flex flex-col gap-0.5">
-              <label className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide ml-1">
                 Clinical Specialty
               </label>
               <button
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="w-52 h-9 px-4 bg-white border border-slate-200 rounded-xl text-slate-700 font-bold flex items-center justify-between shadow-sm transition-all hover:border-emerald-300 hover:shadow-emerald-900/5 group"
+                className="w-52 h-9 px-4 bg-card border border-border rounded-md text-foreground font-medium flex items-center justify-between shadow-sm transition-all hover:border-primary/40 group"
               >
                 <span className="text-[12px] flex items-center gap-2">
                   <selectedSpecialization.icon className="h-4 w-4" aria-hidden />
                   {selectedSpecialization.label}
                 </span>
-                <ChevronDown className={`size-3.5 text-slate-400 transition-transform ${isDropdownOpen ? "rotate-180" : ""}`} />
+                <ChevronDown className={`size-3.5 text-muted-foreground transition-transform ${isDropdownOpen ? "rotate-180" : ""}`} />
               </button>
             </div>
 
             {/* Dropdown Menu */}
             {isDropdownOpen && (
-              <div className="absolute top-full left-0 mt-2 w-56 bg-white border border-slate-200 rounded-2xl shadow-xl shadow-slate-200/50 z-[100] p-1.5 animate-in fade-in zoom-in-95 duration-200">
+              <div className="absolute top-full left-0 mt-2 w-56 bg-card border border-border rounded-md shadow-md z-[100] p-1.5">
                 {SPECIALIZATIONS.map((spec) => (
                   <button
                     key={spec.id}
@@ -70,10 +70,10 @@ export default function ClinicalRecordsLayout() {
                       setSelectedSpecialization(spec);
                       setIsDropdownOpen(false);
                     }}
-                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-md text-sm font-medium transition-all ${
                       selectedSpecialization.id === spec.id
-                        ? "bg-emerald-50 text-emerald-700"
-                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:bg-accent hover:text-foreground"
                     }`}
                   >
                     <span className="flex items-center gap-2">
@@ -89,15 +89,15 @@ export default function ClinicalRecordsLayout() {
 
           {/* Premium Tab Bar (Only show if not in Full Form mode) */}
           {layoutMode === "tabbed" && (
-            <div className="mt-4 flex items-center gap-1 p-1 bg-slate-100/80 rounded-xl border border-slate-200/30 shadow-inner">
+            <div className="mt-4 flex items-center gap-1 p-1 bg-muted rounded-md border border-border">
               {CLINICAL_TABS.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setSelectedTab(tab.id)}
-                  className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all duration-300 ${
+                  className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-xs font-semibold uppercase tracking-wide transition-all ${
                     selectedTab === tab.id
-                      ? "bg-white text-emerald-700 shadow-sm border border-slate-100 scale-[1.02]"
-                      : "text-slate-400 hover:bg-white/40 hover:text-slate-600"
+                      ? "bg-card text-primary shadow-sm border border-border"
+                      : "text-muted-foreground hover:bg-accent hover:text-foreground"
                   }`}
                 >
                   <tab.icon className="h-4 w-4" aria-hidden />
@@ -112,10 +112,10 @@ export default function ClinicalRecordsLayout() {
         <div className="mt-4">
           <button
             onClick={() => setLayoutMode(layoutMode === "tabbed" ? "full" : "tabbed")}
-            className={`flex items-center gap-2 px-4 h-9 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border shrink-0 ${
+            className={`flex items-center gap-2 px-4 h-9 rounded-md text-xs font-semibold uppercase tracking-wide transition-all border shrink-0 ${
               layoutMode === "full"
-                ? "bg-slate-800 text-white border-slate-900 shadow-lg shadow-slate-900/20"
-                : "bg-white text-slate-500 border-slate-200 hover:border-emerald-300 hover:text-emerald-600 shadow-sm"
+                ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                : "bg-card text-muted-foreground border-border hover:border-primary/40 hover:text-primary shadow-sm"
             }`}
           >
             <LayoutGrid className="size-3.5" />
@@ -136,12 +136,12 @@ export default function ClinicalRecordsLayout() {
               />
             </div>
           ) : (
-            <div className="h-full flex flex-col items-center justify-center p-12 bg-white/20">
-              <div className="w-24 h-24 bg-white/40 backdrop-blur-xl border border-white/50 rounded-[2.5rem] flex items-center justify-center mb-6 shadow-2xl shadow-slate-300/20 transition-all duration-[2000ms]">
-                <Stethoscope className="h-10 w-10 text-emerald-600" aria-hidden />
+            <div className="h-full flex flex-col items-center justify-center p-12 bg-background">
+              <div className="w-24 h-24 bg-muted border border-border rounded-lg flex items-center justify-center mb-6 shadow-sm">
+                <Stethoscope className="h-10 w-10 text-primary" aria-hidden />
               </div>
-              <h3 className="text-xl font-black text-slate-800 uppercase tracking-widest leading-none mb-3">No Clinical Selection</h3>
-              <p className="text-xs font-black text-slate-400 uppercase tracking-tighter max-w-xs text-center">
+              <h3 className="text-xl font-semibold tracking-tight text-foreground leading-none mb-3">No Clinical Selection</h3>
+              <p className="text-sm font-medium text-muted-foreground max-w-xs text-center">
                 Search for a patient or select a visit from the queue to start documentation
               </p>
             </div>

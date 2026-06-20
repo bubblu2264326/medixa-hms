@@ -19,30 +19,29 @@ export default function ObstetricHistoryForm() {
   return (
     <div className="w-full">
       {/* Premium Status Header */}
-      <div className={`mb-6 flex items-center justify-between gap-4 px-5 py-3 rounded-2xl border transition-all duration-500 ease-in-out ${
-        hasRecord 
-          ? "border-emerald-200 bg-emerald-50/20 text-emerald-800 shadow-sm shadow-emerald-900/5" 
-          : "border-slate-200 bg-slate-50/40 text-slate-600 shadow-sm"
+      <div className={`mb-6 flex items-center justify-between gap-4 px-5 py-3 rounded-md border transition-all ${
+        hasRecord
+          ? "border-primary/20 bg-primary/10 text-primary shadow-sm"
+          : "border-border bg-muted text-muted-foreground shadow-sm"
       }`}>
         <div className="flex items-center gap-3">
           <div className="relative">
-             <div className={`size-2.5 rounded-full ${hasRecord ? "bg-emerald-500" : "bg-slate-300"}`}  />
-             {hasRecord && <div className="absolute inset-0 size-2.5 rounded-full bg-emerald-400 animate-ping opacity-75" />}
+             <div className={`size-2.5 rounded-full ${hasRecord ? "bg-primary" : "bg-muted-foreground/40"}`}  />
           </div>
           <div className="flex flex-col">
-            <span className="text-[10px] font-black uppercase tracking-widest leading-none mb-0.5">
+            <span className="text-[10px] font-semibold uppercase tracking-wide leading-none mb-0.5">
               {hasRecord ? "Obstetric Ledger Active" : "New History Pipeline"}
             </span>
-            <span className="text-[11px] font-bold opacity-80 leading-none">
+            <span className="text-[11px] font-medium opacity-80 leading-none">
               {statusMessage}
             </span>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <span className={`px-2.5 py-1 rounded-lg border text-[9px] font-black uppercase tracking-tighter ${
-            hasRecord 
-              ? "bg-emerald-100/50 border-emerald-200 text-emerald-700" 
-              : "bg-white border-slate-200 text-slate-500"
+          <span className={`px-2.5 py-1 rounded-md border text-[9px] font-semibold uppercase tracking-wide ${
+            hasRecord
+              ? "bg-primary/10 border-primary/20 text-primary"
+              : "bg-card border-border text-muted-foreground"
           }`}>
             {hasRecord ? "Sync Mode" : "Initial Entry"}
           </span>
@@ -113,7 +112,7 @@ export default function ObstetricHistoryForm() {
           />
         </div>
 
-        <div className="md:col-span-2 lg:col-span-3 flex items-center justify-end gap-3 pt-6 border-t border-slate-100 mt-2">
+        <div className="md:col-span-2 lg:col-span-3 flex items-center justify-end gap-3 pt-6 border-t border-border mt-2">
           <FormButton
             text="Reset"
             variant="ghost"
@@ -134,7 +133,7 @@ function InputField({ label, id, err, as = "input", children, placeholder, autoC
   const Component = as;
   return (
     <div className="space-y-1 group">
-      <label htmlFor={id} className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 group-focus-within:text-emerald-600 transition-colors">
+      <label htmlFor={id} className="block text-[10px] font-semibold text-muted-foreground uppercase tracking-wide ml-1 group-focus-within:text-primary transition-colors">
         {label}
       </label>
       <div className="relative">
@@ -143,33 +142,33 @@ function InputField({ label, id, err, as = "input", children, placeholder, autoC
           placeholder={placeholder}
           autoComplete={autoComplete}
           rows={as === "textarea" ? 2 : undefined}
-          className={`w-full ${as === "textarea" ? "py-2.5 min-h-[80px]" : "h-10"} px-3 bg-slate-50/50 border rounded-xl text-xs font-bold transition-all outline-none resize-none
+          className={`w-full ${as === "textarea" ? "py-2.5 min-h-[80px]" : "h-10"} px-3 bg-muted border rounded-md text-xs font-medium transition-all outline-none resize-none
             ${err
-              ? "border-red-200 bg-red-50 text-red-900 placeholder:text-red-300"
-              : "border-slate-200 text-slate-700 placeholder:text-slate-400 focus:bg-white focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/10"
+              ? "border-destructive/30 bg-destructive/10 text-destructive placeholder:text-destructive/50"
+              : "border-input text-foreground placeholder:text-muted-foreground focus:bg-background focus:border-ring focus:ring-4 focus:ring-ring/10"
             }`}
           {...rest}
         >
           {children}
         </Component>
       </div>
-      {err && <p className="text-[9px] font-bold text-red-500 ml-1.5 mt-0.5">{err}</p>}
+      {err && <p className="text-[9px] font-semibold text-destructive ml-1.5 mt-0.5">{err}</p>}
     </div>
   );
 }
 
 function FormButton({ text, onClick, variant = "primary" }: { text: string; onClick?: () => void; variant?: "primary" | "secondary" | "ghost" }) {
   const styles = {
-    primary: "bg-emerald-600 text-white hover:bg-emerald-700 shadow-md shadow-emerald-900/10",
-    secondary: "bg-white text-emerald-600 border border-emerald-200 hover:bg-emerald-50",
-    ghost: "bg-transparent text-slate-400 hover:bg-slate-50 hover:text-slate-600",
+    primary: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm",
+    secondary: "bg-card text-primary border border-primary/20 hover:bg-primary/10",
+    ghost: "bg-transparent text-muted-foreground hover:bg-accent hover:text-foreground",
   };
 
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`h-9 px-6 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 ${styles[variant]}`}
+      className={`h-9 px-6 rounded-md text-[10px] font-semibold uppercase tracking-wide transition-all active:scale-95 ${styles[variant]}`}
     >
       {text}
     </button>

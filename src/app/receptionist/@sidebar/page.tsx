@@ -6,14 +6,14 @@ export default function Page() {
   const { activeTab, setActiveTab } = useSidebar();
 
   return (
-    <div className=" p-2 rounded-2xl border-black/30 flex   w-full h-full">
+    <div className=" p-2 rounded-lg border-border flex   w-full h-full">
       <div
         id="tab"
-        className=" w-[16%]  p-2 border-2 border-black/30    rounded-4xl flex items-center  bg-gray-300 "
+        className=" w-[16%]  p-2 border border-border    rounded-lg flex items-center  bg-muted "
       >
         <button
           className={`  px-4    text-center ${activeTab === "queue"
-              ? "bg-green-400 rounded-3xl border-black/30 border-2"
+              ? "bg-primary text-primary-foreground rounded-md"
               : null
             }`}
           onClick={() => setActiveTab("queue")}
@@ -22,7 +22,7 @@ export default function Page() {
         </button>
         <button
           className={` px-4      text-center  ${activeTab === "patientRegistration"
-              ? "bg-green-400 rounded-3xl border-black/30 border-2"
+              ? "bg-primary text-primary-foreground rounded-md"
               : null
             }`}
           onClick={() => setActiveTab("patientRegistration")}
@@ -31,7 +31,7 @@ export default function Page() {
         </button>
         <button
           className={` px-4     text-center  ${activeTab === "patientVitals"
-              ? "bg-green-400 rounded-3xl border-black/30 border-2"
+              ? "bg-primary text-primary-foreground rounded-md"
               : null
             }`}
           onClick={() => setActiveTab("patientVitals")}
@@ -40,7 +40,7 @@ export default function Page() {
         </button>
         <button
           className={` px-4     text-center  ${activeTab === "clinicalDetails"
-              ? "bg-green-400 rounded-3xl border-black/30 border-2"
+              ? "bg-primary text-primary-foreground rounded-md"
               : null
             }`}
           onClick={() => setActiveTab("clinicalDetails")}

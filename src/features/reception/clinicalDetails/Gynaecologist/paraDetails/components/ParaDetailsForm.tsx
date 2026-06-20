@@ -1,7 +1,7 @@
 "use client";
 
 import { useFieldArray } from "react-hook-form";
-import { Inbox } from "lucide-react";
+import { Inbox, Plus, Trash2, ArrowRight } from "lucide-react";
 import { useParaDetails } from "../hooks/useParaDetails";
 
 export default function ParaDetailsForm() {
@@ -30,52 +30,51 @@ export default function ParaDetailsForm() {
       {/* Action Header */}
       {/* Premium Status Header */}
       <div className="flex items-center justify-between mb-8 gap-4">
-        <div className={`flex-1 flex items-center justify-between gap-4 px-5 py-3 rounded-2xl border transition-all duration-500 ease-in-out ${
-          hasExistingRecords 
-            ? "border-emerald-200 bg-emerald-50/20 text-emerald-800 shadow-sm shadow-emerald-900/5" 
-            : "border-slate-200 bg-slate-50/40 text-slate-600 shadow-sm"
+        <div className={`flex-1 flex items-center justify-between gap-4 px-5 py-3 rounded-md border transition-all ${
+          hasExistingRecords
+            ? "border-primary/20 bg-primary/10 text-primary shadow-sm"
+            : "border-border bg-muted text-muted-foreground shadow-sm"
         }`}>
           <div className="flex items-center gap-3">
             <div className="relative">
-               <div className={`size-2.5 rounded-full ${hasExistingRecords ? "bg-emerald-500" : "bg-slate-300"}`}  />
-               {hasExistingRecords && <div className="absolute inset-0 size-2.5 rounded-full bg-emerald-400 animate-ping opacity-75" />}
+               <div className={`size-2.5 rounded-full ${hasExistingRecords ? "bg-primary" : "bg-muted-foreground/40"}`}  />
             </div>
             <div className="flex flex-col">
-              <span className="text-[10px] font-black uppercase tracking-widest leading-none mb-0.5">
+              <span className="text-[10px] font-semibold uppercase tracking-wide leading-none mb-0.5">
                 {hasExistingRecords ? "Pregnancy Ledger Synced" : "Multi-Record Initialization"}
               </span>
-              <span className="text-[11px] font-bold opacity-80 leading-none">
+              <span className="text-[11px] font-medium opacity-80 leading-none">
                 {statusMessage}
               </span>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className={`px-2.5 py-1 rounded-lg border text-[9px] font-black uppercase tracking-tighter ${
-              hasExistingRecords 
-                ? "bg-emerald-100/50 border-emerald-200 text-emerald-700" 
-                : "bg-white border-slate-200 text-slate-500"
+            <span className={`px-2.5 py-1 rounded-md border text-[9px] font-semibold uppercase tracking-wide ${
+              hasExistingRecords
+                ? "bg-primary/10 border-primary/20 text-primary"
+                : "bg-card border-border text-muted-foreground"
             }`}>
               {hasExistingRecords ? "Batch Update Active" : "Fresh Batch Entry"}
             </span>
           </div>
         </div>
-        
+
         <button
           type="button"
           onClick={addNewPara}
-          className="h-11 px-6 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all shadow-xl shadow-slate-900/20 active:scale-95 flex items-center gap-2 shrink-0 group"
+          className="h-11 px-6 bg-primary text-primary-foreground rounded-md text-[10px] font-semibold uppercase tracking-wide hover:bg-primary/90 transition-all shadow-sm active:scale-95 flex items-center gap-2 shrink-0"
         >
-          <span className="text-sm group-hover:rotate-90 transition-transform duration-300">+</span> 
+          <Plus className="h-4 w-4" aria-hidden />
           Add Pregnancy Record
         </button>
       </div>
 
       <div className="space-y-6 pb-20">
         {fields.map((field, index) => (
-          <div key={field.id} className="relative bg-white/40 backdrop-blur-sm border border-slate-100 rounded-[1.5rem] p-6 shadow-sm group hover:shadow-md transition-all hover:bg-white/60">
-            <div className="flex items-center justify-between mb-4 border-b border-slate-100/50 pb-3">
-              <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em] flex items-center gap-3">
-                <span className="size-6 bg-slate-800 text-white rounded-lg flex items-center justify-center text-[10px] font-black shadow-lg shadow-slate-900/10">
+          <div key={field.id} className="relative bg-card border border-border rounded-lg p-6 shadow-sm group hover:shadow-md transition-all">
+            <div className="flex items-center justify-between mb-4 border-b border-border pb-3">
+              <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-3">
+                <span className="size-6 bg-primary text-primary-foreground rounded-md flex items-center justify-center text-[10px] font-semibold font-mono tabular-nums shadow-sm">
                   {index + 1}
                 </span>
                 Para Record Details
@@ -83,9 +82,10 @@ export default function ParaDetailsForm() {
               <button
                 type="button"
                 onClick={() => remove(index)}
-                className="size-7 flex items-center justify-center rounded-lg text-slate-300 hover:bg-red-50 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100 border border-transparent hover:border-red-100"
+                className="size-7 flex items-center justify-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all opacity-0 group-hover:opacity-100 border border-transparent hover:border-destructive/20"
+                aria-label="Remove record"
               >
-                🗑️
+                <Trash2 className="h-4 w-4" aria-hidden />
               </button>
             </div>
 
@@ -154,9 +154,9 @@ export default function ParaDetailsForm() {
         ))}
 
         {fields.length === 0 && (
-          <div className="h-40 flex flex-col items-center justify-center border-2 border-dashed border-slate-100 rounded-[2rem] bg-slate-50/30 text-slate-300">
+          <div className="h-40 flex flex-col items-center justify-center border border-dashed border-border rounded-lg bg-muted text-muted-foreground">
             <Inbox className="h-10 w-10 mb-2 opacity-50" aria-hidden />
-            <p className="text-[10px] font-black uppercase tracking-widest">No records added yet</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wide">No records added yet</p>
           </div>
         )}
       </div>
@@ -178,7 +178,7 @@ function InputField({ label, err, as = "input", children, placeholder, autoCompl
   const Component = as;
   return (
     <div className="space-y-0.5 group">
-      <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 group-focus-within:text-emerald-600 transition-colors">
+      <label className="block text-[9px] font-semibold text-muted-foreground uppercase tracking-wide ml-1 group-focus-within:text-primary transition-colors">
         {label}
       </label>
       <div className="relative">
@@ -186,36 +186,36 @@ function InputField({ label, err, as = "input", children, placeholder, autoCompl
           placeholder={placeholder}
           autoComplete={autoComplete}
           rows={as === "textarea" ? 2 : undefined}
-          className={`w-full ${as === "textarea" ? "py-2 min-h-[60px]" : "h-9"} px-3 bg-white/50 border rounded-xl text-[11px] font-bold transition-all outline-none resize-none
+          className={`w-full ${as === "textarea" ? "py-2 min-h-[60px]" : "h-9"} px-3 bg-background border rounded-md text-[11px] font-medium transition-all outline-none resize-none
             ${err
-              ? "border-red-200 bg-red-50 text-red-900 placeholder:text-red-300"
-              : "border-slate-100 text-slate-700 placeholder:text-slate-400 focus:bg-white focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/10 shadow-sm"
+              ? "border-destructive/30 bg-destructive/10 text-destructive placeholder:text-destructive/50"
+              : "border-input text-foreground placeholder:text-muted-foreground focus:bg-background focus:border-ring focus:ring-4 focus:ring-ring/10 shadow-sm"
             }`}
           {...rest}
         >
           {children}
         </Component>
       </div>
-      {err && <p className="text-[9px] font-bold text-red-500 ml-1.5 mt-0.5">{err}</p>}
+      {err && <p className="text-[9px] font-semibold text-destructive ml-1.5 mt-0.5">{err}</p>}
     </div>
   );
 }
 
 function FormButton({ text, onClick, variant = "primary" }: { text: string; onClick?: () => void; variant?: "primary" | "secondary" | "ghost" }) {
   const styles = {
-    primary: "bg-slate-900 text-white hover:bg-black shadow-xl shadow-slate-900/20",
-    secondary: "bg-white text-emerald-600 border border-emerald-200 hover:bg-emerald-50 shadow-emerald-200/50",
-    ghost: "bg-transparent text-slate-400 hover:bg-slate-50 hover:text-slate-600",
+    primary: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm",
+    secondary: "bg-card text-primary border border-primary/20 hover:bg-primary/10",
+    ghost: "bg-transparent text-muted-foreground hover:bg-accent hover:text-foreground",
   };
 
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`h-11 px-8 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 active:scale-95 flex items-center gap-3 ${styles[variant]}`}
+      className={`h-11 px-8 rounded-md text-[10px] font-semibold uppercase tracking-wide transition-all active:scale-95 flex items-center gap-3 ${styles[variant]}`}
     >
       {text}
-      <span className="size-5 bg-white/10 rounded-lg flex items-center justify-center text-xs">→</span>
+      <ArrowRight className="h-4 w-4" aria-hidden />
     </button>
   );
 }
