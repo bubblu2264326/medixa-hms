@@ -20,6 +20,14 @@
 
 
 
+## bed
+
+| bed_id | room_id | bed_number | daily_rate | status | is_active | created_at |
+| --- | --- | --- | --- | --- | --- | --- |
+| 5 | 5 | SCN-B1 | 2000 | vacant | true | "2026-06-20T09:56:52.299Z" |
+
+
+
 ## bill
 
 | bill_id | patient_id | visit_id | total_amount | payment_status | created_at |
@@ -442,6 +450,14 @@
 
 
 
+## room
+
+| room_id | ward_id | room_number | room_class | default_daily_rate | is_active | created_at |
+| --- | --- | --- | --- | --- | --- | --- |
+| 5 | 6 | SCN-R1 |  | 2000 | true | "2026-06-20T09:56:52.295Z" |
+
+
+
 ## sale_return
 
 | return_id | sale_id | reason | return_timestamp | created_by | refund_amount | refund_method |
@@ -587,5 +603,13 @@
 | 1 | 45 | seen_by_doctor | 1 |  | "2026-03-14T01:26:29.021Z" |
 | 2 | 45 | waiting | 1 |  | "2026-03-14T01:26:31.725Z" |
 | 3 | 45 | seen_by_doctor | 1 |  | "2026-03-14T01:26:34.858Z" |
+
+
+
+## ward
+
+| ward_id | name | ward_type | block | floor | is_active | created_at |
+| --- | --- | --- | --- | --- | --- | --- |
+| 6 | SCN Ward | general |  |  | true | "2026-06-20T09:56:52.291Z" |
 
 

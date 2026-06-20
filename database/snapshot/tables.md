@@ -109,6 +109,64 @@ _(none)_
 
 
 
+## appointment
+
+### Columns
+
+| table_name | column_name | data_type | udt_name | is_nullable | column_default | character_maximum_length |
+| --- | --- | --- | --- | --- | --- | --- |
+| appointment | appointment_id | integer | int4 | NO | nextval('appointment_appointment_id_seq'::regclass) |  |
+| appointment | patient_id | integer | int4 | NO |  |  |
+| appointment | doctor_id | integer | int4 | NO |  |  |
+| appointment | scheduled_at | timestamp without time zone | timestamp | NO |  |  |
+| appointment | duration_min | integer | int4 | NO | 15 |  |
+| appointment | status | character varying | varchar | NO | 'booked'::character varying | 15 |
+| appointment | reason | text | text | YES |  |  |
+| appointment | visit_id | integer | int4 | YES |  |  |
+| appointment | created_by | integer | int4 | YES |  |  |
+| appointment | created_at | timestamp without time zone | timestamp | NO | CURRENT_TIMESTAMP |  |
+| appointment | updated_at | timestamp without time zone | timestamp | NO | CURRENT_TIMESTAMP |  |
+
+
+### Primary key
+
+| table_name | column_name | constraint_name |
+| --- | --- | --- |
+| appointment | appointment_id | appointment_pkey |
+
+
+### Foreign keys
+
+| table_name | column_name | ref_table | ref_column | update_rule | delete_rule | constraint_name |
+| --- | --- | --- | --- | --- | --- | --- |
+| appointment | created_by | staff | staff_id | NO ACTION | NO ACTION | appointment_created_by_fkey |
+| appointment | doctor_id | doctor | doctor_id | NO ACTION | NO ACTION | appointment_doctor_id_fkey |
+| appointment | patient_id | patient | patient_id | NO ACTION | NO ACTION | appointment_patient_id_fkey |
+| appointment | visit_id | visit | visit_id | NO ACTION | NO ACTION | appointment_visit_id_fkey |
+
+
+### Unique constraints
+
+_(none)_
+
+
+### Check constraints
+
+| table_name | constraint_name | check_clause |
+| --- | --- | --- |
+| appointment | appointment_appointment_id_not_null | appointment_id IS NOT NULL |
+| appointment | appointment_created_at_not_null | created_at IS NOT NULL |
+| appointment | appointment_doctor_id_not_null | doctor_id IS NOT NULL |
+| appointment | appointment_duration_min_not_null | duration_min IS NOT NULL |
+| appointment | appointment_patient_id_not_null | patient_id IS NOT NULL |
+| appointment | appointment_scheduled_at_not_null | scheduled_at IS NOT NULL |
+| appointment | appointment_status_not_null | status IS NOT NULL |
+| appointment | appointment_updated_at_not_null | updated_at IS NOT NULL |
+| appointment | ck_appointment_duration | (duration_min > 0) |
+| appointment | ck_appointment_status | ((status)::text = ANY ((ARRAY['booked'::character varying, 'confirmed'::character varying, 'arrived'::character varying, 'completed'::character varying, 'cancelled'::character varying, 'no_show'::character varying])::text[])) |
+
+
+
 ## attendance_regularization_requests
 
 ### Columns

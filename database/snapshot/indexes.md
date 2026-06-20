@@ -9,6 +9,10 @@
 | public | admission | idx_admission_status | CREATE INDEX idx_admission_status ON public.admission USING btree (status) |
 | public | admission | uq_admission_active_bed | CREATE UNIQUE INDEX uq_admission_active_bed ON public.admission USING btree (current_bed_id) WHERE (((status)::text = 'admitted'::text) AND (current_bed_id IS NOT NULL)) |
 | public | allowance_type_master | allowance_type_master_pkey | CREATE UNIQUE INDEX allowance_type_master_pkey ON public.allowance_type_master USING btree (code) |
+| public | appointment | appointment_pkey | CREATE UNIQUE INDEX appointment_pkey ON public.appointment USING btree (appointment_id) |
+| public | appointment | idx_appointment_doctor_time | CREATE INDEX idx_appointment_doctor_time ON public.appointment USING btree (doctor_id, scheduled_at) |
+| public | appointment | idx_appointment_patient | CREATE INDEX idx_appointment_patient ON public.appointment USING btree (patient_id) |
+| public | appointment | uq_appointment_active_slot | CREATE UNIQUE INDEX uq_appointment_active_slot ON public.appointment USING btree (doctor_id, scheduled_at) WHERE ((status)::text <> ALL ((ARRAY['cancelled'::character varying, 'no_show'::character varying])::text[])) |
 | public | attendance_regularization_requests | attendance_regularization_requests_pkey | CREATE UNIQUE INDEX attendance_regularization_requests_pkey ON public.attendance_regularization_requests USING btree (regularization_id) |
 | public | attendance_regularization_requests | idx_attendance_regularization_status | CREATE INDEX idx_attendance_regularization_status ON public.attendance_regularization_requests USING btree (request_status, created_at DESC) |
 | public | audit_logs | audit_logs_pkey | CREATE UNIQUE INDEX audit_logs_pkey ON public.audit_logs USING btree (log_id) |

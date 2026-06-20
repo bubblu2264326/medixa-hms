@@ -1,8 +1,8 @@
 # DB Snapshot — overview
 
-Generated: 2026-06-20T09:11:43.640Z
+Generated: 2026-06-20T14:18:26.150Z
 
-- Tables: 107
+- Tables: 108
 - Views: 5
 - Functions/Procedures: 15
 - Triggers: 17
@@ -14,9 +14,10 @@ Generated: 2026-06-20T09:11:43.640Z
 | --- | --- |
 | admission | 0 |
 | allowance_type_master | 6 |
+| appointment | 0 |
 | attendance_regularization_requests | 0 |
-| audit_logs | 167 |
-| bed | 0 |
+| audit_logs | 192 |
+| bed | 1 |
 | bed_transfer | 0 |
 | bill | 63 |
 | bill_charge_source | 0 |
@@ -33,7 +34,7 @@ Generated: 2026-06-20T09:11:43.640Z
 | doctor_attendance | 5 |
 | doctor_encounter_note | 27 |
 | doctor_order | 0 |
-| doctor_security_sessions | 19 |
+| doctor_security_sessions | 22 |
 | employee_allowance | 0 |
 | employee_compensation_profile | 12 |
 | employee_credential_events | 0 |
@@ -98,7 +99,7 @@ Generated: 2026-06-20T09:11:43.640Z
 | prescription_medicines | 14 |
 | purchase_return | 8 |
 | purchase_return_detail | 10 |
-| room | 0 |
+| room | 1 |
 | sale_return | 12 |
 | sale_return_detail | 13 |
 | staff | 9 |
@@ -113,12 +114,12 @@ Generated: 2026-06-20T09:11:43.640Z
 | staff_role_assignments | 0 |
 | staff_roles | 12 |
 | staff_roster_assignments | 1332 |
-| staff_security_sessions | 47 |
+| staff_security_sessions | 54 |
 | staff_shift_templates | 4 |
 | system_settings | 11 |
 | visit | 69 |
 | visit_status_history | 29 |
-| ward | 0 |
+| ward | 1 |
 
 
 ## Files
