@@ -145,6 +145,10 @@ export const MedicineSearch: React.FC<MedicineSearchProps> = ({
             return (
               <div
                 key={`${medicine.id}-${medicine.batch_id || index}`}
+                // preventDefault on mousedown keeps the input focused so the
+                // input's onBlur (which closes the dropdown) doesn't race the
+                // click and swallow the selection.
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => handleSelect(medicine)}
                 onMouseEnter={() => setFocusedIndex(index)}
                 className={`
@@ -168,7 +172,7 @@ export const MedicineSearch: React.FC<MedicineSearchProps> = ({
                   <span className="font-semibold text-[14px] tracking-tight leading-tight truncate">
                     {medicine.brand_name}
                   </span>
-                  <span className={`text-[10px] font-bold uppercase tracking-widest truncate ${index === focusedIndex ? 'text-primary-foreground/80/80' : 'text-slate-400'}`}>
+                  <span className={`text-[10px] font-bold uppercase tracking-widest truncate ${index === focusedIndex ? 'text-primary-foreground/80' : 'text-slate-400'}`}>
                     {medicine.generic_name}
                   </span>
                   {medicine.manufacturer && (
