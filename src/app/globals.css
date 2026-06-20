@@ -21,6 +21,16 @@
   animation: gradient-x 5s ease infinite;
 }
 
+/* Density base. Tailwind's spacing AND type scales are rem-based, so the
+   root font-size is a single density knob. We scale it with viewport width:
+   large monitors keep the full 16px base (unchanged), while smaller laptop
+   canvases — common once Windows display scaling (125%/150%) shrinks the
+   effective viewport — step down so the UI isn't oversized / "zoomed in".
+   Tune the clamp bounds to taste; print is pinned to 16px below. */
+html {
+  font-size: clamp(13.5px, 0.5vw + 8px, 16px);
+}
+
 body {
   font-family: var(--font-sans);
   overflow-x: hidden;
@@ -46,6 +56,11 @@ body {
 }
 
 @media print {
+  html {
+    /* keep receipts at a fixed base, independent of viewport density */
+    font-size: 16px;
+  }
+
   @page {
     size: 80mm auto;
     /* Receipt width */
