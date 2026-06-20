@@ -6,6 +6,7 @@ Authoritative running state of the HMS stabilization effort. Newest entries at t
 - **Branch:** `refactor/hms-stabilization`
 - **Current phase:** **Phase 1 (foundation) — IN PROGRESS.**
 - **Mode:** autonomous, Git-checkpointed (user away). Commit + push every green unit.
+- **Live gate status (after P1·U2):** build ✅ · typecheck ✅ 0 errors · tests ✅ 124/124 · lint ⚠️ 9 errors + 226 warnings (cleanup pending in a later unit).
 
 ## Baseline (recorded 2026-06-20, before Phase 1 edits)
 | Gate | State |
@@ -45,4 +46,5 @@ See `audit/README.md` for the full P0/P1/P2 punch-list. Headlines:
 
 ## Unit log
 *(append one entry per committed unit: what changed, why, tests, commit hash)*
-- **P1·U1 — tooling: ESLint scope fix.** Moved `ignores` to a standalone flat-config object so it applies globally; added `coverage/`, `db/seed/`, `database/snapshot/`. Lint errors 976→9, warnings 9316→226 (eliminated `.next/` noise). Behavior-preserving (config only). Verified: build ✅, lint errors 9 (down), tests unchanged (6 fail — baseline). Commit: _(below)_.
+- **P1·U1 — tooling: ESLint scope fix.** Moved `ignores` to a standalone flat-config object so it applies globally; added `coverage/`, `db/seed/`, `database/snapshot/`. Lint errors 976→9, warnings 9316→226 (eliminated `.next/` noise). Behavior-preserving (config only). Commit `c8b7440`.
+- **P1·U2 — test: green the test + typecheck bar.** Fixed all 6 failing tests + 3 tsc errors. **Root cause: all were STALE TESTS, zero source/product bugs** (Vitest-4 `toMatchObject<T>` generic removed; Next-16 async `params` Promise; under-mocked `getSystemTimezone()` and `paymentSnapshot` queries causing off-by-one mock ordering; calendar-drifted hardcoded fixtures). 7 test files changed, 0 source files; no assertions weakened (verified: 4 assertion lines changed, all legit; net assertion count unchanged). Now: **`tsc --noEmit` 0 errors, `vitest` 124/124 pass.** Lesson: test suite had rotted — fixtures should not hardcode dates relative to "today", and route dependencies like `getSystemTimezone()` must be stubbed. Commit: _(below)_.

@@ -46,7 +46,7 @@ describe("payroll run immutability", () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ adjustment: { payroll_line_id: 77, amount: 500 } }),
       }) as any,
-      { params: { id: "9" } }
+      { params: Promise.resolve({ id: "9" }) }
     );
 
     const body = await response.json();
