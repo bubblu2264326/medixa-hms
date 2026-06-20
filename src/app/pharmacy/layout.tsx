@@ -14,7 +14,6 @@ import {
   History,
   Users,
   ArrowLeftRight,
-  Layout,
   BarChart3,
   Settings
 } from "lucide-react";
@@ -96,18 +95,18 @@ function PharmacistContent({
   ];
 
   return (
-    <div className="flex flex-col h-screen w-full bg-[#f8fafc] font-sans">
-      {/* Premium Clinic Header */}
-      <div className="px-6 py-3 border-b border-slate-200/60 bg-white shadow-sm flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="relative h-10 w-10 bg-emerald-50 rounded-xl p-1.5 flex items-center justify-center border border-emerald-100/50">
-            <Image src="/logo.png" alt="Clinic Logo" width={28} height={28} />
+    <div className="flex flex-col h-screen w-full bg-background font-sans">
+      {/* Clinic Header */}
+      <div className="px-6 py-2 border-b border-border bg-card shadow-sm flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="relative h-9 w-9 bg-primary/10 rounded-md p-1 flex items-center justify-center border border-primary/20">
+            <Image src="/logo.png" alt="Clinic Logo" width={24} height={24} />
           </div>
           <div>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-emerald-700 to-teal-800 bg-clip-text text-transparent leading-none">
+            <h1 className="text-base font-semibold tracking-tight text-foreground leading-none">
               Fouzia Ishaq Clinic
             </h1>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Pharmacy Portal</p>
+            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mt-0.5">Pharmacy Portal</p>
           </div>
         </div>
 
@@ -115,35 +114,21 @@ function PharmacistContent({
       </div>
 
       {/* Main Content Area */}
-      <div className="flex flex-1 p-6 overflow-hidden">
+      <div className="flex flex-1 p-4 overflow-hidden">
         <PatientContextProvider>
-          <div className="flex flex-col flex-1 bg-white/60 backdrop-blur-xl rounded-[2.5rem] border border-white shadow-2xl shadow-slate-200/50 overflow-hidden relative">
+          <div className="flex flex-col flex-1 bg-card rounded-lg border border-border shadow-sm overflow-hidden">
 
-            {/* Header with Switcher */}
-            <div className="p-6 flex items-center justify-between border-b border-slate-100/60">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-emerald-500 text-white rounded-2xl shadow-lg shadow-emerald-500/20">
-                  <Layout size={20} />
-                </div>
-                <div>
-                  <h2 className="text-lg font-bold text-slate-800 leading-none">Dashboard View</h2>
-                  <p className="text-[12px] text-slate-400 font-medium mt-1 uppercase tracking-tight">Active Module: {selectedTab}</p>
-                </div>
-              </div>
-
-              {/* Enhanced Tab Switcher */}
-              <div className="bg-slate-100/80 p-1.5 rounded-2xl flex items-center gap-1 border border-slate-200/40">
+            {/* Compact module tab switcher */}
+            <div className="px-4 py-2 border-b border-border flex items-center gap-3 overflow-x-auto">
+              <div className="bg-muted p-1 rounded-md flex items-center gap-1 border border-border w-fit">
                 {tabs.map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => setSelectedTab(tab.id)}
-                    className={`
-                      flex items-center gap-2 px-4 py-2 rounded-xl text-[13px] font-bold transition-all duration-300
-                      ${selectedTab === tab.id
-                        ? "bg-white text-emerald-600 shadow-sm border border-slate-200/60 scale-[1.05]"
-                        : "text-slate-500 hover:text-slate-700 hover:bg-white/40"
-                      }
-                    `}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-colors ${selectedTab === tab.id
+                      ? "bg-card text-primary shadow-sm border border-border"
+                      : "text-muted-foreground hover:text-foreground"
+                      }`}
                   >
                     {tab.icon}
                     {tab.label}
@@ -153,8 +138,8 @@ function PharmacistContent({
             </div>
 
             {/* Parallel Route Content Wrapper */}
-            <div className="flex-1 overflow-auto custom-scrollbar p-6">
-              <div className="min-h-full w-full animate-in fade-in zoom-in-95 duration-500">
+            <div className="flex-1 overflow-auto custom-scrollbar p-4">
+              <div className="min-h-full w-full">
                 {selectedTab === "retail" && retail}
                 {selectedTab === "purchases" && purchase}
                 {selectedTab === "purchaseReturn" && <PurchaseReturn />}
