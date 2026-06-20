@@ -37,6 +37,7 @@ const TARGETS = [
   { route: "/lab", label: "05-lab", user: "STF003" },
   { route: "/admin", label: "06-admin", user: "ADM001" },
   { route: "/ipd", label: "07-ipd", user: "ADM001" },
+  { route: "/attendance/kiosk", label: "08-attendance", user: null },
 ];
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: false });
