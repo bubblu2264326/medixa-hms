@@ -9,11 +9,14 @@ import {
   HandCoins,
   Package, 
   Users, 
-  Settings, 
+  Settings,
   History,
   LogOut,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Bell,
+  FileText,
+  ShieldAlert
 } from "lucide-react";
 import { logoutUser } from "@/src/features/Login/api";
 import Image from "next/image";
@@ -63,6 +66,7 @@ export const AdminSidebar = () => {
             items: [
                 { href: "/admin/inventory", icon: Package, label: "Inventory" },
                 { href: "/admin/cashier", icon: HandCoins, label: "Pharmacy Financials" },
+                { href: "/admin/narcotics", icon: ShieldAlert, label: "Narcotics Register" },
             ]
         },
         {
@@ -70,6 +74,7 @@ export const AdminSidebar = () => {
             items: [
                 { href: "/admin/financials", icon: IndianRupee, label: "System Finance" },
                 { href: "/admin/payroll", icon: HandCoins, label: "Payroll Runs" },
+                { href: "/admin/fbr-invoices", icon: FileText, label: "FBR Invoicing" },
             ]
         },
         {
@@ -77,6 +82,7 @@ export const AdminSidebar = () => {
             items: [
                 { href: "/admin/settings", icon: Settings, label: "Settings" },
                 { href: "/admin/audit", icon: History, label: "Audit Logs" },
+                { href: "/admin/notifications", icon: Bell, label: "Notifications" },
             ]
         }
     ], []);
