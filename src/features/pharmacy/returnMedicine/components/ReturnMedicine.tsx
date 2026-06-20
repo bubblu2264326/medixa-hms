@@ -31,7 +31,7 @@ export default function ReturnMedicine() {
           id="pid"
           type="text"
           placeholder="Enter Patient Id"
-          className="w-[40%] p-2 bg-gray-200 rounded-2xl"
+          className="w-[40%] p-2 bg-muted rounded-md"
           value={pId}
           onChange={(e) => setpId(e.target.value)}
           onKeyDown={(e) => {
@@ -49,7 +49,7 @@ export default function ReturnMedicine() {
           id="reason"
           type="text"
           placeholder="Enter reason for returning medicine"
-          className="w-[60%] p-2 bg-gray-200 rounded-2xl"
+          className="w-[60%] p-2 bg-muted rounded-md"
           value={reason}
           onChange={(e) => setReason(e.target.value)}
         />
@@ -62,10 +62,10 @@ export default function ReturnMedicine() {
         </h1>
 
         {loading ? (
-          <p className="text-gray-500">Loading...</p>
+          <p className="text-muted-foreground">Loading...</p>
         ) : (
-          <table className="border border-gray-300 w-full text-left text-sm">
-            <thead className="bg-gray-100">
+          <table className="border border-input w-full text-left text-sm">
+            <thead className="bg-muted">
               <tr>
                 <th className="border px-2 py-1">
                   <input type="checkbox" checked={selectAll} onChange={handleSelectAll} />
@@ -86,7 +86,7 @@ export default function ReturnMedicine() {
             <tbody>
               {data.length > 0 ? (
                 data.map((d, i) => (
-                  <tr key={d.prescription_medicine_id} className="hover:bg-gray-50">
+                  <tr key={d.prescription_medicine_id} className="hover:bg-muted">
                     <td className="border px-2 py-1 text-center">
                       <input
                         type="checkbox"
@@ -109,7 +109,7 @@ export default function ReturnMedicine() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={12} className="text-center text-gray-500">
+                  <td colSpan={12} className="text-center text-muted-foreground">
                     No dispensed medicines found.
                   </td>
                 </tr>
@@ -123,8 +123,8 @@ export default function ReturnMedicine() {
       <div className="flex space-x-6 col-span-2 pt-6">
         <button
           disabled={loading}
-          className={`w-[20%] p-2 shadow-2xl rounded-2xl text-white 
-            ${loading ? "bg-gray-400" : "bg-gradient-to-r from-[#F6ABAB] to-[#F53636]"}`}
+          className={`w-[20%] p-2 shadow-2xl rounded-md text-white 
+            ${loading ? "bg-slate-400" : " from-[#F6ABAB] to-[#F53636]"}`}
           onClick={returnMedicine}
         >
           {loading ? "Processing..." : "Return Medicine"}

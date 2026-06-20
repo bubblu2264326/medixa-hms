@@ -23,10 +23,10 @@ export function DonutSvg({ title, segments, size = 180 }: Props) {
   let running = 0;
 
   return (
-    <div className="rounded-2xl border border-slate-100 p-3 bg-white">
-      {title ? <h3 className="text-xs font-black uppercase tracking-wider text-slate-500 mb-2">{title}</h3> : null}
+    <div className="rounded-md border border-border p-3 bg-white">
+      {title ? <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">{title}</h3> : null}
       {total <= 0 ? (
-        <div className="h-36 grid place-items-center text-xs font-semibold text-slate-500">No composition data.</div>
+        <div className="h-36 grid place-items-center text-xs font-semibold text-muted-foreground">No composition data.</div>
       ) : (
         <div className="flex flex-col md:flex-row md:items-center gap-4">
           <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
@@ -61,11 +61,11 @@ export function DonutSvg({ title, segments, size = 180 }: Props) {
 
           <div className="space-y-1">
             {segments.map((seg) => (
-              <div key={seg.label} className="inline-flex w-full items-center gap-2 text-[11px] font-semibold text-slate-600">
+              <div key={seg.label} className="inline-flex w-full items-center gap-2 text-[11px] font-semibold text-muted-foreground">
                 <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: seg.color }} />
                 <span className="min-w-20">{seg.label}</span>
                 <span>{seg.value}</span>
-                <span className="text-slate-400">({total > 0 ? ((seg.value / total) * 100).toFixed(1) : "0.0"}%)</span>
+                <span className="text-muted-foreground">({total > 0 ? ((seg.value / total) * 100).toFixed(1) : "0.0"}%)</span>
               </div>
             ))}
           </div>

@@ -149,7 +149,7 @@ export function TransactionsView() {
                 <th className="px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50/50">
+            <tbody className="divide-y divide-border/50">
               {filtered.map((txn) => {
                 const config = TYPE_CONFIG[txn.txn_type] || DEFAULT_CONFIG;
                 return (

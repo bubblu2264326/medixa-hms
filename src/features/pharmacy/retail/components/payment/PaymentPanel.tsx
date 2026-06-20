@@ -15,14 +15,14 @@ export const PaymentPanel: React.FC<{
       <div className="flex flex-col gap-4">
         {/* Reference Field */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-[13px] font-medium text-gray-300 uppercase tracking-wide">
+          <label className="text-[13px] font-medium text-muted-foreground uppercase tracking-wide">
             Reference
           </label>
           <input
             type="text"
             placeholder="Auto-generated"
             disabled
-            className="bg-[#444] text-gray-400 px-3 py-3 text-base rounded outline-none"
+            className="bg-[#444] text-muted-foreground px-3 py-3 text-base rounded outline-none"
           />
         </div>
 
@@ -38,7 +38,7 @@ export const PaymentPanel: React.FC<{
 
         {/* Paid Amount Field */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-[13px] font-medium text-gray-300 uppercase tracking-wide">
+          <label className="text-[13px] font-medium text-muted-foreground uppercase tracking-wide">
             Paid Amount
           </label>
           <input
@@ -48,11 +48,11 @@ export const PaymentPanel: React.FC<{
             placeholder="0.00"
             step="0.01"
             min="0"
-            className="bg-blue-500 text-white font-semibold px-3 py-3 text-base rounded outline-none placeholder:text-white/60"
+            className="bg-info text-white font-semibold px-3 py-3 text-base rounded outline-none placeholder:text-white/60"
           />
         </div>
 
-        <AmountDisplay label="Due Amount" amount={payment.dueAmount} className="bg-blue-500" />
+        <AmountDisplay label="Due Amount" amount={payment.dueAmount} className="bg-info" />
         <AmountDisplay label="Change" amount={payment.changeAmount} className="bg-[#333]" />
 
         {/* Discount Summary */}
@@ -60,13 +60,13 @@ export const PaymentPanel: React.FC<{
           <AmountDisplay
             label="Items Discount"
             amount={payment.itemsDiscount}
-            className="bg-red-600 flex-1"
+            className="bg-destructive flex-1"
             compact
           />
           <AmountDisplay
             label="Total Discount"
             amount={payment.totalDiscount}
-            className="bg-red-600 flex-1"
+            className="bg-destructive flex-1"
             compact
           />
         </div>

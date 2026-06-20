@@ -92,7 +92,7 @@ const PharmacyPOS: React.FC = () => {
   const { payment, setPaymentType, setPaidAmount, setAdjustment, resetPayment, loadPayment } = usePayment(selectedReturnCart);
   const { results, isSearching, search, clearResults, invalidateCache } = useMedicineSearch();
   const invoiceChipBaseClass =
-    'rounded-full border px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.1em]';
+    'rounded-full border px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.1em]';
 
   const [qtyLimitFlash, setQtyLimitFlash] = useState(false);
   const [subQtyLimitFlash, setSubQtyLimitFlash] = useState(false);
@@ -1304,7 +1304,7 @@ const PharmacyPOS: React.FC = () => {
   return (
     <div
       ref={containerRef}
-      className={`flex min-h-screen bg-slate-50 font-sans gap-6 p-6 flex-col xl:flex-row backdrop-blur-sm ${isFullscreen ? 'bg-white p-6 gap-4 overflow-hidden h-[100dvh] w-[100dvw] fixed inset-0 z-[9999]' : ''}`}
+      className={`flex min-h-screen bg-muted font-sans gap-6 p-6 flex-col xl:flex-row backdrop-blur-sm ${isFullscreen ? 'bg-white p-6 gap-4 overflow-hidden h-[100dvh] w-[100dvw] fixed inset-0 z-[9999]' : ''}`}
     >
       {/* When using the browser Fullscreen API, only the fullscreen element subtree is visible.
           Render a Toaster inside this component so toast messages are visible in fullscreen. */}
@@ -1351,7 +1351,7 @@ const PharmacyPOS: React.FC = () => {
                     type="button"
                     aria-label="Dismiss notification"
                     onClick={() => toast.dismiss(t.id)}
-                    className="shrink-0 rounded-lg border border-slate-200 bg-white/70 px-2 py-1 text-slate-500 transition hover:bg-slate-50 hover:text-slate-700"
+                    className="shrink-0 rounded-lg border border-border bg-white/70 px-2 py-1 text-muted-foreground transition hover:bg-muted hover:text-foreground"
                   >
                     ×
                   </button>
@@ -1364,11 +1364,11 @@ const PharmacyPOS: React.FC = () => {
       {/* Main Content Area: Entry and Cart stacked vertically */}
       <div className="flex flex-col gap-6 flex-1 min-w-0">
         {/* 1. Medicine Entry (Top) - Higher z-index for search dropdown */}
-        <div className={`flex flex-col gap-4 bg-white/80 backdrop-blur-2xl rounded-[2rem] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border transition-all duration-500 relative z-20 ${posMode === 'SALE' ? 'border-white/60' : 'border-rose-200/60 shadow-rose-500/5'
+        <div className={`flex flex-col gap-4 bg-white/80 backdrop-blur-2xl rounded-lg p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border transition-all duration-500 relative z-20 ${posMode === 'SALE' ? 'border-white/60' : 'border-destructive/30/60 '
           }`}>
           <div className={`flex flex-col gap-4 xl:flex-row xl:justify-between ${posMode === 'RETURN' && selectedInvoice ? 'xl:items-start' : 'xl:items-center'}`}>
             <div className="flex items-center gap-3 shrink-0">
-              <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+              <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
                 <div className="p-2 bg-primary text-white rounded-xl shadow-lg ">
                   <Layout size={18} />
                 </div>
@@ -1378,7 +1378,7 @@ const PharmacyPOS: React.FC = () => {
 
             {posMode === 'SALE' ? (
               <div className="relative w-full xl:ml-auto xl:w-[520px] xl:flex-none">
-                <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+                <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
                   <Search size={18} />
                 </span>
                 <input
@@ -1403,7 +1403,7 @@ const PharmacyPOS: React.FC = () => {
                       ? `Loaded Patient #${activePrescription.patientId} • Visit #${activePrescription.visitId}`
                       : 'Search patient by name, CNIC, patient ID, or visit ID'
                   }
-                  className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-12 pr-14 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-emerald-300 focus:ring-4 focus:ring-emerald-500/10"
+                  className="h-12 w-full rounded-md border border-border bg-white pl-12 pr-14 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-primary/30 focus:ring-4 focus:ring-ring/20"
                 />
                 {isPatientSearching && (
                   <div className="absolute right-4 top-1/2 -translate-y-1/2">
@@ -1414,7 +1414,7 @@ const PharmacyPOS: React.FC = () => {
                 {showPatientResults && patientSearchResults.length > 0 && (
                   <div
                     ref={patientResultsRef}
-                    className="absolute left-0 right-0 top-[calc(100%+10px)] z-50 max-h-72 overflow-y-auto rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-2xl"
+                    className="absolute left-0 right-0 top-[calc(100%+10px)] z-50 max-h-72 overflow-y-auto rounded-md border border-border bg-white/95 p-2 shadow-2xl"
                   >
                     {patientSearchResults.map((patient, index) => (
                       <button
@@ -1424,16 +1424,16 @@ const PharmacyPOS: React.FC = () => {
                         onClick={() => {
                           void handlePatientSelected(patient);
                         }}
-                        className={`flex w-full items-center justify-between rounded-xl px-4 py-3 text-left transition ${highlightedPatientIndex === index ? 'bg-emerald-50' : 'hover:bg-slate-50'
+                        className={`flex w-full items-center justify-between rounded-xl px-4 py-3 text-left transition ${highlightedPatientIndex === index ? 'bg-primary/10' : 'hover:bg-muted'
                           }`}
                       >
                         <div className="min-w-0">
-                          <div className="truncate text-sm font-bold text-slate-900">{patient.patient_name}</div>
-                          <div className="mt-1 text-[11px] text-slate-500">
+                          <div className="truncate text-sm font-bold text-foreground">{patient.patient_name}</div>
+                          <div className="mt-1 text-[11px] text-muted-foreground">
                             CNIC: {patient.cnic || 'N/A'} • ID: {patient.patient_id} • {patient.active_visit_count} active visit{patient.active_visit_count === 1 ? '' : 's'}
                           </div>
                         </div>
-                        <div className="rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-emerald-700">
+                        <div className="rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">
                           Select
                         </div>
                       </button>
@@ -1444,7 +1444,7 @@ const PharmacyPOS: React.FC = () => {
             ) : posMode === 'RETURN' ? (
               <div className="flex flex-col gap-2 w-full xl:ml-auto xl:w-[520px] xl:flex-none">
                 <div className="relative">
-                  <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+                  <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
                     <Search size={18} />
                   </span>
                   <input
@@ -1464,7 +1464,7 @@ const PharmacyPOS: React.FC = () => {
                     }}
                     onBlur={() => window.setTimeout(() => setShowInvoiceResults(false), 150)}
                     placeholder={selectedInvoice ? 'Invoice loaded' : 'Search invoice # or patient name'}
-                    className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-12 pr-12 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-ring focus:ring-4 focus:ring-ring/20"
+                    className="h-12 w-full rounded-md border border-border bg-white pl-12 pr-12 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-ring focus:ring-4 focus:ring-ring/20"
                   />
 
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
@@ -1476,7 +1476,7 @@ const PharmacyPOS: React.FC = () => {
                       <button
                         type="button"
                         onClick={clearSelectedInvoice}
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:text-slate-900"
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-border bg-white text-muted-foreground transition hover:border-input hover:text-foreground"
                         title="Clear invoice"
                         aria-label="Clear invoice"
                       >
@@ -1488,7 +1488,7 @@ const PharmacyPOS: React.FC = () => {
                   {showInvoiceResults && invoiceSearchResults.length > 0 && (
                     <div
                       ref={invoiceResultsRef}
-                      className="absolute left-0 right-0 top-[calc(100%+10px)] z-50 max-h-72 overflow-y-auto rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-2xl"
+                      className="absolute left-0 right-0 top-[calc(100%+10px)] z-50 max-h-72 overflow-y-auto rounded-md border border-border bg-white/95 p-2 shadow-2xl"
                     >
                       {invoiceSearchResults.map((invoice, index) => (
                         <button
@@ -1498,18 +1498,18 @@ const PharmacyPOS: React.FC = () => {
                           onClick={() => {
                             void handleInvoiceSelected(invoice);
                           }}
-                          className={`flex w-full items-center justify-between rounded-xl px-4 py-3 text-left transition ${highlightedInvoiceIndex === index ? 'bg-primary/10' : 'hover:bg-slate-50'
+                          className={`flex w-full items-center justify-between rounded-xl px-4 py-3 text-left transition ${highlightedInvoiceIndex === index ? 'bg-primary/10' : 'hover:bg-muted'
                             }`}
                         >
                           <div className="min-w-0">
-                            <div className="truncate text-sm font-bold text-slate-900">{invoice.reference}</div>
-                            <div className="mt-1 text-[11px] text-slate-500">
+                            <div className="truncate text-sm font-bold text-foreground">{invoice.reference}</div>
+                            <div className="mt-1 text-[11px] text-muted-foreground">
                               {invoice.patientName ?? 'Walk-in'} • {formatDateTimeInTimezone(invoice.timestamp, systemTimezone)} • {invoice.itemsCount} item{invoice.itemsCount === 1 ? '' : 's'}
                             </div>
                           </div>
                           <div className="shrink-0 text-right">
-                            <div className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">Total</div>
-                            <div className="mt-0.5 text-sm font-black text-primary">{formatCurrency(invoice.totalAmount)}</div>
+                            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Total</div>
+                            <div className="mt-0.5 text-sm font-semibold text-primary">{formatCurrency(invoice.totalAmount)}</div>
                           </div>
                         </button>
                       ))}
@@ -1519,16 +1519,16 @@ const PharmacyPOS: React.FC = () => {
 
                 {selectedInvoice && loadedInvoicePayment ? (
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className={`${invoiceChipBaseClass} border-emerald-200 bg-emerald-50 text-emerald-700`}>
+                    <span className={`${invoiceChipBaseClass} border-primary/30 bg-primary/10 text-primary`}>
                       Items Disc: {formatCurrency(Number(loadedInvoicePayment.itemsDiscount ?? 0))}
                     </span>
                     <span className={`${invoiceChipBaseClass} border-primary/30 bg-primary/10 text-primary`}>
                       Bill Disc: {Number(loadedInvoicePayment.adjustmentPercent ?? 0)}% ({formatCurrency(Number(loadedInvoicePayment.adjustment ?? 0))})
                     </span>
-                    <span className={`${invoiceChipBaseClass} border-slate-200 bg-white text-slate-700`}>
+                    <span className={`${invoiceChipBaseClass} border-border bg-white text-foreground`}>
                       Net Paid: {formatCurrency(Number(loadedInvoicePayment.payableAmount ?? 0))}
                     </span>
-                    <span className={`${invoiceChipBaseClass} border-slate-200 bg-white text-slate-600`}>
+                    <span className={`${invoiceChipBaseClass} border-border bg-white text-muted-foreground`}>
                       Selected: {selectedReturnCart.length}/{cart.length}
                     </span>
                   </div>
@@ -1543,7 +1543,7 @@ const PharmacyPOS: React.FC = () => {
                   onClick={() => {
                     void clearPrescriptionLink();
                   }}
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-md border border-border bg-white px-4 text-sm font-bold text-muted-foreground transition hover:border-input hover:text-foreground"
                 >
                   <Link2Off size={15} />
                   Unload Rx
@@ -1565,12 +1565,12 @@ const PharmacyPOS: React.FC = () => {
                   setPosMode(nextMode);
                 }}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl border-2 cursor-pointer transition-all duration-300 ${posMode === 'SALE'
-                  ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                  : 'bg-rose-50 border-rose-200 text-rose-700'
+                  ? 'bg-primary/10 border-primary/30 text-primary'
+                  : 'bg-destructive/10 border-destructive/30 text-destructive'
                   }`}
               >
                 {posMode === 'SALE' ? <ShoppingCart size={16} /> : <RotateCcw size={16} />}
-                <span className="text-xs font-black uppercase tracking-widest">
+                <span className="text-xs font-semibold uppercase tracking-widest">
                   {posMode === 'SALE' ? 'Sale Mode' : 'Return Mode'}
                 </span>
                 <span className="text-[10px] bg-white/50 px-1.5 py-0.5 rounded font-mono">F10</span>
@@ -1578,7 +1578,7 @@ const PharmacyPOS: React.FC = () => {
 
               <button
                 onClick={toggleFullscreen}
-                className="p-2 bg-slate-100/80 hover:bg-primary/10 text-slate-500 hover:text-primary rounded-xl transition-all border border-slate-200/50"
+                className="p-2 bg-muted/80 hover:bg-primary/10 text-muted-foreground hover:text-primary rounded-xl transition-all border border-border/50"
                 title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
               >
                 {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
@@ -1587,14 +1587,14 @@ const PharmacyPOS: React.FC = () => {
           </div>
 
           {activePrescription && (
-            <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600">
-              <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 font-bold text-emerald-700">
+            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+              <span className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1 font-bold text-primary">
                 Rx #{activePrescription.prescriptionId}
               </span>
-              <span className="rounded-full border border-slate-200 bg-white px-3 py-1 font-bold">
+              <span className="rounded-full border border-border bg-white px-3 py-1 font-bold">
                 Visit #{activePrescription.visitId}
               </span>
-              <span className="rounded-full border border-slate-200 bg-white px-3 py-1 font-bold">
+              <span className="rounded-full border border-border bg-white px-3 py-1 font-bold">
                 {activePrescription.availableItems.length + activePrescription.unavailableItems.length} pending item{activePrescription.availableItems.length + activePrescription.unavailableItems.length === 1 ? '' : 's'}
               </span>
             </div>
@@ -1613,9 +1613,9 @@ const PharmacyPOS: React.FC = () => {
           />
 
           {/* Fields Row - All in one horizontal line */}
-          <div className={`flex flex-wrap lg:flex-nowrap items-end gap-3 p-4 rounded-2xl border transition-all duration-500 ${itemSearched
-            ? (posMode === 'SALE' ? 'bg-primary/10/30 border-primary/20' : 'bg-rose-50/30 border-rose-100')
-            : 'bg-slate-50/50 border-slate-100 border-dashed opacity-60'
+          <div className={`flex flex-wrap lg:flex-nowrap items-end gap-3 p-4 rounded-md border transition-all duration-500 ${itemSearched
+            ? (posMode === 'SALE' ? 'bg-primary/10/30 border-primary/20' : 'bg-destructive/10/30 border-destructive/30')
+            : 'bg-muted/50 border-border border-dashed opacity-60'
             }`}>
             <div className="w-28 shrink-0">
               <QuantityInput
@@ -1665,7 +1665,7 @@ const PharmacyPOS: React.FC = () => {
             {itemSearched && (
               <div className="flex-1 min-w-[160px] p-2 bg-white rounded-xl border border-primary/20 shadow-sm flex items-center gap-3">
                 <div className="flex-1 min-w-0">
-                  <p className="text-[10px] text-slate-400 font-medium leading-tight">Match</p>
+                  <p className="text-[10px] text-muted-foreground font-medium leading-tight">Match</p>
                   <p className="text-sm font-bold text-primary truncate">{itemSearched.brand_name}</p>
                 </div>
                 {itemSearched.batch_number && (
@@ -1674,7 +1674,7 @@ const PharmacyPOS: React.FC = () => {
                       LOT: {itemSearched.batch_number}
                     </span>
                     {itemSearched.batch_code ? (
-                      <span className="mt-1 text-[9px] font-mono text-slate-400">
+                      <span className="mt-1 text-[9px] font-mono text-muted-foreground">
                         Ref: {itemSearched.batch_code}
                       </span>
                     ) : null}
@@ -1770,17 +1770,17 @@ const PharmacyPOS: React.FC = () => {
 
       {isPortalReady && overrideTargetItem && createPortal(
         <div className="fixed inset-0 z-[10001] flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-xl rounded-[2rem] border border-white/70 bg-white p-6 shadow-2xl">
+          <div className="w-full max-w-xl rounded-lg border border-white/70 bg-white p-6 shadow-2xl">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.18em] text-amber-700">
+                <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-warning-foreground">
                   <TriangleAlert size={14} />
                   Override Unavailable Medicine
                 </div>
-                <h3 className="mt-2 text-2xl font-black tracking-tight text-slate-900">
+                <h3 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
                   {overrideTargetItem.medicine.brand_name}
                 </h3>
-                <p className="mt-1 text-sm text-slate-500">
+                <p className="mt-1 text-sm text-muted-foreground">
                   This medicine is not currently available from store stock. Add a reason before including it in the billed transaction.
                 </p>
               </div>
@@ -1790,32 +1790,32 @@ const PharmacyPOS: React.FC = () => {
                   setOverrideTargetItem(null);
                   setOverrideError(null);
                 }}
-                className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+                className="rounded-md border border-border bg-white px-4 py-2 text-sm font-bold text-muted-foreground transition hover:border-input hover:text-foreground"
               >
                 Close
               </button>
             </div>
 
             <div className="mt-5 grid gap-4 md:grid-cols-2">
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-                <div className="font-bold text-slate-900">Prescribed Qty</div>
+              <div className="rounded-md border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
+                <div className="font-bold text-foreground">Prescribed Qty</div>
                 <div className="mt-1">{overrideTargetItem.prescribedQuantity ?? overrideTargetItem.quantity}</div>
               </div>
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-                <div className="font-bold text-slate-900">Available In Store</div>
+              <div className="rounded-md border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
+                <div className="font-bold text-foreground">Available In Store</div>
                 <div className="mt-1">{overrideTargetItem.availableQuantity ?? 0}</div>
               </div>
             </div>
 
             <div className="mt-5 space-y-4">
               <div>
-                <label className="mb-2 block text-xs font-black uppercase tracking-[0.18em] text-slate-500">
+                <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                   Reason
                 </label>
                 <select
                   value={overrideReasonCode}
                   onChange={(event) => setOverrideReasonCode(event.target.value as OverrideReasonCode)}
-                  className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-700 outline-none transition focus:border-amber-300 focus:ring-4 focus:ring-amber-500/10"
+                  className="h-12 w-full rounded-md border border-border bg-white px-4 text-sm text-foreground outline-none transition focus:border-warning/40 focus:ring-4 focus:ring-ring/20"
                 >
                   {OVERRIDE_REASON_OPTIONS.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -1827,7 +1827,7 @@ const PharmacyPOS: React.FC = () => {
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <label className="mb-2 block text-xs font-black uppercase tracking-[0.18em] text-slate-500">
+                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                     Billable Qty
                   </label>
                   <input
@@ -1835,11 +1835,11 @@ const PharmacyPOS: React.FC = () => {
                     min={1}
                     value={overrideQuantity}
                     onChange={(event) => setOverrideQuantity(Number(event.target.value || 0))}
-                    className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-700 outline-none transition focus:border-amber-300 focus:ring-4 focus:ring-amber-500/10"
+                    className="h-12 w-full rounded-md border border-border bg-white px-4 text-sm text-foreground outline-none transition focus:border-warning/40 focus:ring-4 focus:ring-ring/20"
                   />
                 </div>
                 <div>
-                  <label className="mb-2 block text-xs font-black uppercase tracking-[0.18em] text-slate-500">
+                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                     Unit Price
                   </label>
                   <input
@@ -1848,26 +1848,26 @@ const PharmacyPOS: React.FC = () => {
                     step="0.01"
                     value={overridePrice}
                     onChange={(event) => setOverridePrice(Number(event.target.value || 0))}
-                    className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-700 outline-none transition focus:border-amber-300 focus:ring-4 focus:ring-amber-500/10"
+                    className="h-12 w-full rounded-md border border-border bg-white px-4 text-sm text-foreground outline-none transition focus:border-warning/40 focus:ring-4 focus:ring-ring/20"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="mb-2 block text-xs font-black uppercase tracking-[0.18em] text-slate-500">
+                <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                   Pharmacist Note
                 </label>
                 <textarea
                   value={overrideReasonNote}
                   onChange={(event) => setOverrideReasonNote(event.target.value)}
                   rows={4}
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-amber-300 focus:ring-4 focus:ring-amber-500/10"
+                  className="w-full rounded-md border border-border bg-white px-4 py-3 text-sm text-foreground outline-none transition focus:border-warning/40 focus:ring-4 focus:ring-ring/20"
                   placeholder="Explain why this unavailable medicine is still being billed."
                 />
               </div>
 
               {overrideError && (
-                <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
+                <div className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-semibold text-destructive">
                   {overrideError}
                 </div>
               )}
@@ -1880,14 +1880,14 @@ const PharmacyPOS: React.FC = () => {
                   setOverrideTargetItem(null);
                   setOverrideError(null);
                 }}
-                className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+                className="rounded-md border border-border bg-white px-4 py-2 text-sm font-bold text-muted-foreground transition hover:border-input hover:text-foreground"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={applyOverrideSelection}
-                className="rounded-2xl bg-amber-600 px-4 py-2 text-sm font-black text-white shadow-[0_10px_24px_rgba(217,119,6,0.22)] transition hover:bg-amber-700"
+                className="rounded-md bg-amber-600 px-4 py-2 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(217,119,6,0.22)] transition hover:bg-amber-700"
               >
                 Include In Transaction
               </button>
@@ -1899,17 +1899,17 @@ const PharmacyPOS: React.FC = () => {
 
       {isPortalReady && visitPickerPatient && visitOptions.length > 1 && createPortal(
         <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-2xl rounded-[2rem] border border-white/70 bg-white p-6 shadow-2xl">
+          <div className="w-full max-w-2xl rounded-lg border border-white/70 bg-white p-6 shadow-2xl">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.18em] text-emerald-700">
+                <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
                   <UserRound size={14} />
                   Choose Active Visit
                 </div>
-                <h3 className="mt-2 text-2xl font-black tracking-tight text-slate-900">
+                <h3 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
                   {visitPickerPatient.patient_name}
                 </h3>
-                <p className="mt-1 text-sm text-slate-500">
+                <p className="mt-1 text-sm text-muted-foreground">
                   Multiple prescription-ready visits were found. Select the visit whose prescription should be dispensed.
                 </p>
               </div>
@@ -1921,14 +1921,14 @@ const PharmacyPOS: React.FC = () => {
                   setVisitPickerError(null);
                   setLoadingVisitId(null);
                 }}
-                className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+                className="rounded-md border border-border bg-white px-4 py-2 text-sm font-bold text-muted-foreground transition hover:border-input hover:text-foreground"
               >
                 Close
               </button>
             </div>
 
             {visitPickerError && (
-              <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
+              <div className="mt-4 rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-semibold text-destructive">
                 {visitPickerError}
               </div>
             )}
@@ -1942,28 +1942,28 @@ const PharmacyPOS: React.FC = () => {
                     void handleVisitOptionSelected(visit);
                   }}
                   disabled={loadingVisitId === visit.visit_id}
-                  className="flex w-full items-center justify-between rounded-[1.25rem] border border-slate-200 bg-slate-50 px-4 py-4 text-left transition hover:border-emerald-200 hover:bg-emerald-50"
+                  className="flex w-full items-center justify-between rounded-[1.25rem] border border-border bg-muted px-4 py-4 text-left transition hover:border-primary/30 hover:bg-primary/10"
                 >
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="rounded-full bg-white px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">
+                      <span className="rounded-full bg-white px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                         Visit #{visit.visit_id}
                       </span>
-                      <span className="rounded-full bg-white px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-emerald-700">
+                      <span className="rounded-full bg-white px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">
                         {visit.visit_type}
                       </span>
-                      <span className="rounded-full bg-white px-2.5 py-1 text-[10px] font-bold text-slate-600">
+                      <span className="rounded-full bg-white px-2.5 py-1 text-[10px] font-bold text-muted-foreground">
                         {visit.status}
                       </span>
                     </div>
-                    <div className="mt-2 text-sm font-bold text-slate-900">
+                    <div className="mt-2 text-sm font-bold text-foreground">
                       Dr. {visit.doctor_name} • Clinic #{visit.clinic_number ?? '-'}
                     </div>
-                    <div className="mt-1 text-xs text-slate-500">
+                    <div className="mt-1 text-xs text-muted-foreground">
                       {formatDateTimeInTimezone(visit.visit_timestamp, systemTimezone)}
                     </div>
                   </div>
-                  <span className="rounded-full bg-emerald-600 px-3 py-2 text-xs font-black uppercase tracking-[0.18em] text-white">
+                  <span className="rounded-full bg-primary px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white">
                     {loadingVisitId === visit.visit_id ? 'Loading...' : 'Load Rx'}
                   </span>
                 </button>

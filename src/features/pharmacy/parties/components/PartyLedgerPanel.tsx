@@ -81,11 +81,11 @@ export function PartyLedgerPanel({ party, onClose }: PartyLedgerPanelProps) {
         {/* Summary Cards */}
         <div className="grid grid-cols-3 gap-3 p-4 border-b border-border bg-muted/50">
           <div className="bg-white rounded-md p-3 border border-border text-center shadow-sm">
-            <p className="text-[9px] font-semibold uppercase tracking-widest text-red-400 mb-0.5">Total Purchases</p>
+            <p className="text-[9px] font-semibold uppercase tracking-widest text-destructive mb-0.5">Total Purchases</p>
             <p className="text-lg font-semibold text-destructive">Rs. {fmt(totalDebit)}</p>
           </div>
           <div className="bg-white rounded-md p-3 border border-border text-center shadow-sm">
-            <p className="text-[9px] font-semibold uppercase tracking-widest text-emerald-400 mb-0.5">Paid / Returns</p>
+            <p className="text-[9px] font-semibold uppercase tracking-widest text-primary mb-0.5">Paid / Returns</p>
             <p className="text-lg font-semibold text-primary">Rs. {fmt(totalCredit)}</p>
           </div>
           <div className={`rounded-md p-3 border text-center shadow-sm ${outstanding > 0 ? 'bg-orange-50 border-orange-100' : 'bg-primary/10 border-primary/30'}`}>
@@ -128,7 +128,7 @@ export function PartyLedgerPanel({ party, onClose }: PartyLedgerPanelProps) {
                   <th className="text-right pb-3">Balance</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50">
+              <tbody className="divide-y divide-border">
                 {withBalance.map((e, i) => (
                   <tr key={`${e.type}-${e.id}-${i}`} className="group hover:bg-muted transition-colors">
                     <td className="py-3 text-muted-foreground font-semibold text-xs">

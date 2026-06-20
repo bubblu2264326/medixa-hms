@@ -43,14 +43,14 @@ export const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
           w-full 
           px-[15px] py-[12px] 
           text-[16px] 
-          border-2 border-gray-300 
+          border-2 border-input 
           rounded-md 
           outline-none 
           transition-colors 
           duration-300 
-          placeholder:text-gray-400 
+          placeholder:text-muted-foreground 
           placeholder:italic
-          focus:border-green-500 
+          focus:border-ring 
           focus:shadow-[0_0_0_3px_rgba(76,175,80,0.1)]
         "
       />

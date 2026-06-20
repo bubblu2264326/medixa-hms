@@ -12,13 +12,13 @@ export const PaymentTypeSelector: React.FC<PaymentTypeSelectorProps> = ({
 }) => {
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-[13px] font-medium text-gray-300 uppercase tracking-wide">
+      <label className="text-[13px] font-medium text-muted-foreground uppercase tracking-wide">
         Payment Type
       </label>
       <select
         value={selectedType}
         onChange={(e) => onTypeChange(e.target.value as PaymentType)}
-        className="bg-green-600 text-white font-semibold py-3 px-3 rounded cursor-pointer outline-none"
+        className="bg-success text-white font-semibold py-3 px-3 rounded cursor-pointer outline-none"
       >
         <option value={PaymentType.CASH}>CASH</option>
         <option value={PaymentType.CARD}>CARD</option>

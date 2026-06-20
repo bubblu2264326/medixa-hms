@@ -120,7 +120,7 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
       {/* Secondary Row */}
       <div className="grid grid-cols-3 gap-3 max-md:grid-cols-1">
         <button
-          className="flex flex-col items-center justify-center gap-2 p-5 font-semibold text-sm rounded-lg shadow-md bg-amber-500 text-white hover:bg-amber-600 transition-all duration-300 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed hover:-translate-y-0.5"
+          className="flex flex-col items-center justify-center gap-2 p-5 font-semibold text-sm rounded-lg shadow-md bg-warning text-white hover:bg-amber-600 transition-all duration-300 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed hover:-translate-y-0.5"
           onClick={handleHold}
           disabled={isProcessing || cart.length === 0}
         >
@@ -129,7 +129,7 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
         </button>
 
         <button
-          className="flex flex-col items-center justify-center gap-2 p-5 font-semibold text-sm rounded-lg shadow-md bg-blue-500 text-white hover:bg-blue-600 transition-all duration-300 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed hover:-translate-y-0.5"
+          className="flex flex-col items-center justify-center gap-2 p-5 font-semibold text-sm rounded-lg shadow-md bg-info text-white hover:bg-info transition-all duration-300 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed hover:-translate-y-0.5"
           onClick={() => toast.success('Email receipt feature coming soon')}
           disabled={isProcessing || !lastTransactionId}
         >
@@ -138,7 +138,7 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
         </button>
 
         <button
-          className="flex flex-col items-center justify-center gap-2 p-5 font-semibold text-sm rounded-lg shadow-md bg-purple-600 text-white hover:bg-purple-700 transition-all duration-300 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed hover:-translate-y-0.5"
+          className="flex flex-col items-center justify-center gap-2 p-5 font-semibold text-sm rounded-lg shadow-md bg-primary text-white hover:bg-primary transition-all duration-300 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed hover:-translate-y-0.5"
           onClick={handleOpenDrawer}
           disabled={isProcessing}
         >

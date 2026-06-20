@@ -44,7 +44,7 @@ export default function AppToaster() {
                 type="button"
                 aria-label="Dismiss notification"
                 onClick={() => toast.dismiss(t.id)}
-                className="shrink-0 rounded-lg border border-slate-200 bg-white/70 px-2 py-1 text-slate-500 transition hover:bg-slate-50 hover:text-slate-700"
+                className="shrink-0 rounded-lg border border-border bg-white/70 px-2 py-1 text-muted-foreground transition hover:bg-muted hover:text-foreground"
               >
                 ×
               </button>

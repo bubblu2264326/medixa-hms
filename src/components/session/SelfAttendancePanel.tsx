@@ -92,14 +92,14 @@ export function SelfAttendancePanel() {
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-[120] w-[280px] rounded-2xl border border-emerald-200 bg-white/95 p-3 shadow-xl backdrop-blur-sm">
+    <div className="fixed bottom-4 right-4 z-[120] w-[280px] rounded-md border border-primary/30 bg-white/95 p-3 shadow-xl backdrop-blur-sm">
       <div className="mb-2 flex items-center gap-2">
-        <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-700 text-white">
+        <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary text-white">
           <Clock3 className="h-4 w-4" />
         </div>
         <div className="min-w-0">
-          <p className="truncate text-xs font-black uppercase tracking-wider text-slate-800">Self Attendance</p>
-          <p className="truncate text-[11px] font-semibold text-slate-500">{user.user_code} • {user.account_type}</p>
+          <p className="truncate text-xs font-semibold uppercase tracking-wider text-foreground">Self Attendance</p>
+          <p className="truncate text-[11px] font-semibold text-muted-foreground">{user.user_code} • {user.account_type}</p>
         </div>
       </div>
 
@@ -108,7 +108,7 @@ export function SelfAttendancePanel() {
           type="button"
           onClick={() => mark("check_in")}
           disabled={Boolean(busy)}
-          className="inline-flex h-9 items-center justify-center rounded-xl bg-emerald-700 px-2 text-xs font-black uppercase tracking-wide text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex h-9 items-center justify-center rounded-xl bg-primary px-2 text-xs font-semibold uppercase tracking-wide text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
         >
           <LogIn className="mr-1.5 h-3.5 w-3.5" />
           {busy === "check_in" ? "Saving..." : "Check In"}
@@ -117,7 +117,7 @@ export function SelfAttendancePanel() {
           type="button"
           onClick={() => mark("check_out")}
           disabled={Boolean(busy)}
-          className="inline-flex h-9 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 px-2 text-xs font-black uppercase tracking-wide text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex h-9 items-center justify-center rounded-xl border border-border bg-muted px-2 text-xs font-semibold uppercase tracking-wide text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60"
         >
           <LogOut className="mr-1.5 h-3.5 w-3.5" />
           {busy === "check_out" ? "Saving..." : "Check Out"}

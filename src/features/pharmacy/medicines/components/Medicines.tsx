@@ -245,7 +245,7 @@ export const Medicines: React.FC = () => {
               <button
                 key={type}
                 onClick={() => openMasterManager(type)}
-                className="flex items-center gap-2 rounded-xl border border-border bg-white px-4 py-2.5 text-sm font-medium text-foreground transition hover:border-indigo-300 hover:bg-primary/10 hover:text-primary"
+                className="flex items-center gap-2 rounded-xl border border-border bg-white px-4 py-2.5 text-sm font-medium text-foreground transition hover:border-primary/30 hover:bg-primary/10 hover:text-primary"
               >
                 <Icon size={16} />
                 <span>{meta.label}</span>
@@ -289,7 +289,7 @@ export const Medicines: React.FC = () => {
                 <th className="py-4 px-6 font-semibold text-muted-foreground border-b border-border text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-border">
               {loading ? (
                 <tr>
                   <td colSpan={7} className="py-8 text-center text-muted-foreground">

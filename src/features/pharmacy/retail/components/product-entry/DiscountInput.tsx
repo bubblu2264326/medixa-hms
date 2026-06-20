@@ -46,15 +46,15 @@ export const DiscountInput = React.forwardRef<HTMLInputElement, DiscountInputPro
 
   return (
     <div className="flex flex-col gap-1.5 flex-1 relative group">
-      <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.15em] px-0.5">
+      <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-[0.15em] px-0.5">
         {label}
       </label>
 
-      <div className="flex items-stretch bg-white border-2 border-slate-200/60 rounded-md overflow-hidden focus-within:border-emerald-500/50 focus-within:shadow-[0_4px_20px_rgba(16,185,129,0.1)] transition-all">
+      <div className="flex items-stretch bg-white border-2 border-border/60 rounded-md overflow-hidden focus-within:border-emerald-500/50 focus-within:shadow-[0_4px_20px_rgba(16,185,129,0.1)] transition-all">
         <button
           type="button"
           onClick={decrement}
-          className="px-3 bg-slate-50 hover:bg-slate-100 text-slate-500 font-bold border-r border-slate-200 transition-colors"
+          className="px-3 bg-muted hover:bg-muted text-muted-foreground font-bold border-r border-border transition-colors"
         >
           -
         </button>
@@ -68,23 +68,23 @@ export const DiscountInput = React.forwardRef<HTMLInputElement, DiscountInputPro
           max={max}
           step="1"
           placeholder="0"
-          className="w-full text-center py-3 text-[16px] font-semibold text-emerald-600 outline-none
-                   [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none placeholder:text-slate-300"
+          className="w-full text-center py-3 text-[16px] font-semibold text-primary outline-none
+                   [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none placeholder:text-muted-foreground"
         />
-        <span className="flex items-center px-2 bg-slate-50 text-emerald-400 font-bold text-sm select-none border-l border-slate-200">
+        <span className="flex items-center px-2 bg-muted text-primary font-bold text-sm select-none border-l border-border">
           %
         </span>
         <button
           type="button"
           onClick={increment}
-          className="px-3 bg-slate-50 hover:bg-slate-100 text-slate-500 font-bold border-l border-slate-200 transition-colors"
+          className="px-3 bg-muted hover:bg-muted text-muted-foreground font-bold border-l border-border transition-colors"
         >
           +
         </button>
       </div>
 
       {/* Decorative focus bar */}
-      <div className="absolute bottom-0 left-4 right-4 h-0.5 bg-emerald-500 scale-x-0 group-focus-within:scale-x-100 transition-transform duration-300 origin-center rounded-full"></div>
+      <div className="absolute bottom-0 left-4 right-4 h-0.5 bg-primary scale-x-0 group-focus-within:scale-x-100 transition-transform duration-300 origin-center rounded-full"></div>
     </div>
   );
 });

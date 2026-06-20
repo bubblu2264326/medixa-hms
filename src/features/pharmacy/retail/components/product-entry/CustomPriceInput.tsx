@@ -39,18 +39,18 @@ export const CustomPriceInput = React.forwardRef<HTMLInputElement, CustomPriceIn
 
   return (
     <div className="flex flex-col gap-1.5 flex-1 relative group">
-      <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.15em] px-0.5">
+      <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-[0.15em] px-0.5">
         {label}
       </label>
       <div
         className={[
           'relative border-2 rounded-md overflow-hidden transition-all',
           readOnly
-            ? 'border-slate-200/60 bg-slate-100'
-            : 'border-slate-200/60 bg-white focus-within:border-ring/50 focus-within:',
+            ? 'border-border/60 bg-muted'
+            : 'border-border/60 bg-white focus-within:border-ring/50 focus-within:',
         ].join(' ')}
       >
-        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 font-bold text-[12px] select-none">
+        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-[12px] select-none">
           PKR
         </span>
         <input
@@ -63,8 +63,8 @@ export const CustomPriceInput = React.forwardRef<HTMLInputElement, CustomPriceIn
           step="0.01"
           placeholder="0.00"
           readOnly={readOnly}
-          className="w-full pl-12 pr-4 py-3 text-[16px] font-semibold text-slate-700 outline-none 
-                   [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none placeholder:text-slate-300"
+          className="w-full pl-12 pr-4 py-3 text-[16px] font-semibold text-foreground outline-none 
+                   [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none placeholder:text-muted-foreground"
         />
       </div>
 

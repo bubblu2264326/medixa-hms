@@ -42,10 +42,10 @@ export function LineChartSvg({ title, points, series, height = 240, ySuffix = ""
   const yFor = (v: number) => padding.top + (1 - v / maxY) * innerHeight;
 
   return (
-    <div className="rounded-2xl border border-slate-100 p-3 bg-white">
-      {title ? <h3 className="text-xs font-black uppercase tracking-wider text-slate-500 mb-2">{title}</h3> : null}
+    <div className="rounded-md border border-border p-3 bg-white">
+      {title ? <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">{title}</h3> : null}
       {points.length === 0 ? (
-        <div className="h-36 grid place-items-center text-xs font-semibold text-slate-500">No trend data.</div>
+        <div className="h-36 grid place-items-center text-xs font-semibold text-muted-foreground">No trend data.</div>
       ) : (
         <>
           <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto">
@@ -102,7 +102,7 @@ export function LineChartSvg({ title, points, series, height = 240, ySuffix = ""
 
           <div className="mt-2 flex flex-wrap gap-3">
             {series.map((s) => (
-              <div key={s.key} className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-600">
+              <div key={s.key} className="inline-flex items-center gap-1 text-[11px] font-semibold text-muted-foreground">
                 <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: s.color }} />
                 <span>{s.label}</span>
               </div>
@@ -110,8 +110,8 @@ export function LineChartSvg({ title, points, series, height = 240, ySuffix = ""
           </div>
 
           {hoverIndex !== null ? (
-            <div className="mt-2 text-[11px] font-semibold text-slate-600">
-              <span className="text-slate-500">{points[hoverIndex]?.label}: </span>
+            <div className="mt-2 text-[11px] font-semibold text-muted-foreground">
+              <span className="text-muted-foreground">{points[hoverIndex]?.label}: </span>
               {series.map((s, idx) => (
                 <span key={s.key} className="mr-2" style={{ color: s.color }}>
                   {s.label} {Number(points[hoverIndex]?.[s.key] ?? 0).toFixed(0)}{ySuffix}{idx < series.length - 1 ? " |" : ""}

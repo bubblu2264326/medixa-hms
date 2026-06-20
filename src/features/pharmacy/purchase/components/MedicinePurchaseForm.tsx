@@ -817,7 +817,7 @@ export default function MedicinePurchaseForm() {
                                         <th className="pb-4"></th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-50">
+                                <tbody className="divide-y divide-border">
                                     {items.map((item, idx) => (
                                         <tr key={idx} className="group hover:bg-muted/50 transition-colors">
                                             <td className="py-5">
@@ -885,7 +885,7 @@ export default function MedicinePurchaseForm() {
                                 </div>
                                 <div className="flex justify-between items-end border-t border-white/5 pt-4">
                                     <span className="text-[10px] font-semibold text-muted-foreground uppercase">Grand Total</span>
-                                    <span className="text-3xl font-semibold text-emerald-400 tracking-tighter">Rs. {calculateTotal().toLocaleString()}</span>
+                                    <span className="text-3xl font-semibold text-primary tracking-tighter">Rs. {calculateTotal().toLocaleString()}</span>
                                 </div>
                             </div>
 

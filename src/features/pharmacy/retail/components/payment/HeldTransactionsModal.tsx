@@ -126,25 +126,25 @@ export const HeldTransactionsModal: React.FC<HeldTransactionsModalProps> = ({ on
         role="dialog"
         aria-modal="true"
         tabIndex={-1}
-        className="w-full max-w-4xl rounded-[2.5rem] border border-white/70 bg-white shadow-2xl overflow-hidden flex flex-col max-h-[90vh] outline-none"
+        className="w-full max-w-4xl rounded-lg border border-white/70 bg-white shadow-2xl overflow-hidden flex flex-col max-h-[90vh] outline-none"
       >
         {/* Header */}
-        <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+        <div className="p-8 border-b border-border flex items-center justify-between bg-muted/50">
           <div>
-            <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.18em] text-amber-600">
+            <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-warning-foreground">
               <RefreshCcw size={14} className="animate-spin-slow" />
               Resume Payment
             </div>
-            <h3 className="mt-2 text-3xl font-black tracking-tight text-slate-900">
+            <h3 className="mt-2 text-3xl font-semibold tracking-tight text-foreground">
               Held Transactions
             </h3>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-muted-foreground">
               Select a previously saved transaction to resume billing.
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-3 rounded-2xl border border-slate-200 bg-white text-slate-400 hover:text-slate-900 hover:border-slate-300 transition-all"
+            className="p-3 rounded-md border border-border bg-white text-muted-foreground hover:text-foreground hover:border-input transition-all"
           >
             <X size={24} />
           </button>
@@ -154,17 +154,17 @@ export const HeldTransactionsModal: React.FC<HeldTransactionsModalProps> = ({ on
         <div className="flex-1 overflow-y-auto p-8">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20 gap-4">
-              <Loader2 className="animate-spin text-amber-600" size={40} />
-              <p className="text-slate-500 font-medium italic">Scanning vault for held sales...</p>
+              <Loader2 className="animate-spin text-warning-foreground" size={40} />
+              <p className="text-muted-foreground font-medium italic">Scanning vault for held sales...</p>
             </div>
           ) : transactions.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center gap-4 bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200">
-              <div className="p-4 bg-white rounded-full shadow-sm text-slate-300">
+            <div className="flex flex-col items-center justify-center py-20 text-center gap-4 bg-muted rounded-lg border-2 border-dashed border-border">
+              <div className="p-4 bg-white rounded-full shadow-sm text-muted-foreground">
                 <ShoppingBag size={48} />
               </div>
               <div>
-                <p className="text-xl font-bold text-slate-800">No held transactions</p>
-                <p className="text-sm text-slate-500 mt-1 uppercase tracking-widest font-bold">All sales are current or completed</p>
+                <p className="text-xl font-bold text-foreground">No held transactions</p>
+                <p className="text-sm text-muted-foreground mt-1 uppercase tracking-widest font-bold">All sales are current or completed</p>
               </div>
             </div>
           ) : (
@@ -172,30 +172,30 @@ export const HeldTransactionsModal: React.FC<HeldTransactionsModalProps> = ({ on
               {transactions.map((tx) => (
                 <div 
                   key={tx.id} 
-                  className="group relative bg-white border border-slate-200 rounded-3xl p-6 hover:border-amber-400 hover:shadow-xl hover:shadow-amber-500/5 transition-all duration-300"
+                  className="group relative bg-white border border-border rounded-lg p-6 hover:border-amber-400 hover:shadow-xl hover: transition-all duration-300"
                 >
                   <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex min-w-0 items-start gap-5">
-                      <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600 group-hover:scale-110 transition-transform duration-300">
+                      <div className="w-12 h-12 rounded-md bg-warning/15 flex items-center justify-center text-warning-foreground group-hover:scale-110 transition-transform duration-300">
                         <FileText size={24} />
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Ref</span>
-                          <span className="font-mono font-bold text-slate-900">{tx.reference}</span>
+                          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Ref</span>
+                          <span className="font-mono font-bold text-foreground">{tx.reference}</span>
                         </div>
                         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
-                          <div className="flex items-center gap-1.5 text-slate-600">
-                            <User size={14} className="text-slate-400" />
+                          <div className="flex items-center gap-1.5 text-muted-foreground">
+                            <User size={14} className="text-muted-foreground" />
                             <span className="font-semibold">
                               {getPatientLabel(tx)}
                             </span>
                           </div>
-                          <div className="flex items-center gap-1.5 text-slate-600">
-                            <Calendar size={14} className="text-slate-400" />
+                          <div className="flex items-center gap-1.5 text-muted-foreground">
+                            <Calendar size={14} className="text-muted-foreground" />
                             <span>{formatDateTimeInTimezone(tx.timestamp, systemTimezone)}</span>
                           </div>
-                          <div className="flex items-center gap-1.5 text-emerald-600 font-bold">
+                          <div className="flex items-center gap-1.5 text-primary font-bold">
                             <ShoppingBag size={14} />
                             <span>{tx.items.length} Items</span>
                           </div>
@@ -205,8 +205,8 @@ export const HeldTransactionsModal: React.FC<HeldTransactionsModalProps> = ({ on
 
                     <div className="flex w-full items-center justify-between gap-6 sm:w-auto sm:justify-end">
                       <div className="shrink-0 text-right">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Total Amount</p>
-                        <div className="text-lg font-black text-indigo-400">
+                        <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.2em] mb-1">Total Amount</p>
+                        <div className="text-lg font-semibold text-primary">
                           {formatCurrency(tx.payment.payableAmount)}
                         </div>
                       </div>
@@ -214,7 +214,7 @@ export const HeldTransactionsModal: React.FC<HeldTransactionsModalProps> = ({ on
                         onClick={() => handleDelete(tx)}
                         disabled={deletingId === tx.id}
                         title="Delete held transaction"
-                        className="shrink-0 p-3 rounded-2xl border border-rose-200 text-rose-500 hover:bg-rose-50 hover:border-rose-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                        className="shrink-0 p-3 rounded-md border border-destructive/30 text-destructive hover:bg-destructive/10 hover:border-destructive/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                       >
                         {deletingId === tx.id ? (
                           <Loader2 size={18} className="animate-spin" />
@@ -225,7 +225,7 @@ export const HeldTransactionsModal: React.FC<HeldTransactionsModalProps> = ({ on
                       <button
                         onClick={() => onLoad(tx)}
                         disabled={deletingId === tx.id}
-                        className="shrink-0 px-8 py-4 bg-slate-900 text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-amber-600 hover:shadow-lg hover:shadow-amber-500/20 active:scale-95 transition-all duration-300"
+                        className="shrink-0 px-8 py-4 bg-foreground text-white rounded-md font-semibold text-sm uppercase tracking-widest hover:bg-amber-600 hover:shadow-lg hover: active:scale-95 transition-all duration-300"
                       >
                         {tx.mode === 'RETURN' ? 'Load Return' : 'Load Sale'}
                       </button>
@@ -238,10 +238,10 @@ export const HeldTransactionsModal: React.FC<HeldTransactionsModalProps> = ({ on
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-slate-100 bg-slate-50/30 flex justify-end">
+        <div className="p-6 border-t border-border bg-muted/30 flex justify-end">
           <button
             onClick={onClose}
-            className="px-6 py-3 text-sm font-bold text-slate-500 hover:text-slate-900 transition-colors"
+            className="px-6 py-3 text-sm font-bold text-muted-foreground hover:text-foreground transition-colors"
           >
             Close Window
           </button>

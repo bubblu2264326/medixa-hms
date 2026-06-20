@@ -130,28 +130,28 @@ export function SidebarAttendance() {
   }, [record, renderedCheckInTime, systemTimezone]);
 
   if (loading || !user?.user_code) {
-    return <div className="h-20 animate-pulse bg-slate-50 rounded-xl mx-2"></div>;
+    return <div className="h-20 animate-pulse bg-muted rounded-xl mx-2"></div>;
   }
 
   const isCheckedIn = Boolean(record?.check_in_time);
   const isCheckedOut = Boolean(record?.check_out_time);
 
   return (
-    <div className="flex flex-col gap-3 px-3 py-3 mx-2 bg-slate-50 rounded-xl border border-slate-100">
+    <div className="flex flex-col gap-3 px-3 py-3 mx-2 bg-muted rounded-xl border border-border">
       <div className="flex items-center justify-between">
-        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Attendance</span>
+        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Attendance</span>
         {isCheckedIn ? (
           <div className="flex flex-col items-end">
-             <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+             <span className="text-[10px] font-bold uppercase tracking-wider text-primary flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
                 Checked In
              </span>
-             <span className="text-[9px] font-medium text-slate-500">
+             <span className="text-[9px] font-medium text-muted-foreground">
                 {renderedCheckInTime}
              </span>
           </div>
         ) : (
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Not Checked In</span>
+          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Not Checked In</span>
         )}
       </div>
 
@@ -159,7 +159,7 @@ export function SidebarAttendance() {
         <Button
           variant="outline"
           size="sm"
-          className="h-8 rounded-lg border-emerald-200 bg-white text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800 disabled:opacity-50 text-[11px] px-2 shadow-sm"
+          className="h-8 rounded-lg border-primary/30 bg-white text-primary hover:bg-primary/10 hover:text-primary disabled:opacity-50 text-[11px] px-2 shadow-sm"
           onClick={() => mark("check_in")}
           disabled={Boolean(busy) || isCheckedIn}
         >
@@ -169,7 +169,7 @@ export function SidebarAttendance() {
         <Button
           variant="outline"
           size="sm"
-          className="h-8 rounded-lg border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-50 text-[11px] px-2 shadow-sm"
+          className="h-8 rounded-lg border-border bg-white text-foreground hover:bg-muted disabled:opacity-50 text-[11px] px-2 shadow-sm"
           onClick={() => mark("check_out")}
           disabled={Boolean(busy) || !isCheckedIn || isCheckedOut}
         >

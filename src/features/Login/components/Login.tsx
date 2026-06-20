@@ -43,7 +43,7 @@ function FieldMessage({
   return (
     <p
       id={id}
-      className={`min-h-4 mt-1 text-[11px] leading-4 ${tone === "error" ? "text-red-600" : "text-gray-500"
+      className={`min-h-4 mt-1 text-[11px] leading-4 ${tone === "error" ? "text-destructive" : "text-muted-foreground"
         }`}
       aria-live="polite"
     >
@@ -187,28 +187,28 @@ export function Login() {
   }, []);
 
   return (
-    <div className="flex min-h-screen w-full bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 items-center justify-center p-4">
-      <div className="flex w-full max-w-5xl min-h-[640px] lg:h-[640px] shadow-2xl rounded-3xl overflow-hidden">
+    <div className="flex min-h-screen w-full    to-cyan-50 items-center justify-center p-4">
+      <div className="flex w-full max-w-5xl min-h-[640px] lg:h-[640px] shadow-2xl rounded-lg overflow-hidden">
         {/* LEFT - LOGIN FORM */}
         <div className="flex flex-col w-full lg:w-1/2 bg-white p-6 lg:p-10 relative">
           {/* Logo */}
           <div className="flex items-center gap-3 mb-6">
-            <div className="h-10 w-10 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center shadow-xl border border-white/20">
+            <div className="h-10 w-10 bg-white/10 backdrop-blur-md rounded-md flex items-center justify-center shadow-xl border border-white/20">
               <img src="/logo_img.svg" alt="Logo" className="h-7 w-7 object-contain" />
             </div>
             <div>
-              <h1 className="font-bold text-emerald-800 text-2xl leading-tight">
+              <h1 className="font-bold text-primary text-2xl leading-tight">
                 Dr Fauzia Ishaq Clinic
               </h1>
-              <p className="text-xs text-emerald-600 font-medium tracking-wide">CLINICAL EXCELLENCE</p>
+              <p className="text-xs text-primary font-medium tracking-wide">CLINICAL EXCELLENCE</p>
             </div>
           </div>
 
-          <h2 className="font-bold text-2xl text-gray-800 mb-1">Welcome Back!</h2>
-          <p className="text-sm text-gray-500 mb-3">Sign in to access your dashboard</p>
+          <h2 className="font-bold text-2xl text-foreground mb-1">Welcome Back!</h2>
+          <p className="text-sm text-muted-foreground mb-3">Sign in to access your dashboard</p>
           {forceLogoutNotice ? (
-            <div className="mb-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2">
-              <p className="text-xs font-semibold text-amber-700">
+            <div className="mb-3 rounded-xl border border-warning/40 bg-warning/15 px-3 py-2">
+              <p className="text-xs font-semibold text-warning-foreground">
                 You were signed out by an administrator. Please sign in again.
               </p>
             </div>
@@ -218,11 +218,11 @@ export function Login() {
           <div className="flex flex-col gap-3 flex-1">
             <div>
               <div className="flex items-center justify-between">
-                <label htmlFor="login-userCode" className="block text-xs font-medium text-gray-700">
+                <label htmlFor="login-userCode" className="block text-xs font-medium text-foreground">
                   User Code
                 </label>
                 {profileVerified && (
-                  <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700 border border-emerald-200">
+                  <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary border border-primary/30">
                     Verified
                   </span>
                 )}
@@ -246,17 +246,17 @@ export function Login() {
                   autoComplete="username"
                   aria-invalid={Boolean(userCodeError)}
                   aria-describedby="login-userCode-help"
-                  className={`w-full h-11 px-4 pl-11 pr-11 text-gray-700 text-sm bg-gray-50 border rounded-xl outline-none transition-colors focus:ring-2 ${userCodeError
-                    ? "border-red-300 focus:ring-red-200 focus:border-red-400"
-                    : "border-gray-200 focus:ring-emerald-500 focus:border-emerald-500"
+                  className={`w-full h-11 px-4 pl-11 pr-11 text-foreground text-sm bg-muted border rounded-xl outline-none transition-colors focus:ring-2 ${userCodeError
+                    ? "border-destructive/30 focus:ring-ring/20 focus:border-ring"
+                    : "border-border focus:ring-ring/20 focus:border-ring"
                     }`}
                 />
                 <User
-                  className={`absolute left-3.5 top-3.5 h-5 w-5 ${userCodeError ? "text-red-500" : "text-gray-400"}`}
+                  className={`absolute left-3.5 top-3.5 h-5 w-5 ${userCodeError ? "text-destructive" : "text-muted-foreground"}`}
                   aria-hidden="true"
                 />
                 {Boolean(userCodeError) && !isFetchingInfo && (
-                  <AlertCircle className="absolute right-3.5 top-3.5 h-5 w-5 text-red-500" aria-hidden="true" />
+                  <AlertCircle className="absolute right-3.5 top-3.5 h-5 w-5 text-destructive" aria-hidden="true" />
                 )}
                 {isFetchingInfo && !name && !userCodeError && (
                   <div className="absolute right-3.5 top-3.5">
@@ -280,7 +280,7 @@ export function Login() {
                         setUserCode(code);
                         setTouched((prev) => ({ ...prev, userCode: true }));
                       }}
-                      className="px-2 py-1 rounded-lg text-[10px] font-semibold border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                      className="px-2 py-1 rounded-lg text-[10px] font-semibold border border-primary/30 bg-primary/10 text-primary hover:bg-primary/10"
                     >
                       {code}
                     </button>
@@ -293,7 +293,7 @@ export function Login() {
                       }
                       setRecentCodes([]);
                     }}
-                    className="px-2 py-1 rounded-lg text-[10px] font-semibold border border-gray-200 bg-white text-gray-500 hover:bg-gray-100"
+                    className="px-2 py-1 rounded-lg text-[10px] font-semibold border border-border bg-white text-muted-foreground hover:bg-muted"
                   >
                     Clear recent
                   </button>
@@ -302,7 +302,7 @@ export function Login() {
             </div>
 
             <div>
-              <label htmlFor="login-name" className="block text-xs font-medium text-gray-700">
+              <label htmlFor="login-name" className="block text-xs font-medium text-foreground">
                 Full Name
               </label>
               <input
@@ -313,12 +313,12 @@ export function Login() {
                 tabIndex={-1}
                 placeholder="Auto-filled after verification"
                 autoComplete="off"
-                className="w-full h-11 mt-1 px-4 text-gray-700 text-sm bg-gray-50 border border-gray-200 rounded-xl cursor-default"
+                className="w-full h-11 mt-1 px-4 text-foreground text-sm bg-muted border border-border rounded-xl cursor-default"
               />
             </div>
 
             <div>
-              <label htmlFor="login-designation" className="block text-xs font-medium text-gray-700">
+              <label htmlFor="login-designation" className="block text-xs font-medium text-foreground">
                 Designation
               </label>
               <input
@@ -329,12 +329,12 @@ export function Login() {
                 tabIndex={-1}
                 placeholder="Auto-filled after verification"
                 autoComplete="off"
-                className="w-full h-11 mt-1 px-4 text-gray-700 text-sm bg-gray-50 border border-gray-200 rounded-xl cursor-default"
+                className="w-full h-11 mt-1 px-4 text-foreground text-sm bg-muted border border-border rounded-xl cursor-default"
               />
             </div>
 
             <div>
-              <label htmlFor="login-password" className="block text-xs font-medium text-gray-700">
+              <label htmlFor="login-password" className="block text-xs font-medium text-foreground">
                 Password
               </label>
               <div className="relative mt-1">
@@ -356,19 +356,19 @@ export function Login() {
                   autoComplete="current-password"
                   aria-invalid={Boolean(passwordError)}
                   aria-describedby="login-password-help"
-                  className={`w-full h-11 px-4 pl-11 pr-11 text-gray-700 text-sm bg-gray-50 border rounded-xl outline-none transition-colors focus:ring-2 ${passwordError
-                    ? "border-red-300 focus:ring-red-200 focus:border-red-400"
-                    : "border-gray-200 focus:ring-emerald-500 focus:border-emerald-500"
+                  className={`w-full h-11 px-4 pl-11 pr-11 text-foreground text-sm bg-muted border rounded-xl outline-none transition-colors focus:ring-2 ${passwordError
+                    ? "border-destructive/30 focus:ring-ring/20 focus:border-ring"
+                    : "border-border focus:ring-ring/20 focus:border-ring"
                     }`}
                 />
                 <Lock
-                  className={`absolute left-3.5 top-3.5 h-5 w-5 ${passwordError ? "text-red-500" : "text-gray-400"}`}
+                  className={`absolute left-3.5 top-3.5 h-5 w-5 ${passwordError ? "text-destructive" : "text-muted-foreground"}`}
                   aria-hidden="true"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-3.5 text-gray-400 hover:text-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded"
+                  className="absolute right-3.5 top-3.5 text-muted-foreground hover:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -385,7 +385,7 @@ export function Login() {
             <button
               onClick={handleSubmit}
               disabled={isLoading || isFetchingInfo}
-              className="w-full h-11 mt-2 text-white font-semibold bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl hover:from-emerald-700 hover:to-teal-700 transition-all shadow-lg disabled:opacity-50"
+              className="w-full h-11 mt-2 text-white font-semibold    rounded-xl hover: hover: transition-all shadow-lg disabled:opacity-50"
             >
               {isLoading ? (
                 <div className="flex items-center justify-center gap-2">
@@ -404,21 +404,21 @@ export function Login() {
           </div>
 
           <div className="mt-auto pt-10">
-            <p className="text-xs text-gray-400 text-center">
+            <p className="text-xs text-muted-foreground text-center">
               Developed by{" "}
-              <span className="font-semibold text-emerald-600">Muhammad Abdul Rehman</span>
+              <span className="font-semibold text-primary">Muhammad Abdul Rehman</span>
             </p>
           </div>
         </div>
 
         {/* RIGHT - QUOTES */}
-        <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600 items-center justify-center p-12 relative overflow-hidden">
+        <div className="hidden lg:flex w-1/2    to-cyan-600 items-center justify-center p-12 relative overflow-hidden">
           <div className="absolute top-0 left-0 w-64 h-64 bg-white/10 rounded-full -translate-x-32 -translate-y-32" />
           <div className="absolute bottom-0 right-0 w-96 h-96 bg-white/10 rounded-full translate-x-48 translate-y-48" />
 
           <div className="relative z-10 text-center">
             <div className="mb-8 flex justify-center">
-              <div className="h-40 w-40 bg-white/20 backdrop-blur-md rounded-3xl flex items-center justify-center shadow-2xl animate-float border border-white/30">
+              <div className="h-40 w-40 bg-white/20 backdrop-blur-md rounded-lg flex items-center justify-center shadow-2xl animate-float border border-white/30">
                 <img src="/logo_img.svg" alt="Big Logo" className="h-28 w-28 object-contain drop-shadow-2xl" />
               </div>
             </div>

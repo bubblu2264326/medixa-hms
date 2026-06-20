@@ -27,13 +27,13 @@ import { useState, useEffect, useMemo } from "react";
 const SidebarItem = ({ href, icon: Icon, label, active }: { href: string; icon: any; label: string; active: boolean }) => (
   <Link
     href={href}
-    className={`flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 group ${
+    className={`flex items-center gap-3 px-4 py-3 rounded-md transition-all duration-200 group ${
       active 
-        ? "bg-emerald-600 text-white shadow-lg shadow-emerald-200" 
-        : "text-slate-500 hover:bg-emerald-50 hover:text-emerald-700"
+        ? "bg-primary text-white shadow-lg " 
+        : "text-muted-foreground hover:bg-primary/10 hover:text-primary"
     }`}
   >
-    <Icon className={`w-5 h-5 ${active ? "text-white" : "group-hover:text-emerald-600"}`} />
+    <Icon className={`w-5 h-5 ${active ? "text-white" : "group-hover:text-primary"}`} />
     <span className="text-sm font-semibold">{label}</span>
   </Link>
 );
@@ -113,17 +113,17 @@ export const AdminSidebar = () => {
     }, [pathname, menuGroups]);
 
     return (
-        <aside className="w-72 h-screen bg-white border-r border-slate-100 flex flex-col p-6 sticky top-0">
+        <aside className="w-72 h-screen bg-white border-r border-border flex flex-col p-6 sticky top-0">
             {/* Clinic Branding */}
             <div className="flex items-center gap-3 mb-10 px-2">
-                <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center border border-emerald-100/50">
+                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center border border-primary/30/50">
                     <Image src="/logo.png" alt="Logo" width={24} height={24} />
                 </div>
                 <div>
-                     <h1 className="text-sm font-bold bg-gradient-to-r from-emerald-700 to-teal-800 bg-clip-text text-transparent leading-none">
+                     <h1 className="text-sm font-bold     text-foreground leading-none">
                         Fouzia Ishaq Clinic
                      </h1>
-                     <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Admin Portal</p>
+                     <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-1">Admin Portal</p>
                 </div>
             </div>
 
@@ -138,7 +138,7 @@ export const AdminSidebar = () => {
                     />
                 </div>
 
-                <div className="h-px bg-slate-100 my-2 mx-4" />
+                <div className="h-px bg-muted my-2 mx-4" />
 
                 {menuGroups.map((group, idx) => {
                     const isExpanded = !!expandedGroups[group.title];
@@ -146,7 +146,7 @@ export const AdminSidebar = () => {
                         <div key={idx} className="space-y-1">
                             <button 
                                 onClick={() => toggleGroup(group.title)}
-                                className="w-full flex items-center justify-between px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-emerald-700 hover:bg-emerald-50/50 rounded-xl transition-all"
+                                className="w-full flex items-center justify-between px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground hover:text-primary hover:bg-primary/10/50 rounded-xl transition-all"
                             >
                                 <span>{group.title}</span>
                                 {isExpanded ? (
@@ -174,11 +174,11 @@ export const AdminSidebar = () => {
                 })}
             </nav>
 
-            <div className="mt-auto border-t border-slate-100 pt-6 flex flex-col gap-4">
+            <div className="mt-auto border-t border-border pt-6 flex flex-col gap-4">
                  {/* Live Session Status */}
-                 <div className="px-4 py-2 bg-emerald-50/50 border border-emerald-100/50 rounded-xl flex items-center gap-2">
-                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
-                    <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">Live Session</span>
+                 <div className="px-4 py-2 bg-primary/10/50 border border-primary/30/50 rounded-xl flex items-center gap-2">
+                    <div className="w-2 h-2 bg-primary rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                    <span className="text-[10px] font-bold text-primary uppercase tracking-wider">Live Session</span>
                  </div>
 
                  {/* User Profile Info */}
@@ -199,7 +199,7 @@ export const AdminSidebar = () => {
                             router.refresh();
                         }
                     }}
-                    className="flex items-center gap-3 px-4 py-3 rounded-2xl text-rose-500 hover:bg-rose-50 transition-all w-full border border-transparent hover:border-rose-100"
+                    className="flex items-center gap-3 px-4 py-3 rounded-md text-destructive hover:bg-destructive/10 transition-all w-full border border-transparent hover:border-destructive/30"
                  >
                     <LogOut className="w-5 h-5" />
                     <span className="text-sm font-bold">Logout</span>

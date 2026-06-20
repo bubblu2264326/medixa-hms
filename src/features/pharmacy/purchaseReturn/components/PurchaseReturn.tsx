@@ -203,7 +203,7 @@ export const PurchaseReturn: React.FC = () => {
                                         <th className="px-8 py-6 text-right">Unit Cost</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-50">
+                                <tbody className="divide-y divide-border">
                                     {selectedInvoice.items.map((item) => (
                                         <tr key={item.id} className="group hover:bg-muted transition-colors">
                                             <td className="px-8 py-6">
@@ -244,7 +244,7 @@ export const PurchaseReturn: React.FC = () => {
                             <div className="absolute top-0 right-0 w-64 h-64 bg-destructive/10 blur-[100px] -mr-32 -mt-32"></div>
 
                             <h2 className="text-2xl font-semibold flex items-center gap-3 relative z-10 tracking-tight">
-                                <History size={24} className="text-rose-400" /> Finalize Return
+                                <History size={24} className="text-destructive" /> Finalize Return
                             </h2>
 
                             <div className="space-y-4 relative z-10">
@@ -264,7 +264,7 @@ export const PurchaseReturn: React.FC = () => {
                                 </div>
                                 <div className="pt-6 border-t border-white/10 flex justify-between items-end">
                                     <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-1">Return Value</span>
-                                    <span className="text-4xl font-semibold text-rose-400 tracking-tighter">
+                                    <span className="text-4xl font-semibold text-destructive tracking-tighter">
                                         Rs. {selectedInvoice.items.reduce((acc, item) => acc + (item.return_quantity || 0) * item.unit_cost, 0).toLocaleString()}
                                     </span>
                                 </div>
@@ -284,7 +284,7 @@ export const PurchaseReturn: React.FC = () => {
                             </button>
 
                             <div className="flex items-start gap-3 bg-destructive/10 p-5 rounded-lg border border-rose-500/20 relative z-10">
-                                <AlertCircle className="text-rose-400 shrink-0 mt-0.5" size={18} />
+                                <AlertCircle className="text-destructive shrink-0 mt-0.5" size={18} />
                                 <p className="text-[11px] text-white/85 leading-relaxed font-bold uppercase tracking-tight">
                                     Decreases stock levels & records a supplier credit transaction.
                                 </p>

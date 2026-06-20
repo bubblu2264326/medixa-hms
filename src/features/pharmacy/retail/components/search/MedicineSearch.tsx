@@ -94,15 +94,15 @@ export const MedicineSearch: React.FC<MedicineSearchProps> = ({
             px-[15px] py-[12px] 
             text-[16px]
             bg-white/70 backdrop-blur-md
-            border-2 border-slate-200/50
+            border-2 border-border/50
             rounded-xl 
             outline-none 
             transition-all duration-300
-            placeholder:text-slate-400 placeholder:italic
+            placeholder:text-muted-foreground placeholder:italic
             focus:border-ring/50
             focus:bg-white/90
             focus:shadow-[0_8px_30px_rgb(0,0,0,0.04),0_0_0_4px_rgba(99,102,241,0.1)]
-            group-hover:border-slate-300/50
+            group-hover:border-input/50
           "
         />
         {isSearching && (
@@ -122,7 +122,7 @@ export const MedicineSearch: React.FC<MedicineSearchProps> = ({
             max-h-[450px] 
             overflow-y-auto overflow-x-hidden
             bg-white/80 backdrop-blur-xl
-            border border-slate-200/50
+            border border-border/50
             rounded-md
             shadow-[0_20px_50px_rgba(0,0,0,0.15)]
             z-[5000]
@@ -161,10 +161,10 @@ export const MedicineSearch: React.FC<MedicineSearchProps> = ({
                   ${index === focusedIndex
                     ? "bg-primary border-ring text-white shadow-lg scale-[1.01] z-10"
                     : isDisabled
-                      ? "bg-slate-100/80 border-slate-200 text-slate-500 shadow-sm"
+                      ? "bg-muted/80 border-border text-muted-foreground shadow-sm"
                       : isLowStock
-                        ? "bg-amber-50/80 border-amber-200 text-slate-800 shadow-sm hover:bg-amber-50"
-                        : "bg-white/50 border-slate-100/50 hover:bg-white hover:border-primary/20 text-slate-800 shadow-sm"}
+                        ? "bg-warning/15/80 border-warning/40 text-foreground shadow-sm hover:bg-warning/15"
+                        : "bg-white/50 border-border/50 hover:bg-white hover:border-primary/20 text-foreground shadow-sm"}
                 `}
               >
                 {/* 1. Main Info: Brand & Generic */}
@@ -172,11 +172,11 @@ export const MedicineSearch: React.FC<MedicineSearchProps> = ({
                   <span className="font-semibold text-[14px] tracking-tight leading-tight truncate">
                     {medicine.brand_name}
                   </span>
-                  <span className={`text-[10px] font-bold uppercase tracking-widest truncate ${index === focusedIndex ? 'text-primary-foreground/80' : 'text-slate-400'}`}>
+                  <span className={`text-[10px] font-bold uppercase tracking-widest truncate ${index === focusedIndex ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
                     {medicine.generic_name}
                   </span>
                   {medicine.manufacturer && (
-                    <span className={`text-[10px] font-medium truncate mt-0.5 ${index === focusedIndex ? 'text-primary-foreground/90' : 'text-slate-500'}`}>
+                    <span className={`text-[10px] font-medium truncate mt-0.5 ${index === focusedIndex ? 'text-primary-foreground/90' : 'text-muted-foreground'}`}>
                       By: {medicine.manufacturer}
                     </span>
                   )}
@@ -184,10 +184,10 @@ export const MedicineSearch: React.FC<MedicineSearchProps> = ({
 
                 {/* 2. Dosage & Form */}
                 <div className="shrink-0 flex flex-col items-center">
-                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-md uppercase tracking-tighter ${index === focusedIndex ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-md uppercase tracking-tighter ${index === focusedIndex ? 'bg-white/20 text-white' : 'bg-muted text-muted-foreground'}`}>
                     {medicine.dosage_value}{medicine.dosage_unit}
                   </span>
-                  <span className={`text-[9px] font-bold uppercase opacity-60 mt-0.5 ${index === focusedIndex ? 'text-primary-foreground/90' : 'text-slate-400'}`}>
+                  <span className={`text-[9px] font-bold uppercase opacity-60 mt-0.5 ${index === focusedIndex ? 'text-primary-foreground/90' : 'text-muted-foreground'}`}>
                     {medicine.form}
                   </span>
                 </div>
@@ -196,32 +196,32 @@ export const MedicineSearch: React.FC<MedicineSearchProps> = ({
                 <div className="shrink-0 hidden md:flex flex-col">
                   {medicine.batch_number ? (
                     <>
-                      <span className={`text-[9px] font-semibold uppercase tracking-widest leading-none mb-1 ${index === focusedIndex ? 'text-primary-foreground/80' : 'text-slate-400'}`}>Lot / Batch</span>
+                      <span className={`text-[9px] font-semibold uppercase tracking-widest leading-none mb-1 ${index === focusedIndex ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>Lot / Batch</span>
                       <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${index === focusedIndex ? 'bg-black/20 text-primary-foreground/90' : 'bg-primary/10 text-primary'}`}>
                         {medicine.batch_number}
                       </span>
                       {medicine.batch_code ? (
-                        <span className={`mt-1 text-[9px] font-mono ${index === focusedIndex ? 'text-primary-foreground/90' : 'text-slate-400'}`}>
+                        <span className={`mt-1 text-[9px] font-mono ${index === focusedIndex ? 'text-primary-foreground/90' : 'text-muted-foreground'}`}>
                           Ref: {medicine.batch_code}
                         </span>
                       ) : null}
                     </>
                   ) : (
-                    <span className="text-[10px] text-slate-300 italic">No lot</span>
+                    <span className="text-[10px] text-muted-foreground italic">No lot</span>
                   )}
                 </div>
 
                 {/* 4. Availability & Expiry */}
                 <div className="shrink-0 flex gap-6 px-4 border-l border-current/10">
                   <div className="flex flex-col">
-                    <span className={`text-[9px] font-semibold uppercase tracking-widest leading-none mb-1 ${index === focusedIndex ? 'text-primary-foreground/80' : 'text-slate-400'}`}>Stock</span>
+                    <span className={`text-[9px] font-semibold uppercase tracking-widest leading-none mb-1 ${index === focusedIndex ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>Stock</span>
                     <div className="flex items-center gap-1.5">
                       <div className={`w-1.5 h-1.5 rounded-full ${
                         isExpired || isOutOfStock
-                          ? 'bg-rose-500'
+                          ? 'bg-destructive'
                           : isLowStock
-                            ? 'bg-amber-400 animate-pulse'
-                            : 'bg-emerald-400'
+                            ? 'bg-warning animate-pulse'
+                            : 'bg-primary'
                       }`}></div>
                       <span className="text-xs font-semibold">
                         {formatStockQuantity(available, medicine)}
@@ -231,25 +231,25 @@ export const MedicineSearch: React.FC<MedicineSearchProps> = ({
                       index === focusedIndex
                         ? 'text-primary-foreground/90'
                         : isExpired || isOutOfStock
-                          ? 'text-rose-600'
+                          ? 'text-destructive'
                           : isLowStock
-                            ? 'text-amber-600'
-                            : 'text-emerald-600'
+                            ? 'text-warning-foreground'
+                            : 'text-primary'
                     }`}>
                       {stockLabel}
                     </span>
                   </div>
 
                   <div className="flex flex-col">
-                    <span className={`text-[9px] font-semibold uppercase tracking-widest leading-none mb-1 ${index === focusedIndex ? 'text-primary-foreground/80' : 'text-slate-400'}`}>Exp</span>
-                    <span className={`text-xs font-semibold ${index === focusedIndex ? 'text-white' : (medicine.expiry_date && new Date(medicine.expiry_date) < new Date() ? 'text-rose-500' : 'text-slate-600')}`}>
+                    <span className={`text-[9px] font-semibold uppercase tracking-widest leading-none mb-1 ${index === focusedIndex ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>Exp</span>
+                    <span className={`text-xs font-semibold ${index === focusedIndex ? 'text-white' : (medicine.expiry_date && new Date(medicine.expiry_date) < new Date() ? 'text-destructive' : 'text-muted-foreground')}`}>
                       {medicine.expiry_date ? formatDateInTimezone(medicine.expiry_date, systemTimezone, { month: 'short', year: '2-digit' }) : 'N/A'}
                     </span>
                   </div>
                 </div>
 
                 {/* 5. Price */}
-                <div className={`shrink-0 min-w-[100px] px-3 py-1.5 rounded-lg flex items-center justify-center font-semibold text-[16px] tracking-tighter ${index === focusedIndex ? 'bg-white text-primary' : 'bg-emerald-50 text-emerald-600'}`}>
+                <div className={`shrink-0 min-w-[100px] px-3 py-1.5 rounded-lg flex items-center justify-center font-semibold text-[16px] tracking-tighter ${index === focusedIndex ? 'bg-white text-primary' : 'bg-primary/10 text-primary'}`}>
                   PKR {(medicine.batch_sale_price ?? medicine.price ?? 0).toFixed(2)}
                 </div>
               </div>

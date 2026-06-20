@@ -139,7 +139,7 @@ export function SettingsView() {
                 onClick={() => setMode('browser')}
                 className={`flex-1 rounded-xl px-4 py-3 text-sm font-bold border transition ${
                   settings.mode === 'browser'
-                    ? 'bg-white border-emerald-300 text-primary shadow-sm'
+                    ? 'bg-white border-primary/30 text-primary shadow-sm'
                     : 'bg-transparent border-border text-muted-foreground hover:bg-white'
                 }`}
               >
@@ -150,7 +150,7 @@ export function SettingsView() {
                 onClick={() => setMode('silent_qz')}
                 className={`flex-1 rounded-xl px-4 py-3 text-sm font-bold border transition ${
                   settings.mode === 'silent_qz'
-                    ? 'bg-white border-emerald-300 text-primary shadow-sm'
+                    ? 'bg-white border-primary/30 text-primary shadow-sm'
                     : 'bg-transparent border-border text-muted-foreground hover:bg-white'
                 }`}
               >

@@ -94,26 +94,26 @@ export const InvoiceSearchModal: React.FC<InvoiceSearchModalProps> = ({ onClose,
         role="dialog"
         aria-modal="true"
         tabIndex={-1}
-        className="w-full max-w-4xl rounded-[2.5rem] border border-white/70 bg-white shadow-2xl overflow-hidden flex flex-col max-h-[90vh] outline-none"
+        className="w-full max-w-4xl rounded-lg border border-white/70 bg-white shadow-2xl overflow-hidden flex flex-col max-h-[90vh] outline-none"
       >
         {/* Header */}
-        <div className="p-8 border-b border-slate-100 bg-slate-50/50">
+        <div className="p-8 border-b border-border bg-muted/50">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.18em] text-indigo-600">
+              <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
                 <Search size={14} />
                 Invoice Retrieval
               </div>
-              <h3 className="mt-2 text-3xl font-black tracking-tight text-slate-900">
+              <h3 className="mt-2 text-3xl font-semibold tracking-tight text-foreground">
                 Search Invoices
               </h3>
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 text-sm text-muted-foreground">
                 Find a completed sale to initiate a return.
               </p>
             </div>
             <button
               onClick={onClose}
-              className="p-3 rounded-2xl border border-slate-200 bg-white text-slate-400 hover:text-slate-900 hover:border-slate-300 transition-all"
+              className="p-3 rounded-md border border-border bg-white text-muted-foreground hover:text-foreground hover:border-input transition-all"
             >
               <X size={24} />
             </button>
@@ -121,7 +121,7 @@ export const InvoiceSearchModal: React.FC<InvoiceSearchModalProps> = ({ onClose,
 
           {/* Search Bar */}
           <div className="relative group">
-            <div className="absolute inset-y-0 left-6 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-600 transition-colors">
+            <div className="absolute inset-y-0 left-6 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
               <Search size={20} />
             </div>
             <input
@@ -129,29 +129,29 @@ export const InvoiceSearchModal: React.FC<InvoiceSearchModalProps> = ({ onClose,
               placeholder="Search by Invoice Number or Patient Name..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-16 pl-16 pr-6 bg-white border-2 border-slate-100 rounded-[1.25rem] text-lg font-semibold placeholder:text-slate-400 focus:outline-none focus:border-indigo-500 focus:shadow-lg focus:shadow-indigo-500/10 transition-all"
+              className="w-full h-16 pl-16 pr-6 bg-white border-2 border-border rounded-[1.25rem] text-lg font-semibold placeholder:text-muted-foreground focus:outline-none focus:border-ring focus:shadow-lg focus: transition-all"
               autoFocus
             />
             {loading && (
               <div className="absolute inset-y-0 right-6 flex items-center">
-                <Loader2 className="animate-spin text-indigo-600" size={20} />
+                <Loader2 className="animate-spin text-primary" size={20} />
               </div>
             )}
           </div>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-8 bg-slate-50/30">
+        <div className="flex-1 overflow-y-auto p-8 bg-muted/30">
           {transactions.length === 0 && !loading ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center gap-4 bg-white rounded-[2rem] border-2 border-dashed border-slate-200">
-              <div className="p-4 bg-slate-50 rounded-full text-slate-300">
+            <div className="flex flex-col items-center justify-center py-20 text-center gap-4 bg-white rounded-lg border-2 border-dashed border-border">
+              <div className="p-4 bg-muted rounded-full text-muted-foreground">
                 <FileText size={48} />
               </div>
               <div>
-                <p className="text-xl font-bold text-slate-800">
+                <p className="text-xl font-bold text-foreground">
                   {searchQuery ? 'No matching invoices found' : 'Start typing to search'}
                 </p>
-                <p className="text-sm text-slate-500 mt-1 uppercase tracking-widest font-bold">
+                <p className="text-sm text-muted-foreground mt-1 uppercase tracking-widest font-bold">
                   {searchQuery ? 'Check the reference number and try again' : 'Enter invoice # or patient name'}
                 </p>
               </div>
@@ -161,30 +161,30 @@ export const InvoiceSearchModal: React.FC<InvoiceSearchModalProps> = ({ onClose,
               {transactions.map((tx) => (
                 <div 
                   key={tx.id} 
-                  className="group relative bg-white border border-slate-200 rounded-3xl p-6 hover:border-indigo-400 hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-300"
+                  className="group relative bg-white border border-border rounded-lg p-6 hover:border-indigo-400 hover:shadow-xl hover: transition-all duration-300"
                 >
                   <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex min-w-0 items-start gap-5">
-                      <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 group-hover:scale-110 transition-transform duration-300">
+                      <div className="w-12 h-12 rounded-md bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-300">
                         <FileText size={24} />
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Invoice</span>
-                          <span className="font-mono font-bold text-slate-900">{tx.reference}</span>
+                          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Invoice</span>
+                          <span className="font-mono font-bold text-foreground">{tx.reference}</span>
                         </div>
                         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
-                          <div className="flex items-center gap-1.5 text-slate-600">
-                            <User size={14} className="text-slate-400" />
+                          <div className="flex items-center gap-1.5 text-muted-foreground">
+                            <User size={14} className="text-muted-foreground" />
                             <span className="font-semibold">
                               {tx.customerId ? `Patient: ${tx.customerId}` : 'Walk-in Customer'}
                             </span>
                           </div>
-                          <div className="flex items-center gap-1.5 text-slate-600">
-                            <Calendar size={14} className="text-slate-400" />
+                          <div className="flex items-center gap-1.5 text-muted-foreground">
+                            <Calendar size={14} className="text-muted-foreground" />
                             <span>{formatDateTimeInTimezone(tx.timestamp, systemTimezone)}</span>
                           </div>
-                          <div className="flex items-center gap-1.5 text-emerald-600 font-bold">
+                          <div className="flex items-center gap-1.5 text-primary font-bold">
                             <ShoppingBag size={14} />
                             <span>{tx.items.length} Items</span>
                           </div>
@@ -194,14 +194,14 @@ export const InvoiceSearchModal: React.FC<InvoiceSearchModalProps> = ({ onClose,
 
                     <div className="flex w-full items-center justify-between gap-6 sm:w-auto sm:justify-end">
                       <div className="shrink-0 text-right">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Total Bill</p>
-                        <div className="text-lg font-black text-indigo-600">
+                        <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.2em] mb-1">Total Bill</p>
+                        <div className="text-lg font-semibold text-primary">
                           {formatCurrency(tx.payment.payableAmount)}
                         </div>
                       </div>
                       <button
                         onClick={() => onSelect(tx)}
-                        className="flex items-center gap-2 shrink-0 px-8 py-4 bg-slate-900 text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-indigo-600 hover:shadow-lg hover:shadow-indigo-500/20 active:scale-95 transition-all duration-300"
+                        className="flex items-center gap-2 shrink-0 px-8 py-4 bg-foreground text-white rounded-md font-semibold text-sm uppercase tracking-widest hover:bg-primary hover:shadow-lg hover: active:scale-95 transition-all duration-300"
                       >
                         Select for Return
                         <ArrowRight size={18} />
@@ -215,10 +215,10 @@ export const InvoiceSearchModal: React.FC<InvoiceSearchModalProps> = ({ onClose,
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-slate-100 bg-slate-50/30 flex justify-end">
+        <div className="p-6 border-t border-border bg-muted/30 flex justify-end">
           <button
             onClick={onClose}
-            className="px-6 py-3 text-sm font-bold text-slate-500 hover:text-slate-900 transition-colors"
+            className="px-6 py-3 text-sm font-bold text-muted-foreground hover:text-foreground transition-colors"
           >
             Cancel
           </button>

@@ -62,11 +62,11 @@ export const QuantityInput = React.forwardRef<HTMLInputElement, QuantityInputPro
   return (
     <div className="flex flex-col gap-1.5 flex-1 relative group">
       <div className="flex items-center justify-between px-0.5">
-        <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.15em]">
+        <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-[0.15em]">
           {label}
         </label>
         {available !== undefined && (
-          <span className="text-[10px] font-bold text-slate-400 opacity-80 flex items-center gap-1 bg-slate-100 px-1.5 py-0.5 rounded-md">
+          <span className="text-[10px] font-bold text-muted-foreground opacity-80 flex items-center gap-1 bg-muted px-1.5 py-0.5 rounded-md">
             Avl: <span className="text-primary">{available}</span>
           </span>
         )}
@@ -74,7 +74,7 @@ export const QuantityInput = React.forwardRef<HTMLInputElement, QuantityInputPro
 
       <div
         data-testid={testId ? `${testId}-field` : undefined}
-        className={`flex items-stretch bg-white border-2 border-slate-200/60 rounded-md overflow-hidden focus-within:border-ring/50 focus-within: transition-all ${
+        className={`flex items-stretch bg-white border-2 border-border/60 rounded-md overflow-hidden focus-within:border-ring/50 focus-within: transition-all ${
           limitFlash
             ? 'border-rose-500 focus-within:border-rose-500 shadow-[0_4px_24px_rgba(244,63,94,0.22)]'
             : ''
@@ -84,7 +84,7 @@ export const QuantityInput = React.forwardRef<HTMLInputElement, QuantityInputPro
           type="button"
           onClick={decrement}
           data-testid={testId ? `${testId}-dec` : undefined}
-          className="px-3 bg-slate-50 hover:bg-slate-100 text-slate-500 font-bold border-r border-slate-200 transition-colors"
+          className="px-3 bg-muted hover:bg-muted text-muted-foreground font-bold border-r border-border transition-colors"
         >
           -
         </button>
@@ -97,15 +97,15 @@ export const QuantityInput = React.forwardRef<HTMLInputElement, QuantityInputPro
           min={min}
           max={max}
           data-testid={testId ? `${testId}-input` : undefined}
-          className="w-full text-center py-3 text-[16px] font-semibold text-slate-700 outline-none 
-                   [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none placeholder:text-slate-300"
+          className="w-full text-center py-3 text-[16px] font-semibold text-foreground outline-none 
+                   [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none placeholder:text-muted-foreground"
           placeholder="0"
         />
         <button
           type="button"
           onClick={increment}
           data-testid={testId ? `${testId}-inc` : undefined}
-          className="px-3 bg-slate-50 hover:bg-slate-100 text-slate-500 font-bold border-l border-slate-200 transition-colors"
+          className="px-3 bg-muted hover:bg-muted text-muted-foreground font-bold border-l border-border transition-colors"
         >
           +
         </button>

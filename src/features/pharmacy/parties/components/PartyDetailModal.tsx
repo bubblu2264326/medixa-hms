@@ -323,7 +323,7 @@ export function PartyDetailModal({
                           <th className="px-4 py-3 text-right">Balance</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100">
+                      <tbody className="divide-y divide-border">
                         {ledgerWithBalance.map((entry, index) => (
                           <tr key={`${entry.type}-${entry.id}-${index}`}>
                             <td className="px-4 py-3 text-xs font-semibold text-muted-foreground">{fmtDate(entry.date, systemTimezone)}</td>
@@ -450,7 +450,7 @@ export function PartyDetailModal({
                           </tr>
                         )}
                       </thead>
-                      <tbody className="divide-y divide-slate-100">
+                      <tbody className="divide-y divide-border">
                         {supplies.groups.map((group) => {
                           const expanded = expandedGroupId === group.group_id;
                           return (
@@ -506,7 +506,7 @@ export function PartyDetailModal({
                                             <th className="px-3 py-2 text-right">Sub Units</th>
                                           </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-slate-100">
+                                        <tbody className="divide-y divide-border">
                                           {group.children.map((child, index) => (
                                             <tr key={`${group.group_id}-child-${child.medicine_id}-${index}`}>
                                               <td className="px-3 py-2 font-semibold text-foreground">
