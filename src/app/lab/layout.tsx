@@ -35,7 +35,7 @@ export default function LabTechnician({
       {/* Lab Technician Header */}
       <div className="border border-black/30 flex items-center justify-center bg-green-50">
         <h1 className="text-2xl p-4 font-bold text-green-800/80">
-          Lab Technician's View
+          Lab Technician&apos;s View
         </h1>
       </div>
 

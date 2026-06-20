@@ -6,7 +6,7 @@ Authoritative running state of the HMS stabilization effort. Newest entries at t
 - **Branch:** `refactor/hms-stabilization`
 - **Current phase:** **Phase 1 (foundation) — IN PROGRESS.**
 - **Mode:** autonomous, Git-checkpointed (user away). Commit + push every green unit.
-- **Live gate status (after P1·U2):** build ✅ · typecheck ✅ 0 errors · tests ✅ 124/124 · lint ⚠️ 9 errors + 226 warnings (cleanup pending in a later unit).
+- **Live gate status (after P1·U3):** build ✅ · typecheck ✅ 0 errors · tests ✅ 124/124 · lint ✅ **0 errors** + 54 warnings (warnings = mostly react-hooks/exhaustive-deps + unused vars; non-blocking, deferred).
 
 ## Baseline (recorded 2026-06-20, before Phase 1 edits)
 | Gate | State |
@@ -47,4 +47,5 @@ See `audit/README.md` for the full P0/P1/P2 punch-list. Headlines:
 ## Unit log
 *(append one entry per committed unit: what changed, why, tests, commit hash)*
 - **P1·U1 — tooling: ESLint scope fix.** Moved `ignores` to a standalone flat-config object so it applies globally; added `coverage/`, `db/seed/`, `database/snapshot/`. Lint errors 976→9, warnings 9316→226 (eliminated `.next/` noise). Behavior-preserving (config only). Commit `c8b7440`.
-- **P1·U2 — test: green the test + typecheck bar.** Fixed all 6 failing tests + 3 tsc errors. **Root cause: all were STALE TESTS, zero source/product bugs** (Vitest-4 `toMatchObject<T>` generic removed; Next-16 async `params` Promise; under-mocked `getSystemTimezone()` and `paymentSnapshot` queries causing off-by-one mock ordering; calendar-drifted hardcoded fixtures). 7 test files changed, 0 source files; no assertions weakened (verified: 4 assertion lines changed, all legit; net assertion count unchanged). Now: **`tsc --noEmit` 0 errors, `vitest` 124/124 pass.** Lesson: test suite had rotted — fixtures should not hardcode dates relative to "today", and route dependencies like `getSystemTimezone()` must be stubbed. Commit: _(below)_.
+- **P1·U2 — test: green the test + typecheck bar.** Fixed all 6 failing tests + 3 tsc errors. **Root cause: all were STALE TESTS, zero source/product bugs** (Vitest-4 `toMatchObject<T>` generic removed; Next-16 async `params` Promise; under-mocked `getSystemTimezone()` and `paymentSnapshot` queries causing off-by-one mock ordering; calendar-drifted hardcoded fixtures). 7 test files changed, 0 source files; no assertions weakened (verified: 4 assertion lines changed, all legit; net assertion count unchanged). Now: **`tsc --noEmit` 0 errors, `vitest` 124/124 pass.** Lesson: test suite had rotted — fixtures should not hardcode dates relative to "today", and route dependencies like `getSystemTimezone()` must be stubbed. Commit `faf70e7`.
+- **P1·U3 — lint: green the lint bar (9→0 errors).** Ignored generated TypeDoc output (`docs/**`, was 2 `no-this-alias`). Fixed 7 real source errors, all behavior-preserving: added `.displayName` to 4 `forwardRef` components (product-entry inputs), escaped `'` in `lab/layout.tsx`, nested `{children}` instead of `children=` prop in `pharmacy/layout.tsx`, `useState<Boolean>`→`<boolean>` in `useLaborders.ts`. Verified: build ✅, tests ✅ 124/124, lint 0 errors (warnings 226→54). Commit: _(below)_.

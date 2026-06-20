@@ -20,6 +20,7 @@ const eslintConfig = [
       "out/**",
       "build/**",
       "coverage/**",
+      "docs/**",
       "next-env.d.ts",
       "db/seed/**",
       "database/snapshot/**",

@@ -124,3 +124,5 @@ export const SubQuantityInput = React.forwardRef<HTMLInputElement, SubQuantityIn
     </div>
   );
 });
+
+SubQuantityInput.displayName = "SubQuantityInput";
