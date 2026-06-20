@@ -19,13 +19,17 @@ vi.mock("@/src/lib/server/queueEvents", () => ({
   publishQueueInvalidation: publishQueueInvalidationMock,
 }));
 
-vi.mock("@/src/lib/server/auth", () => ({
-  getAuthenticatedUser: vi.fn(async () => ({
-    user_code: "STAFF-1",
-    role: "Receptionist",
-    name: "Test Staff",
-  })),
-}));
+vi.mock("@/src/lib/server/auth", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/src/lib/server/auth")>();
+  return {
+    ...actual,
+    getAuthenticatedUser: vi.fn(async () => ({
+      user_code: "STAFF-1",
+      role: "Receptionist",
+      name: "Test Staff",
+    })),
+  };
+});
 
 import { GET as getQueue } from "@/src/app/api/queue/route";
 import { PATCH as patchVisit } from "@/src/app/api/visit/route";
@@ -162,7 +166,7 @@ describe("reception API hardening", () => {
       .mockResolvedValueOnce({ rows: [{ visit_id: 44, status: "waiting" }] })
       .mockResolvedValueOnce({ rows: [] });
 
-    const response = await getQueue();
+    const response = await getQueue({} as any);
     const body = await response.json();
 
     expect(response.status).toBe(200);
@@ -179,7 +183,7 @@ describe("reception API hardening", () => {
       .mockRejectedValueOnce({ code: "57014" })
       .mockResolvedValueOnce({ rows: [] });
 
-    const response = await getQueue();
+    const response = await getQueue({} as any);
     const body = await response.json();
 
     expect(response.status).toBe(503);

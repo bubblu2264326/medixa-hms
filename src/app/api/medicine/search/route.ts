@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/database/db';
 import { ApiResponse, Medicine } from '@/src/lib/types';
+import { AuthError, getAuthenticatedUser } from '@/src/lib/server/auth';
 import { getCurrentDateInTimezone, getSystemTimezone } from '@/src/lib/server/systemTimezone';
 
 const SEARCH_SOURCE = `
@@ -74,6 +75,7 @@ const SEARCH_SOURCE = `
 
 export async function GET(request: NextRequest) {
   try {
+    await getAuthenticatedUser(request);
     const timeZone = await getSystemTimezone();
     const localDate = getCurrentDateInTimezone(timeZone);
     const searchParams = request.nextUrl.searchParams;
@@ -165,6 +167,9 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     console.error('Medicine search error:', error);
     return NextResponse.json<ApiResponse>({
       success: false,

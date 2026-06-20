@@ -1,5 +1,6 @@
 
 import { query } from "@/database/db";
+import { AuthError, getAuthenticatedUser } from "@/src/lib/server/auth";
 import { publishQueueInvalidation } from "@/src/lib/server/queueEvents";
 import {
    ACTIVE_ENCOUNTER_BLOCKING_VISIT_STATUSES,
@@ -13,6 +14,7 @@ import { NextRequest, NextResponse } from "next/server";
 export async function PATCH(req: NextRequest) {
    const res = await req.json();
    try {
+      await getAuthenticatedUser(req);
       if (!res.visit_id) {
          return NextResponse.json({ error: "visit_id is required" }, { status: 400 });
       }
@@ -41,6 +43,9 @@ export async function PATCH(req: NextRequest) {
       publishQueueInvalidation("visit-updated");
       return NextResponse.json(v_res.rows[0]);
    } catch (err) {
+      if (err instanceof AuthError) {
+         return NextResponse.json({ error: err.message }, { status: err.status });
+      }
       console.error(err);
       return NextResponse.json({ error: "failed to update visist" }, { status: 500 });
    }
@@ -50,6 +55,7 @@ export async function POST(req: NextRequest) {
    const res = await req.json();
    console.log(res);
    try {
+      await getAuthenticatedUser(req);
       const checkRes = await query(
          "SELECT visit_id FROM visit WHERE patient_id = $1 AND (visit_timestamp > current_date AND visit_timestamp < current_date + interval '1 day') AND status = any($2::text[]) AND is_deleted = false LIMIT 1",
          [res.patient_id, ACTIVE_ENCOUNTER_BLOCKING_VISIT_STATUSES]
@@ -70,6 +76,9 @@ export async function POST(req: NextRequest) {
       publishQueueInvalidation("visit-created");
       return NextResponse.json(v_res.rows[0]);
    } catch (err: any) {
+      if (err instanceof AuthError) {
+         return NextResponse.json({ error: err.message }, { status: err.status });
+      }
       console.error(err);
       return NextResponse.json({ error: err.message || "Internal server error" }, { status: 500 });
    }
@@ -80,6 +89,7 @@ export async function POST(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
    const res = await req.json();
    try {
+      await getAuthenticatedUser(req);
       if (!res.visit_id) {
          return NextResponse.json({ error: "visit_id is required" }, { status: 400 });
       }
@@ -93,6 +103,9 @@ export async function DELETE(req: NextRequest) {
       publishQueueInvalidation("visit-deleted");
       return NextResponse.json(deletedVisit.rows[0], { status: 200 });
    } catch (err) {
+      if (err instanceof AuthError) {
+         return NextResponse.json({ error: err.message }, { status: err.status });
+      }
       console.error(err);
       return NextResponse.json({ error: "failed to delete visit" }, { status: 500 });
    }

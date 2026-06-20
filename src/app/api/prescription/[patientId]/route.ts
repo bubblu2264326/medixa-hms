@@ -1,4 +1,5 @@
 import { query } from "@/database/db";
+import { AuthError, getAuthenticatedUser } from "@/src/lib/server/auth";
 import { NextRequest, NextResponse } from "next/server";
 
 
@@ -6,8 +7,9 @@ import { NextRequest, NextResponse } from "next/server";
 export async function GET(req:NextRequest,{params}:{params:{patientId:string}}){
   const id=(await params).patientId;
   console.log(id);
-  
+
  try {
+  await getAuthenticatedUser(req);
   const res= await query(`SELECT
     v.visit_id,
     p.prescription_id,
@@ -41,6 +43,9 @@ ORDER BY v.visit_id DESC;  -- This should show both visit 36 and visit 1
 
   return NextResponse.json(res.rows,{status:200})
  } catch (err) {
+  if (err instanceof AuthError) {
+    return NextResponse.json({ error: err.message }, { status: err.status });
+  }
   console.error(err);
   return NextResponse.json({error:err},{status:500})
  }

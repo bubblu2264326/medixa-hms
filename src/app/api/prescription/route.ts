@@ -3,9 +3,11 @@
 // app/api/prescription/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import  pool  from "@/database/db"; // adjust according to your DB setup
+import { AuthError, getAuthenticatedUser } from "@/src/lib/server/auth";
 
 export async function POST(req: NextRequest) {
   try {
+    await getAuthenticatedUser(req);
     const { patient_id, prescriptions } = await req.json();
 
     if (!patient_id || !prescriptions?.length) {
@@ -74,6 +76,9 @@ export async function POST(req: NextRequest) {
       client.release();
     }
   } catch (err) {
+    if (err instanceof AuthError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
     console.error("Server error:", err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
@@ -81,7 +86,16 @@ export async function POST(req: NextRequest) {
 
 
 export async function PATCH(req:NextRequest){
-    const data=await req.json();
+    try {
+        await getAuthenticatedUser(req);
+        const data=await req.json();
 
-    return NextResponse.json(data);
+        return NextResponse.json(data);
+    } catch (err) {
+        if (err instanceof AuthError) {
+            return NextResponse.json({ error: err.message }, { status: err.status });
+        }
+        console.error(err);
+        return NextResponse.json({ error: "Server error" }, { status: 500 });
+    }
 }

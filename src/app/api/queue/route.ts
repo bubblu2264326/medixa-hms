@@ -1,6 +1,7 @@
 import pool from "@/database/db";
+import { AuthError, getAuthenticatedUser } from "@/src/lib/server/auth";
 import { ACTIVE_QUEUE_STATUSES, QUEUE_STATEMENT_TIMEOUT_MS } from "@/src/lib/server/queueConfig";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 function getQueueErrorStatus(error: unknown) {
   if (
@@ -13,10 +14,11 @@ function getQueueErrorStatus(error: unknown) {
   return 500;
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const client = await pool.connect();
 
   try {
+    await getAuthenticatedUser(req);
     await client.query("BEGIN");
     await client.query(`SET LOCAL statement_timeout = ${QUEUE_STATEMENT_TIMEOUT_MS}`);
 
@@ -65,6 +67,9 @@ export async function GET() {
     return NextResponse.json(data.rows, { status: 200 });
   } catch (error) {
     await client.query("ROLLBACK");
+    if (error instanceof AuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     console.error(error);
     const status = getQueueErrorStatus(error);
     const message =

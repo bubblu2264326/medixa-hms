@@ -1,8 +1,10 @@
 import { query } from "@/database/db";
+import { AuthError, getAuthenticatedUser } from "@/src/lib/server/auth";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
     try {
+        await getAuthenticatedUser(req);
         const data = await req.json();
 
         const res = await query(
@@ -15,6 +17,9 @@ export async function POST(req: NextRequest) {
         const newPatientId = res.rows[0].patient_id;
         return NextResponse.json({ message: "Patient Added Successfully", patient_id: newPatientId }, { status: 200 });
     } catch (err) {
+        if (err instanceof AuthError) {
+            return NextResponse.json({ error: err.message }, { status: err.status });
+        }
         console.error(err);
         return NextResponse.json({ error: "Failed to add patient" }, { status: 500 });
     }
@@ -22,9 +27,13 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
     try {
+        await getAuthenticatedUser(req);
         const res = await query("SELECT * FROM patient");
         return NextResponse.json(res.rows, { status: 200 });
     } catch (err) {
+        if (err instanceof AuthError) {
+            return NextResponse.json({ error: err.message }, { status: err.status });
+        }
         console.error(err);
         return NextResponse.json({ error: "Failed to fetch all patients" }, { status: 500 });
     }
@@ -32,6 +41,7 @@ export async function GET(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
     try {
+        await getAuthenticatedUser(req);
         const data = await req.json();
 
         if (!data.patient_id) {
@@ -52,6 +62,9 @@ export async function PATCH(req: NextRequest) {
 
         return NextResponse.json({ message: "Patient Updated Successfully", patient_id: res.rows[0].patient_id }, { status: 200 });
     } catch (err) {
+        if (err instanceof AuthError) {
+            return NextResponse.json({ error: err.message }, { status: err.status });
+        }
         console.error(err);
         return NextResponse.json({ error: "Failed to update patient" }, { status: 500 });
     }

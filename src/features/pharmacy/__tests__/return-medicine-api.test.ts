@@ -12,6 +12,21 @@ vi.mock("@/database/db", () => ({
   },
 }));
 
+// The return route now requires an authenticated user. The stub request below
+// has no `cookies`, so mock the auth helper to resolve a valid user and let the
+// route exercise its transaction logic.
+vi.mock("@/src/lib/server/auth", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/src/lib/server/auth")>();
+  return {
+    ...actual,
+    getAuthenticatedUser: vi.fn(async () => ({
+      user_code: "STAFF-1",
+      role: "Pharmacy",
+      name: "Test Staff",
+    })),
+  };
+});
+
 import { POST as returnMedicine } from "@/src/app/api/medicine/returnMedicine/route";
 
 describe("medicine return route", () => {
