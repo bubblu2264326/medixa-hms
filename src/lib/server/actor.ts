@@ -1,7 +1,12 @@
 import type { NextRequest } from "next/server";
-import type { PoolClient } from "pg";
 import { getAuthenticatedUser } from "./auth";
 import { getCurrentStaffId } from "../utils";
+
+// Anything that can run a parameterized query — a pooled `query`-wrapper
+// (`{ query }`) or a dedicated PoolClient (which is structurally compatible).
+type QueryRunner = {
+  query: (text: string, params?: any[]) => Promise<{ rows: any[] }>;
+};
 
 // Shared real-actor resolver for audit attribution and created_by/updated_by
 // fields. Replaces the legacy getCurrentStaffId() stub, which always returned
@@ -18,7 +23,7 @@ import { getCurrentStaffId } from "../utils";
 // when the Pharmacy/Billing modules are stabilized.
 export async function resolveActorStaffId(
   request: NextRequest,
-  client: PoolClient
+  runner: QueryRunner
 ): Promise<number> {
   try {
     const user = await getAuthenticatedUser(request);
@@ -26,7 +31,7 @@ export async function resolveActorStaffId(
       throw new Error("Staff authentication required");
     }
 
-    const staffResult = await client.query(
+    const staffResult = await runner.query(
       "select staff_id from staff where user_code = $1 limit 1",
       [user.user_code]
     );

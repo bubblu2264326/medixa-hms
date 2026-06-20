@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/database/db';
 import type { ApiResponse } from '@/src/lib/types';
-import { getCurrentStaffId } from '@/src/lib/utils';
+import { AuthError, getAuthenticatedUser } from '@/src/lib/server/auth';
+import { resolveActorStaffId } from '@/src/lib/server/actor';
 
 type ReceiptConfigRow = {
   config_id: number;
@@ -25,14 +26,18 @@ function normalizeString(value: unknown) {
   return trimmed.length ? trimmed : null;
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    await getAuthenticatedUser(request);
     const result = await query(
       `SELECT * FROM pos_receipt_config WHERE is_active = true LIMIT 1`
     );
     const config = (result.rows[0] as ReceiptConfigRow | undefined) ?? null;
     return NextResponse.json<ApiResponse>({ success: true, data: config });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json<ApiResponse>({ success: false, error: error.message }, { status: error.status });
+    }
     console.error('Get receipt config error:', error);
     return NextResponse.json<ApiResponse>(
       { success: false, error: 'Failed to load receipt config' },
@@ -43,6 +48,7 @@ export async function GET() {
 
 export async function PATCH(request: NextRequest) {
   try {
+    await getAuthenticatedUser(request);
     const body = await request.json();
 
     const nextClinicName = normalizeString(body?.clinic_name);
@@ -90,7 +96,7 @@ export async function PATCH(request: NextRequest) {
       ]
     );
 
-    const staffId = getCurrentStaffId();
+    const staffId = await resolveActorStaffId(request, { query });
     await query(
       `
         INSERT INTO pos_audit_log (
@@ -108,6 +114,9 @@ export async function PATCH(request: NextRequest) {
       data: updateResult.rows[0] ?? null,
     });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json<ApiResponse>({ success: false, error: error.message }, { status: error.status });
+    }
     console.error('Update receipt config error:', error);
     return NextResponse.json<ApiResponse>(
       { success: false, error: 'Failed to update receipt config' },
