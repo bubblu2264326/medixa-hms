@@ -77,10 +77,8 @@ export default function Receptionist({
       {/* Main Content Area */}
       <main className="flex flex-1 overflow-hidden p-4 gap-4 bg-muted/50">
         {/* Left Side: Queue (Fixed width for predictability) */}
-        <aside className="w-80 flex flex-col h-full">
-          <div className="flex-1 bg-card border border-border rounded-lg shadow-sm overflow-hidden flex flex-col">
-            {queue}
-          </div>
+        <aside className="w-72 flex flex-col h-full min-h-0">
+          {queue}
         </aside>
 
         {/* Right Side: Tabbed Components */}
@@ -143,9 +141,9 @@ export default function Receptionist({
             </div>
           </div>
 
-          {/* Dynamic Content Window */}
-          <div className="flex-1 bg-card border border-border rounded-lg relative overflow-hidden shadow-sm flex flex-col">
-            <div className="absolute inset-0 overflow-auto p-4 custom-scrollbar">
+          {/* Dynamic Content Window (transparent — each tab provides its own card) */}
+          <div className="flex-1 relative overflow-hidden flex flex-col">
+            <div className="absolute inset-0 overflow-auto custom-scrollbar">
               <div className="h-full">
                 {selectedTab === "queue" && queueManagement}
                 {selectedTab === "appointments" && appointments}

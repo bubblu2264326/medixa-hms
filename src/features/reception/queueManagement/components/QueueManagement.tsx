@@ -182,8 +182,8 @@ export function PatientForm() {
 
   return (
     <div className="w-full h-full p-2">
-      <div ref={formRef} onKeyDown={handleFormKeyDown} className="max-w-4xl mx-auto bg-card border border-border rounded-lg shadow-sm p-8">
-        <div className="flex items-center justify-between mb-8 px-2">
+      <div ref={formRef} onKeyDown={handleFormKeyDown} className="max-w-4xl mx-auto bg-card border border-border rounded-lg shadow-sm p-6">
+        <div className="flex items-center justify-between mb-5 px-1">
           <div>
             <h2 className="text-2xl font-semibold tracking-tight text-foreground">Visit Registration</h2>
             <p className="text-sm text-muted-foreground">Assign a patient to a doctor&apos;s queue</p>
@@ -195,14 +195,14 @@ export function PatientForm() {
               }`}>
               {visitType === "Emergency" ? "Emergency Code" : "Today's Clinic No"}
             </span>
-            <p className={`text-3xl font-bold font-mono tabular-nums leading-none mt-1 transition-colors ${visitType === "Emergency" ? "text-destructive" : "text-foreground"
+            <p className={`text-2xl font-bold font-mono tabular-nums leading-none mt-1 transition-colors ${visitType === "Emergency" ? "text-destructive" : "text-foreground"
               }`}>
               #{clinicNo || "---"}
             </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-4">
           {isExistingVisit && (
             <div className="md:col-span-2 rounded-md border border-warning/50 bg-warning/15 px-4 py-3 text-sm font-medium text-warning-foreground">
               Existing active visit found. Updates will only affect visit #{selectedVisitId || "---"}.
@@ -220,7 +220,7 @@ export function PatientForm() {
                 onKeyDown={handleSearchKeyDown}
                 placeholder="Ex: 1001 or Patient Name..."
                 autoComplete="off"
-                className="bg-background border-input focus:border-ring focus:ring-ring/20 h-14 rounded-md transition-all shadow-sm text-lg font-medium pl-12"
+                className="bg-background border-input focus:border-ring focus:ring-ring/20 h-11 rounded-md transition-all shadow-sm text-sm font-medium pl-12"
               />
               <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
                 <Search className="h-5 w-5" aria-hidden />
@@ -302,14 +302,14 @@ export function PatientForm() {
                 readOnly
                 placeholder="Years"
                 autoComplete="off"
-                className="bg-muted border-input text-muted-foreground h-12 rounded-md transition-all shadow-sm cursor-not-allowed focus:ring-0"
+                className="bg-muted border-input text-muted-foreground h-10 rounded-md transition-all shadow-sm cursor-not-allowed focus:ring-0"
               />
             </div>
             <div className="space-y-1.5 flex flex-col">
               <Label className="text-foreground font-semibold ml-1">Gender</Label>
               <select
                 disabled
-                className="bg-muted border-input border rounded-md h-12 px-4 shadow-sm text-muted-foreground text-sm cursor-not-allowed appearance-none"
+                className="bg-muted border-input border rounded-md h-10 px-4 shadow-sm text-muted-foreground text-sm cursor-not-allowed appearance-none"
                 value={gender}
                 onChange={(e: ChangeEvent<HTMLSelectElement>) => setGender(e.target.value)}
               >
@@ -323,7 +323,7 @@ export function PatientForm() {
           {/* Visit Type */}
           <div className="space-y-1.5 flex flex-col">
             <Label className="text-foreground font-semibold ml-1">Visit Type</Label>
-            <div className="flex p-1 bg-muted rounded-md h-12 items-center gap-1">
+            <div className="flex p-1 bg-muted rounded-md h-10 items-center gap-1">
               {["OPD", "Emergency"].map((type) => (
                 <button
                   key={type}
@@ -345,7 +345,7 @@ export function PatientForm() {
           <div className="space-y-1.5 flex flex-col">
             <Label className="text-foreground font-semibold ml-1">Assign Doctor</Label>
             <select
-              className="bg-background border-input border rounded-md h-12 px-4 shadow-sm focus:ring-2 focus:ring-ring/20 outline-none transition-all text-sm"
+              className="bg-background border-input border rounded-md h-10 px-4 shadow-sm focus:ring-2 focus:ring-ring/20 outline-none transition-all text-sm"
               value={doctor}
               onChange={(e: ChangeEvent<HTMLSelectElement>) => setDoctor(e.target.value)}
             >
@@ -366,7 +366,7 @@ export function PatientForm() {
               onChange={(e: ChangeEvent<HTMLInputElement>) => setVisitReason(e.target.value)}
               placeholder="Reason for visit..."
               autoComplete="off"
-              className="bg-background border-input focus:border-ring focus:ring-ring/20 h-12 rounded-md transition-all shadow-sm"
+              className="bg-background border-input focus:border-ring focus:ring-ring/20 h-10 rounded-md transition-all shadow-sm"
             />
           </div>
 
@@ -376,7 +376,7 @@ export function PatientForm() {
               type="button"
               disabled={!canSubmit}
               onClick={() => isExistingVisit ? updateInfo() : addToQueue()}
-              className={`h-14 rounded-md font-semibold text-lg transition-all active:scale-95 shadow-sm disabled:opacity-70 disabled:scale-100 flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground`}
+              className={`h-11 rounded-md font-semibold text-base transition-all active:scale-95 shadow-sm disabled:opacity-70 disabled:scale-100 flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground`}
             >
               {isProcessing && <div className="animate-spin h-5 w-5 border-2 border-primary-foreground border-t-transparent rounded-full" />}
               {isExistingVisit ? "Update Visit" : "Add to Queue"}
@@ -384,7 +384,7 @@ export function PatientForm() {
             <button
               type="button"
               onClick={() => resetInfo()}
-              className="h-14 rounded-md font-semibold text-lg transition-all border border-border hover:bg-accent text-muted-foreground"
+              className="h-11 rounded-md font-semibold text-base transition-all border border-border hover:bg-accent text-muted-foreground"
             >
               Reset Form
             </button>
