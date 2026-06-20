@@ -2,12 +2,23 @@
 
 | schema | table_name | index_name | indexdef |
 | --- | --- | --- | --- |
+| public | admission | admission_admission_no_key | CREATE UNIQUE INDEX admission_admission_no_key ON public.admission USING btree (admission_no) |
+| public | admission | admission_pkey | CREATE UNIQUE INDEX admission_pkey ON public.admission USING btree (admission_id) |
+| public | admission | idx_admission_bed | CREATE INDEX idx_admission_bed ON public.admission USING btree (current_bed_id) |
+| public | admission | idx_admission_patient | CREATE INDEX idx_admission_patient ON public.admission USING btree (patient_id) |
+| public | admission | idx_admission_status | CREATE INDEX idx_admission_status ON public.admission USING btree (status) |
+| public | admission | uq_admission_active_bed | CREATE UNIQUE INDEX uq_admission_active_bed ON public.admission USING btree (current_bed_id) WHERE (((status)::text = 'admitted'::text) AND (current_bed_id IS NOT NULL)) |
 | public | allowance_type_master | allowance_type_master_pkey | CREATE UNIQUE INDEX allowance_type_master_pkey ON public.allowance_type_master USING btree (code) |
 | public | attendance_regularization_requests | attendance_regularization_requests_pkey | CREATE UNIQUE INDEX attendance_regularization_requests_pkey ON public.attendance_regularization_requests USING btree (regularization_id) |
 | public | attendance_regularization_requests | idx_attendance_regularization_status | CREATE INDEX idx_attendance_regularization_status ON public.attendance_regularization_requests USING btree (request_status, created_at DESC) |
 | public | audit_logs | audit_logs_pkey | CREATE UNIQUE INDEX audit_logs_pkey ON public.audit_logs USING btree (log_id) |
 | public | audit_logs | idx_audit_logs_created_at | CREATE INDEX idx_audit_logs_created_at ON public.audit_logs USING btree (created_at DESC) |
 | public | audit_logs | idx_audit_logs_staff_created | CREATE INDEX idx_audit_logs_staff_created ON public.audit_logs USING btree (staff_id, created_at DESC) |
+| public | bed | bed_pkey | CREATE UNIQUE INDEX bed_pkey ON public.bed USING btree (bed_id) |
+| public | bed | idx_bed_status | CREATE INDEX idx_bed_status ON public.bed USING btree (status) |
+| public | bed | uq_bed_room_number | CREATE UNIQUE INDEX uq_bed_room_number ON public.bed USING btree (room_id, bed_number) |
+| public | bed_transfer | bed_transfer_pkey | CREATE UNIQUE INDEX bed_transfer_pkey ON public.bed_transfer USING btree (transfer_id) |
+| public | bed_transfer | idx_bed_transfer_admission | CREATE INDEX idx_bed_transfer_admission ON public.bed_transfer USING btree (admission_id) |
 | public | bill | bill_pkey | CREATE UNIQUE INDEX bill_pkey ON public.bill USING btree (bill_id) |
 | public | bill_charge_source | bill_charge_source_pkey | CREATE UNIQUE INDEX bill_charge_source_pkey ON public.bill_charge_source USING btree (bill_charge_source_id) |
 | public | bill_charge_source | idx_bill_charge_source_bill | CREATE INDEX idx_bill_charge_source_bill ON public.bill_charge_source USING btree (bill_id, created_at DESC) |
@@ -136,6 +147,7 @@
 | public | party | party_pkey | CREATE UNIQUE INDEX party_pkey ON public.party USING btree (party_id) |
 | public | party_payment | party_payment_pkey | CREATE UNIQUE INDEX party_payment_pkey ON public.party_payment USING btree (payment_id) |
 | public | patient | patient_pkey | CREATE UNIQUE INDEX patient_pkey ON public.patient USING btree (patient_id) |
+| public | patient | uq_patient_cnic | CREATE UNIQUE INDEX uq_patient_cnic ON public.patient USING btree (cnic) WHERE ((cnic IS NOT NULL) AND (btrim((cnic)::text) <> ''::text)) |
 | public | patient_vitals | patient_vitals_pkey | CREATE UNIQUE INDEX patient_vitals_pkey ON public.patient_vitals USING btree (vital_id) |
 | public | patient_vitals | unique_patient_vitals | CREATE UNIQUE INDEX unique_patient_vitals ON public.patient_vitals USING btree (visit_id) |
 | public | payroll_line_item | idx_payroll_line_item_person | CREATE INDEX idx_payroll_line_item_person ON public.payroll_line_item USING btree (account_type, person_id, created_at DESC) |
@@ -166,6 +178,9 @@
 | public | prescription_medicines | prescription_medicines_pkey | CREATE UNIQUE INDEX prescription_medicines_pkey ON public.prescription_medicines USING btree (prescription_medicine_id) |
 | public | purchase_return | purchase_return_pkey | CREATE UNIQUE INDEX purchase_return_pkey ON public.purchase_return USING btree (return_id) |
 | public | purchase_return_detail | purchase_return_detail_pkey | CREATE UNIQUE INDEX purchase_return_detail_pkey ON public.purchase_return_detail USING btree (id) |
+| public | room | idx_room_ward | CREATE INDEX idx_room_ward ON public.room USING btree (ward_id) |
+| public | room | room_pkey | CREATE UNIQUE INDEX room_pkey ON public.room USING btree (room_id) |
+| public | room | uq_room_ward_number | CREATE UNIQUE INDEX uq_room_ward_number ON public.room USING btree (ward_id, room_number) |
 | public | sale_return | sale_return_pkey | CREATE UNIQUE INDEX sale_return_pkey ON public.sale_return USING btree (return_id) |
 | public | sale_return_detail | sale_return_detail_pkey | CREATE UNIQUE INDEX sale_return_detail_pkey ON public.sale_return_detail USING btree (id) |
 | public | staff | idx_staff_department | CREATE INDEX idx_staff_department ON public.staff USING btree (department) |
@@ -213,3 +228,4 @@
 | public | visit | idx_visit_timestamp | CREATE INDEX idx_visit_timestamp ON public.visit USING btree (visit_timestamp) |
 | public | visit | visit_pkey | CREATE UNIQUE INDEX visit_pkey ON public.visit USING btree (visit_id) |
 | public | visit_status_history | visit_status_history_pkey | CREATE UNIQUE INDEX visit_status_history_pkey ON public.visit_status_history USING btree (visit_status_id) |
+| public | ward | ward_pkey | CREATE UNIQUE INDEX ward_pkey ON public.ward USING btree (ward_id) |

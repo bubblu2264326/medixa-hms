@@ -444,11 +444,11 @@
 
 ## sale_return
 
-| return_id | sale_id | reason | return_timestamp | created_by |
-| --- | --- | --- | --- | --- |
-| 2 | 18 | Customer return | "2026-03-03T13:56:49.827Z" | 1 |
-| 3 | 19 | Customer return | "2026-03-03T13:57:15.725Z" | 1 |
-| 4 | 52 | Customer return | "2026-03-22T06:39:57.819Z" | 1 |
+| return_id | sale_id | reason | return_timestamp | created_by | refund_amount | refund_method |
+| --- | --- | --- | --- | --- | --- | --- |
+| 2 | 18 | Customer return | "2026-03-03T13:56:49.827Z" | 1 | 15.00 | CASH |
+| 3 | 19 | Customer return | "2026-03-03T13:57:15.725Z" | 1 | 15.00 | CASH |
+| 4 | 52 | Customer return | "2026-03-22T06:39:57.819Z" | 1 | 15.50 | CASH |
 
 
 

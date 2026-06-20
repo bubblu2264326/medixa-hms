@@ -1,8 +1,8 @@
 # DB Snapshot — overview
 
-Generated: 2026-05-23T13:28:43.961Z
+Generated: 2026-06-20T09:00:53.218Z
 
-- Tables: 93
+- Tables: 98
 - Views: 4
 - Functions/Procedures: 15
 - Triggers: 17
@@ -12,9 +12,12 @@ Generated: 2026-05-23T13:28:43.961Z
 
 | table_name | n |
 | --- | --- |
+| admission | 0 |
 | allowance_type_master | 6 |
 | attendance_regularization_requests | 0 |
-| audit_logs | 148 |
+| audit_logs | 167 |
+| bed | 0 |
+| bed_transfer | 0 |
 | bill | 63 |
 | bill_charge_source | 0 |
 | bill_item | 0 |
@@ -26,10 +29,10 @@ Generated: 2026-05-23T13:28:43.961Z
 | cashier_settlement_draft | 0 |
 | cashier_shift | 0 |
 | current_pregnancy | 1 |
-| doctor | 5 |
+| doctor | 6 |
 | doctor_attendance | 5 |
 | doctor_encounter_note | 27 |
-| doctor_security_sessions | 15 |
+| doctor_security_sessions | 19 |
 | employee_allowance | 0 |
 | employee_compensation_profile | 12 |
 | employee_credential_events | 0 |
@@ -86,9 +89,10 @@ Generated: 2026-05-23T13:28:43.961Z
 | prescription_medicines | 14 |
 | purchase_return | 8 |
 | purchase_return_detail | 10 |
+| room | 0 |
 | sale_return | 12 |
 | sale_return_detail | 13 |
-| staff | 7 |
+| staff | 9 |
 | staff_attendance | 9 |
 | staff_leave_approvals | 0 |
 | staff_leave_balances | 0 |
@@ -100,11 +104,12 @@ Generated: 2026-05-23T13:28:43.961Z
 | staff_role_assignments | 0 |
 | staff_roles | 12 |
 | staff_roster_assignments | 1332 |
-| staff_security_sessions | 34 |
+| staff_security_sessions | 47 |
 | staff_shift_templates | 4 |
 | system_settings | 11 |
 | visit | 69 |
 | visit_status_history | 29 |
+| ward | 0 |
 
 
 ## Files

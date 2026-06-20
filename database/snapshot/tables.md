@@ -1,5 +1,71 @@
 # Tables
 
+## admission
+
+### Columns
+
+| table_name | column_name | data_type | udt_name | is_nullable | column_default | character_maximum_length |
+| --- | --- | --- | --- | --- | --- | --- |
+| admission | admission_id | integer | int4 | NO | nextval('admission_admission_id_seq'::regclass) |  |
+| admission | admission_no | character varying | varchar | NO | ('IPD'::text \|\| lpad((nextval('admission_no_seq'::regclass))::text, 6, '0'::text)) | 40 |
+| admission | patient_id | integer | int4 | NO |  |  |
+| admission | visit_id | integer | int4 | YES |  |  |
+| admission | attending_doctor_id | integer | int4 | YES |  |  |
+| admission | admission_datetime | timestamp without time zone | timestamp | NO | CURRENT_TIMESTAMP |  |
+| admission | admission_type | character varying | varchar | NO | 'direct'::character varying | 20 |
+| admission | provisional_diagnosis | text | text | YES |  |  |
+| admission | final_diagnosis | text | text | YES |  |  |
+| admission | current_bed_id | integer | int4 | YES |  |  |
+| admission | status | character varying | varchar | NO | 'admitted'::character varying | 20 |
+| admission | discharge_datetime | timestamp without time zone | timestamp | YES |  |  |
+| admission | discharge_type | character varying | varchar | YES |  | 20 |
+| admission | created_by | integer | int4 | YES |  |  |
+| admission | created_at | timestamp without time zone | timestamp | NO | CURRENT_TIMESTAMP |  |
+
+
+### Primary key
+
+| table_name | column_name | constraint_name |
+| --- | --- | --- |
+| admission | admission_id | admission_pkey |
+
+
+### Foreign keys
+
+| table_name | column_name | ref_table | ref_column | update_rule | delete_rule | constraint_name |
+| --- | --- | --- | --- | --- | --- | --- |
+| admission | attending_doctor_id | doctor | doctor_id | NO ACTION | NO ACTION | admission_attending_doctor_id_fkey |
+| admission | created_by | staff | staff_id | NO ACTION | NO ACTION | admission_created_by_fkey |
+| admission | current_bed_id | bed | bed_id | NO ACTION | NO ACTION | admission_current_bed_id_fkey |
+| admission | patient_id | patient | patient_id | NO ACTION | NO ACTION | admission_patient_id_fkey |
+| admission | visit_id | visit | visit_id | NO ACTION | NO ACTION | admission_visit_id_fkey |
+
+
+### Unique constraints
+
+| table_name | column_name | constraint_name |
+| --- | --- | --- |
+| admission | admission_no | admission_admission_no_key |
+
+
+### Check constraints
+
+| table_name | constraint_name | check_clause |
+| --- | --- | --- |
+| admission | admission_admission_datetime_not_null | admission_datetime IS NOT NULL |
+| admission | admission_admission_id_not_null | admission_id IS NOT NULL |
+| admission | admission_admission_no_not_null | admission_no IS NOT NULL |
+| admission | admission_admission_type_not_null | admission_type IS NOT NULL |
+| admission | admission_created_at_not_null | created_at IS NOT NULL |
+| admission | admission_patient_id_not_null | patient_id IS NOT NULL |
+| admission | admission_status_not_null | status IS NOT NULL |
+| admission | ck_admission_discharge_complete | (((status)::text <> 'discharged'::text) OR ((discharge_datetime IS NOT NULL) AND (discharge_type IS NOT NULL))) |
+| admission | ck_admission_discharge_type | ((discharge_type IS NULL) OR ((discharge_type)::text = ANY ((ARRAY['normal'::character varying, 'lama'::character varying, 'referred'::character varying, 'transferred'::character varying, 'death'::character varying, 'absconded'::character varying])::text[]))) |
+| admission | ck_admission_status | ((status)::text = ANY ((ARRAY['admitted'::character varying, 'discharged'::character varying])::text[])) |
+| admission | ck_admission_type | ((admission_type)::text = ANY ((ARRAY['opd_referred'::character varying, 'emergency'::character varying, 'direct'::character varying, 'planned'::character varying])::text[])) |
+
+
+
 ## allowance_type_master
 
 ### Columns
@@ -35,11 +101,11 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| allowance_type_master | 2200_37023_1_not_null | code IS NOT NULL |
-| allowance_type_master | 2200_37023_2_not_null | label IS NOT NULL |
-| allowance_type_master | 2200_37023_4_not_null | taxable IS NOT NULL |
-| allowance_type_master | 2200_37023_5_not_null | created_at IS NOT NULL |
-| allowance_type_master | 2200_37023_6_not_null | updated_at IS NOT NULL |
+| allowance_type_master | allowance_type_master_code_not_null | code IS NOT NULL |
+| allowance_type_master | allowance_type_master_created_at_not_null | created_at IS NOT NULL |
+| allowance_type_master | allowance_type_master_label_not_null | label IS NOT NULL |
+| allowance_type_master | allowance_type_master_taxable_not_null | taxable IS NOT NULL |
+| allowance_type_master | allowance_type_master_updated_at_not_null | updated_at IS NOT NULL |
 
 
 
@@ -88,11 +154,11 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| attendance_regularization_requests | 2200_36603_12_not_null | created_at IS NOT NULL |
-| attendance_regularization_requests | 2200_36603_1_not_null | regularization_id IS NOT NULL |
-| attendance_regularization_requests | 2200_36603_2_not_null | staff_id IS NOT NULL |
-| attendance_regularization_requests | 2200_36603_7_not_null | reason IS NOT NULL |
-| attendance_regularization_requests | 2200_36603_8_not_null | request_status IS NOT NULL |
+| attendance_regularization_requests | attendance_regularization_requests_created_at_not_null | created_at IS NOT NULL |
+| attendance_regularization_requests | attendance_regularization_requests_reason_not_null | reason IS NOT NULL |
+| attendance_regularization_requests | attendance_regularization_requests_regularization_id_not_null | regularization_id IS NOT NULL |
+| attendance_regularization_requests | attendance_regularization_requests_request_status_not_null | request_status IS NOT NULL |
+| attendance_regularization_requests | attendance_regularization_requests_staff_id_not_null | staff_id IS NOT NULL |
 
 
 
@@ -135,8 +201,111 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| audit_logs | 2200_36000_1_not_null | log_id IS NOT NULL |
-| audit_logs | 2200_36000_3_not_null | action IS NOT NULL |
+| audit_logs | audit_logs_action_not_null | action IS NOT NULL |
+| audit_logs | audit_logs_log_id_not_null | log_id IS NOT NULL |
+
+
+
+## bed
+
+### Columns
+
+| table_name | column_name | data_type | udt_name | is_nullable | column_default | character_maximum_length |
+| --- | --- | --- | --- | --- | --- | --- |
+| bed | bed_id | integer | int4 | NO | nextval('bed_bed_id_seq'::regclass) |  |
+| bed | room_id | integer | int4 | NO |  |  |
+| bed | bed_number | character varying | varchar | NO |  | 40 |
+| bed | daily_rate | numeric | numeric | NO | 0 |  |
+| bed | status | character varying | varchar | NO | 'vacant'::character varying | 20 |
+| bed | is_active | boolean | bool | NO | true |  |
+| bed | created_at | timestamp without time zone | timestamp | NO | CURRENT_TIMESTAMP |  |
+
+
+### Primary key
+
+| table_name | column_name | constraint_name |
+| --- | --- | --- |
+| bed | bed_id | bed_pkey |
+
+
+### Foreign keys
+
+| table_name | column_name | ref_table | ref_column | update_rule | delete_rule | constraint_name |
+| --- | --- | --- | --- | --- | --- | --- |
+| bed | room_id | room | room_id | NO ACTION | CASCADE | bed_room_id_fkey |
+
+
+### Unique constraints
+
+| table_name | column_name | constraint_name |
+| --- | --- | --- |
+| bed | room_id | uq_bed_room_number |
+| bed | bed_number | uq_bed_room_number |
+
+
+### Check constraints
+
+| table_name | constraint_name | check_clause |
+| --- | --- | --- |
+| bed | bed_bed_id_not_null | bed_id IS NOT NULL |
+| bed | bed_bed_number_not_null | bed_number IS NOT NULL |
+| bed | bed_created_at_not_null | created_at IS NOT NULL |
+| bed | bed_daily_rate_not_null | daily_rate IS NOT NULL |
+| bed | bed_is_active_not_null | is_active IS NOT NULL |
+| bed | bed_room_id_not_null | room_id IS NOT NULL |
+| bed | bed_status_not_null | status IS NOT NULL |
+| bed | ck_bed_rate_nonneg | (daily_rate >= (0)::numeric) |
+| bed | ck_bed_status | ((status)::text = ANY ((ARRAY['vacant'::character varying, 'occupied'::character varying, 'reserved'::character varying, 'cleaning'::character varying, 'blocked'::character varying])::text[])) |
+
+
+
+## bed_transfer
+
+### Columns
+
+| table_name | column_name | data_type | udt_name | is_nullable | column_default | character_maximum_length |
+| --- | --- | --- | --- | --- | --- | --- |
+| bed_transfer | transfer_id | integer | int4 | NO | nextval('bed_transfer_transfer_id_seq'::regclass) |  |
+| bed_transfer | admission_id | integer | int4 | NO |  |  |
+| bed_transfer | from_bed_id | integer | int4 | YES |  |  |
+| bed_transfer | to_bed_id | integer | int4 | NO |  |  |
+| bed_transfer | transfer_datetime | timestamp without time zone | timestamp | NO | CURRENT_TIMESTAMP |  |
+| bed_transfer | reason | text | text | YES |  |  |
+| bed_transfer | by_staff_id | integer | int4 | YES |  |  |
+| bed_transfer | created_at | timestamp without time zone | timestamp | NO | CURRENT_TIMESTAMP |  |
+
+
+### Primary key
+
+| table_name | column_name | constraint_name |
+| --- | --- | --- |
+| bed_transfer | transfer_id | bed_transfer_pkey |
+
+
+### Foreign keys
+
+| table_name | column_name | ref_table | ref_column | update_rule | delete_rule | constraint_name |
+| --- | --- | --- | --- | --- | --- | --- |
+| bed_transfer | admission_id | admission | admission_id | NO ACTION | CASCADE | bed_transfer_admission_id_fkey |
+| bed_transfer | by_staff_id | staff | staff_id | NO ACTION | NO ACTION | bed_transfer_by_staff_id_fkey |
+| bed_transfer | from_bed_id | bed | bed_id | NO ACTION | NO ACTION | bed_transfer_from_bed_id_fkey |
+| bed_transfer | to_bed_id | bed | bed_id | NO ACTION | NO ACTION | bed_transfer_to_bed_id_fkey |
+
+
+### Unique constraints
+
+_(none)_
+
+
+### Check constraints
+
+| table_name | constraint_name | check_clause |
+| --- | --- | --- |
+| bed_transfer | bed_transfer_admission_id_not_null | admission_id IS NOT NULL |
+| bed_transfer | bed_transfer_created_at_not_null | created_at IS NOT NULL |
+| bed_transfer | bed_transfer_to_bed_id_not_null | to_bed_id IS NOT NULL |
+| bed_transfer | bed_transfer_transfer_datetime_not_null | transfer_datetime IS NOT NULL |
+| bed_transfer | bed_transfer_transfer_id_not_null | transfer_id IS NOT NULL |
 
 
 
@@ -178,10 +347,11 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| bill | 2200_17523_1_not_null | bill_id IS NOT NULL |
-| bill | 2200_17523_2_not_null | patient_id IS NOT NULL |
-| bill | 2200_17523_3_not_null | visit_id IS NOT NULL |
+| bill | bill_bill_id_not_null | bill_id IS NOT NULL |
+| bill | bill_patient_id_not_null | patient_id IS NOT NULL |
 | bill | bill_payment_status_check | ((payment_status)::text = ANY (ARRAY[('Paid'::character varying)::text, ('Unpaid'::character varying)::text, ('Partial'::character varying)::text])) |
+| bill | bill_visit_id_not_null | visit_id IS NOT NULL |
+| bill | ck_bill_total_nonneg | (total_amount >= (0)::numeric) |
 
 
 
@@ -227,11 +397,11 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| bill_charge_source | 2200_36274_1_not_null | bill_charge_source_id IS NOT NULL |
-| bill_charge_source | 2200_36274_2_not_null | bill_id IS NOT NULL |
-| bill_charge_source | 2200_36274_4_not_null | source_type IS NOT NULL |
-| bill_charge_source | 2200_36274_6_not_null | amount IS NOT NULL |
-| bill_charge_source | 2200_36274_9_not_null | created_at IS NOT NULL |
+| bill_charge_source | bill_charge_source_amount_not_null | amount IS NOT NULL |
+| bill_charge_source | bill_charge_source_bill_charge_source_id_not_null | bill_charge_source_id IS NOT NULL |
+| bill_charge_source | bill_charge_source_bill_id_not_null | bill_id IS NOT NULL |
+| bill_charge_source | bill_charge_source_created_at_not_null | created_at IS NOT NULL |
+| bill_charge_source | bill_charge_source_source_type_not_null | source_type IS NOT NULL |
 | bill_charge_source | bill_charge_source_type_check | (source_type = ANY (ARRAY['consultation'::text, 'pharmacy'::text, 'lab'::text, 'other'::text])) |
 
 
@@ -273,9 +443,10 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| bill_item | 2200_17529_1_not_null | item_id IS NOT NULL |
-| bill_item | 2200_17529_2_not_null | bill_id IS NOT NULL |
-| bill_item | 2200_17529_4_not_null | amount IS NOT NULL |
+| bill_item | bill_item_amount_not_null | amount IS NOT NULL |
+| bill_item | bill_item_bill_id_not_null | bill_id IS NOT NULL |
+| bill_item | bill_item_item_id_not_null | item_id IS NOT NULL |
+| bill_item | ck_bill_item_qty_nonneg | (quantity >= 0) |
 
 
 
@@ -326,15 +497,15 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| bill_pharmacy_sale | 2200_36172_10_not_null | created_at IS NOT NULL |
-| bill_pharmacy_sale | 2200_36172_11_not_null | updated_at IS NOT NULL |
-| bill_pharmacy_sale | 2200_36172_1_not_null | bill_pharmacy_sale_id IS NOT NULL |
-| bill_pharmacy_sale | 2200_36172_2_not_null | bill_id IS NOT NULL |
-| bill_pharmacy_sale | 2200_36172_3_not_null | sale_id IS NOT NULL |
-| bill_pharmacy_sale | 2200_36172_4_not_null | amount IS NOT NULL |
-| bill_pharmacy_sale | 2200_36172_5_not_null | settled_amount IS NOT NULL |
-| bill_pharmacy_sale | 2200_36172_6_not_null | settlement_status IS NOT NULL |
+| bill_pharmacy_sale | bill_pharmacy_sale_amount_not_null | amount IS NOT NULL |
+| bill_pharmacy_sale | bill_pharmacy_sale_bill_id_not_null | bill_id IS NOT NULL |
+| bill_pharmacy_sale | bill_pharmacy_sale_bill_pharmacy_sale_id_not_null | bill_pharmacy_sale_id IS NOT NULL |
+| bill_pharmacy_sale | bill_pharmacy_sale_created_at_not_null | created_at IS NOT NULL |
+| bill_pharmacy_sale | bill_pharmacy_sale_sale_id_not_null | sale_id IS NOT NULL |
+| bill_pharmacy_sale | bill_pharmacy_sale_settled_amount_not_null | settled_amount IS NOT NULL |
 | bill_pharmacy_sale | bill_pharmacy_sale_settlement_status_check | (settlement_status = ANY (ARRAY['pending'::text, 'settled'::text])) |
+| bill_pharmacy_sale | bill_pharmacy_sale_settlement_status_not_null | settlement_status IS NOT NULL |
+| bill_pharmacy_sale | bill_pharmacy_sale_updated_at_not_null | updated_at IS NOT NULL |
 
 
 
@@ -383,9 +554,9 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| cashier_audit_event | 2200_36349_11_not_null | created_at IS NOT NULL |
-| cashier_audit_event | 2200_36349_1_not_null | cashier_audit_event_id IS NOT NULL |
-| cashier_audit_event | 2200_36349_2_not_null | event_type IS NOT NULL |
+| cashier_audit_event | cashier_audit_event_cashier_audit_event_id_not_null | cashier_audit_event_id IS NOT NULL |
+| cashier_audit_event | cashier_audit_event_created_at_not_null | created_at IS NOT NULL |
+| cashier_audit_event | cashier_audit_event_event_type_not_null | event_type IS NOT NULL |
 
 
 
@@ -433,12 +604,12 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| cashier_idempotency | 2200_36302_1_not_null | cashier_idempotency_id IS NOT NULL |
-| cashier_idempotency | 2200_36302_2_not_null | idempotency_key IS NOT NULL |
-| cashier_idempotency | 2200_36302_3_not_null | endpoint IS NOT NULL |
-| cashier_idempotency | 2200_36302_6_not_null | response_json IS NOT NULL |
-| cashier_idempotency | 2200_36302_7_not_null | status_code IS NOT NULL |
-| cashier_idempotency | 2200_36302_9_not_null | created_at IS NOT NULL |
+| cashier_idempotency | cashier_idempotency_cashier_idempotency_id_not_null | cashier_idempotency_id IS NOT NULL |
+| cashier_idempotency | cashier_idempotency_created_at_not_null | created_at IS NOT NULL |
+| cashier_idempotency | cashier_idempotency_endpoint_not_null | endpoint IS NOT NULL |
+| cashier_idempotency | cashier_idempotency_idempotency_key_not_null | idempotency_key IS NOT NULL |
+| cashier_idempotency | cashier_idempotency_response_json_not_null | response_json IS NOT NULL |
+| cashier_idempotency | cashier_idempotency_status_code_not_null | status_code IS NOT NULL |
 
 
 
@@ -481,13 +652,13 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| cashier_payment_allocation | 2200_36237_1_not_null | cashier_payment_allocation_id IS NOT NULL |
-| cashier_payment_allocation | 2200_36237_2_not_null | cashier_payment_txn_id IS NOT NULL |
-| cashier_payment_allocation | 2200_36237_3_not_null | sale_id IS NOT NULL |
-| cashier_payment_allocation | 2200_36237_4_not_null | bill_id IS NOT NULL |
-| cashier_payment_allocation | 2200_36237_5_not_null | allocated_amount IS NOT NULL |
-| cashier_payment_allocation | 2200_36237_6_not_null | created_at IS NOT NULL |
+| cashier_payment_allocation | cashier_payment_allocation_allocated_amount_not_null | allocated_amount IS NOT NULL |
 | cashier_payment_allocation | cashier_payment_allocation_amount_check | (allocated_amount > (0)::numeric) |
+| cashier_payment_allocation | cashier_payment_allocation_bill_id_not_null | bill_id IS NOT NULL |
+| cashier_payment_allocation | cashier_payment_allocation_cashier_payment_allocation__not_null | cashier_payment_allocation_id IS NOT NULL |
+| cashier_payment_allocation | cashier_payment_allocation_cashier_payment_txn_id_not_null | cashier_payment_txn_id IS NOT NULL |
+| cashier_payment_allocation | cashier_payment_allocation_created_at_not_null | created_at IS NOT NULL |
+| cashier_payment_allocation | cashier_payment_allocation_sale_id_not_null | sale_id IS NOT NULL |
 
 
 
@@ -539,13 +710,13 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| cashier_payment_txn | 2200_36210_10_not_null | txn_type IS NOT NULL |
-| cashier_payment_txn | 2200_36210_1_not_null | cashier_payment_txn_id IS NOT NULL |
-| cashier_payment_txn | 2200_36210_2_not_null | bill_id IS NOT NULL |
-| cashier_payment_txn | 2200_36210_4_not_null | amount IS NOT NULL |
-| cashier_payment_txn | 2200_36210_5_not_null | payment_type IS NOT NULL |
-| cashier_payment_txn | 2200_36210_9_not_null | created_at IS NOT NULL |
 | cashier_payment_txn | cashier_payment_txn_amount_check | (amount <> (0)::numeric) |
+| cashier_payment_txn | cashier_payment_txn_amount_not_null | amount IS NOT NULL |
+| cashier_payment_txn | cashier_payment_txn_bill_id_not_null | bill_id IS NOT NULL |
+| cashier_payment_txn | cashier_payment_txn_cashier_payment_txn_id_not_null | cashier_payment_txn_id IS NOT NULL |
+| cashier_payment_txn | cashier_payment_txn_created_at_not_null | created_at IS NOT NULL |
+| cashier_payment_txn | cashier_payment_txn_payment_type_not_null | payment_type IS NOT NULL |
+| cashier_payment_txn | cashier_payment_txn_txn_type_not_null | txn_type IS NOT NULL |
 | cashier_payment_txn | cashier_payment_txn_type_check | (txn_type = ANY (ARRAY['payment'::text, 'reversal'::text])) |
 
 
@@ -596,15 +767,15 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| cashier_settlement_draft | 2200_36384_11_not_null | created_at IS NOT NULL |
-| cashier_settlement_draft | 2200_36384_12_not_null | updated_at IS NOT NULL |
-| cashier_settlement_draft | 2200_36384_1_not_null | cashier_settlement_draft_id IS NOT NULL |
-| cashier_settlement_draft | 2200_36384_2_not_null | bill_id IS NOT NULL |
-| cashier_settlement_draft | 2200_36384_4_not_null | amount IS NOT NULL |
-| cashier_settlement_draft | 2200_36384_5_not_null | payment_type IS NOT NULL |
-| cashier_settlement_draft | 2200_36384_8_not_null | draft_status IS NOT NULL |
 | cashier_settlement_draft | cashier_settlement_draft_amount_check | (amount > (0)::numeric) |
+| cashier_settlement_draft | cashier_settlement_draft_amount_not_null | amount IS NOT NULL |
+| cashier_settlement_draft | cashier_settlement_draft_bill_id_not_null | bill_id IS NOT NULL |
+| cashier_settlement_draft | cashier_settlement_draft_cashier_settlement_draft_id_not_null | cashier_settlement_draft_id IS NOT NULL |
+| cashier_settlement_draft | cashier_settlement_draft_created_at_not_null | created_at IS NOT NULL |
+| cashier_settlement_draft | cashier_settlement_draft_draft_status_not_null | draft_status IS NOT NULL |
+| cashier_settlement_draft | cashier_settlement_draft_payment_type_not_null | payment_type IS NOT NULL |
 | cashier_settlement_draft | cashier_settlement_draft_status_check | (draft_status = ANY (ARRAY['open'::text, 'applied'::text, 'cancelled'::text])) |
+| cashier_settlement_draft | cashier_settlement_draft_updated_at_not_null | updated_at IS NOT NULL |
 
 
 
@@ -651,12 +822,12 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| cashier_shift | 2200_36325_1_not_null | cashier_shift_id IS NOT NULL |
-| cashier_shift | 2200_36325_2_not_null | staff_id IS NOT NULL |
-| cashier_shift | 2200_36325_3_not_null | opened_at IS NOT NULL |
-| cashier_shift | 2200_36325_5_not_null | opening_cash IS NOT NULL |
-| cashier_shift | 2200_36325_9_not_null | status IS NOT NULL |
+| cashier_shift | cashier_shift_cashier_shift_id_not_null | cashier_shift_id IS NOT NULL |
+| cashier_shift | cashier_shift_opened_at_not_null | opened_at IS NOT NULL |
+| cashier_shift | cashier_shift_opening_cash_not_null | opening_cash IS NOT NULL |
+| cashier_shift | cashier_shift_staff_id_not_null | staff_id IS NOT NULL |
 | cashier_shift | cashier_shift_status_check | (status = ANY (ARRAY['open'::text, 'closed'::text])) |
+| cashier_shift | cashier_shift_status_not_null | status IS NOT NULL |
 
 
 
@@ -705,9 +876,9 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| current_pregnancy | 2200_17534_1_not_null | pregnancy_id IS NOT NULL |
-| current_pregnancy | 2200_17534_2_not_null | patient_id IS NOT NULL |
-| current_pregnancy | 2200_17534_3_not_null | visit_id IS NOT NULL |
+| current_pregnancy | current_pregnancy_patient_id_not_null | patient_id IS NOT NULL |
+| current_pregnancy | current_pregnancy_pregnancy_id_not_null | pregnancy_id IS NOT NULL |
+| current_pregnancy | current_pregnancy_visit_id_not_null | visit_id IS NOT NULL |
 
 
 
@@ -761,18 +932,18 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| doctor | 2200_17540_12_not_null | employment_status IS NOT NULL |
-| doctor | 2200_17540_13_not_null | failed_login_attempts IS NOT NULL |
-| doctor | 2200_17540_1_not_null | doctor_id IS NOT NULL |
-| doctor | 2200_17540_20_not_null | mfa_enabled IS NOT NULL |
-| doctor | 2200_17540_21_not_null | session_version IS NOT NULL |
-| doctor | 2200_17540_2_not_null | user_code IS NOT NULL |
-| doctor | 2200_17540_3_not_null | password IS NOT NULL |
-| doctor | 2200_17540_4_not_null | doctor_name IS NOT NULL |
-| doctor | 2200_17540_5_not_null | specialization IS NOT NULL |
-| doctor | 2200_17540_7_not_null | consultation_fee IS NOT NULL |
-| doctor | 2200_17540_8_not_null | emergency_fee IS NOT NULL |
+| doctor | doctor_consultation_fee_not_null | consultation_fee IS NOT NULL |
+| doctor | doctor_doctor_id_not_null | doctor_id IS NOT NULL |
+| doctor | doctor_doctor_name_not_null | doctor_name IS NOT NULL |
+| doctor | doctor_emergency_fee_not_null | emergency_fee IS NOT NULL |
 | doctor | doctor_employment_status_check | ((employment_status)::text = ANY (ARRAY['active'::text, 'inactive'::text, 'suspended'::text, 'resigned'::text])) |
+| doctor | doctor_employment_status_not_null | employment_status IS NOT NULL |
+| doctor | doctor_failed_login_attempts_not_null | failed_login_attempts IS NOT NULL |
+| doctor | doctor_mfa_enabled_not_null | mfa_enabled IS NOT NULL |
+| doctor | doctor_password_not_null | password IS NOT NULL |
+| doctor | doctor_session_version_not_null | session_version IS NOT NULL |
+| doctor | doctor_specialization_not_null | specialization IS NOT NULL |
+| doctor | doctor_user_code_not_null | user_code IS NOT NULL |
 
 
 
@@ -833,18 +1004,18 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| doctor_attendance | 2200_36754_13_not_null | late_minutes IS NOT NULL |
-| doctor_attendance | 2200_36754_14_not_null | early_leave_minutes IS NOT NULL |
-| doctor_attendance | 2200_36754_15_not_null | overtime_minutes IS NOT NULL |
-| doctor_attendance | 2200_36754_16_not_null | break_minutes IS NOT NULL |
-| doctor_attendance | 2200_36754_18_not_null | derived_status IS NOT NULL |
-| doctor_attendance | 2200_36754_19_not_null | is_unscheduled IS NOT NULL |
-| doctor_attendance | 2200_36754_1_not_null | attendance_id IS NOT NULL |
-| doctor_attendance | 2200_36754_20_not_null | is_on_time IS NOT NULL |
-| doctor_attendance | 2200_36754_2_not_null | doctor_id IS NOT NULL |
-| doctor_attendance | 2200_36754_3_not_null | date IS NOT NULL |
-| doctor_attendance | 2200_36754_6_not_null | status IS NOT NULL |
+| doctor_attendance | doctor_attendance_attendance_id_not_null | attendance_id IS NOT NULL |
+| doctor_attendance | doctor_attendance_break_minutes_not_null | break_minutes IS NOT NULL |
+| doctor_attendance | doctor_attendance_date_not_null | date IS NOT NULL |
 | doctor_attendance | doctor_attendance_derived_status_check | ((derived_status)::text = ANY (ARRAY['on_time'::text, 'late'::text, 'half_day'::text, 'early_leave'::text, 'overtime'::text, 'unscheduled'::text, 'absent'::text, 'leave'::text])) |
+| doctor_attendance | doctor_attendance_derived_status_not_null | derived_status IS NOT NULL |
+| doctor_attendance | doctor_attendance_doctor_id_not_null | doctor_id IS NOT NULL |
+| doctor_attendance | doctor_attendance_early_leave_minutes_not_null | early_leave_minutes IS NOT NULL |
+| doctor_attendance | doctor_attendance_is_on_time_not_null | is_on_time IS NOT NULL |
+| doctor_attendance | doctor_attendance_is_unscheduled_not_null | is_unscheduled IS NOT NULL |
+| doctor_attendance | doctor_attendance_late_minutes_not_null | late_minutes IS NOT NULL |
+| doctor_attendance | doctor_attendance_overtime_minutes_not_null | overtime_minutes IS NOT NULL |
+| doctor_attendance | doctor_attendance_status_not_null | status IS NOT NULL |
 
 
 
@@ -891,12 +1062,12 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| doctor_encounter_note | 2200_34866_1_not_null | doctor_encounter_note_id IS NOT NULL |
-| doctor_encounter_note | 2200_34866_2_not_null | visit_id IS NOT NULL |
-| doctor_encounter_note | 2200_34866_3_not_null | patient_id IS NOT NULL |
-| doctor_encounter_note | 2200_34866_4_not_null | doctor_id IS NOT NULL |
-| doctor_encounter_note | 2200_34866_7_not_null | created_at IS NOT NULL |
-| doctor_encounter_note | 2200_34866_8_not_null | updated_at IS NOT NULL |
+| doctor_encounter_note | doctor_encounter_note_created_at_not_null | created_at IS NOT NULL |
+| doctor_encounter_note | doctor_encounter_note_doctor_encounter_note_id_not_null | doctor_encounter_note_id IS NOT NULL |
+| doctor_encounter_note | doctor_encounter_note_doctor_id_not_null | doctor_id IS NOT NULL |
+| doctor_encounter_note | doctor_encounter_note_patient_id_not_null | patient_id IS NOT NULL |
+| doctor_encounter_note | doctor_encounter_note_updated_at_not_null | updated_at IS NOT NULL |
+| doctor_encounter_note | doctor_encounter_note_visit_id_not_null | visit_id IS NOT NULL |
 
 
 
@@ -941,12 +1112,12 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| doctor_security_sessions | 2200_36725_1_not_null | session_id IS NOT NULL |
-| doctor_security_sessions | 2200_36725_2_not_null | doctor_id IS NOT NULL |
-| doctor_security_sessions | 2200_36725_3_not_null | user_code IS NOT NULL |
-| doctor_security_sessions | 2200_36725_4_not_null | role IS NOT NULL |
-| doctor_security_sessions | 2200_36725_5_not_null | login_at IS NOT NULL |
-| doctor_security_sessions | 2200_36725_6_not_null | last_seen_at IS NOT NULL |
+| doctor_security_sessions | doctor_security_sessions_doctor_id_not_null | doctor_id IS NOT NULL |
+| doctor_security_sessions | doctor_security_sessions_last_seen_at_not_null | last_seen_at IS NOT NULL |
+| doctor_security_sessions | doctor_security_sessions_login_at_not_null | login_at IS NOT NULL |
+| doctor_security_sessions | doctor_security_sessions_role_not_null | role IS NOT NULL |
+| doctor_security_sessions | doctor_security_sessions_session_id_not_null | session_id IS NOT NULL |
+| doctor_security_sessions | doctor_security_sessions_user_code_not_null | user_code IS NOT NULL |
 
 
 
@@ -998,21 +1169,21 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| employee_allowance | 2200_36842_10_not_null | taxable IS NOT NULL |
-| employee_allowance | 2200_36842_11_not_null | is_active IS NOT NULL |
-| employee_allowance | 2200_36842_12_not_null | effective_from IS NOT NULL |
-| employee_allowance | 2200_36842_15_not_null | created_at IS NOT NULL |
-| employee_allowance | 2200_36842_16_not_null | updated_at IS NOT NULL |
-| employee_allowance | 2200_36842_1_not_null | allowance_id IS NOT NULL |
-| employee_allowance | 2200_36842_2_not_null | account_type IS NOT NULL |
-| employee_allowance | 2200_36842_3_not_null | person_id IS NOT NULL |
-| employee_allowance | 2200_36842_6_not_null | allowance_code IS NOT NULL |
-| employee_allowance | 2200_36842_7_not_null | allowance_name IS NOT NULL |
-| employee_allowance | 2200_36842_8_not_null | amount IS NOT NULL |
-| employee_allowance | 2200_36842_9_not_null | allowance_mode IS NOT NULL |
-| employee_allowance | employee_allowance_account_type_check | ((account_type)::text = ANY ((ARRAY['staff'::character varying, 'doctor'::character varying])::text[])) |
-| employee_allowance | employee_allowance_mode_check | ((allowance_mode)::text = ANY ((ARRAY['recurring'::character varying, 'one_time'::character varying])::text[])) |
+| employee_allowance | employee_allowance_account_type_check | ((account_type)::text = ANY (ARRAY[('staff'::character varying)::text, ('doctor'::character varying)::text])) |
+| employee_allowance | employee_allowance_account_type_not_null | account_type IS NOT NULL |
+| employee_allowance | employee_allowance_allowance_code_not_null | allowance_code IS NOT NULL |
+| employee_allowance | employee_allowance_allowance_id_not_null | allowance_id IS NOT NULL |
+| employee_allowance | employee_allowance_allowance_mode_not_null | allowance_mode IS NOT NULL |
+| employee_allowance | employee_allowance_allowance_name_not_null | allowance_name IS NOT NULL |
+| employee_allowance | employee_allowance_amount_not_null | amount IS NOT NULL |
+| employee_allowance | employee_allowance_created_at_not_null | created_at IS NOT NULL |
+| employee_allowance | employee_allowance_effective_from_not_null | effective_from IS NOT NULL |
+| employee_allowance | employee_allowance_is_active_not_null | is_active IS NOT NULL |
+| employee_allowance | employee_allowance_mode_check | ((allowance_mode)::text = ANY (ARRAY[('recurring'::character varying)::text, ('one_time'::character varying)::text])) |
+| employee_allowance | employee_allowance_person_id_not_null | person_id IS NOT NULL |
 | employee_allowance | employee_allowance_ref_check | ((((account_type)::text = 'staff'::text) AND (staff_id IS NOT NULL) AND (doctor_id IS NULL) AND (person_id = staff_id)) OR (((account_type)::text = 'doctor'::text) AND (doctor_id IS NOT NULL) AND (staff_id IS NULL) AND (person_id = doctor_id))) |
+| employee_allowance | employee_allowance_taxable_not_null | taxable IS NOT NULL |
+| employee_allowance | employee_allowance_updated_at_not_null | updated_at IS NOT NULL |
 
 
 
@@ -1062,20 +1233,20 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| employee_compensation_profile | 2200_36810_10_not_null | active_from IS NOT NULL |
-| employee_compensation_profile | 2200_36810_13_not_null | created_at IS NOT NULL |
-| employee_compensation_profile | 2200_36810_14_not_null | updated_at IS NOT NULL |
-| employee_compensation_profile | 2200_36810_1_not_null | compensation_id IS NOT NULL |
-| employee_compensation_profile | 2200_36810_2_not_null | account_type IS NOT NULL |
-| employee_compensation_profile | 2200_36810_3_not_null | person_id IS NOT NULL |
-| employee_compensation_profile | 2200_36810_6_not_null | salary_model IS NOT NULL |
-| employee_compensation_profile | 2200_36810_7_not_null | payroll_cycle IS NOT NULL |
-| employee_compensation_profile | 2200_36810_8_not_null | base_monthly_salary IS NOT NULL |
-| employee_compensation_profile | 2200_36810_9_not_null | per_patient_fee IS NOT NULL |
-| employee_compensation_profile | employee_compensation_account_type_check | ((account_type)::text = ANY ((ARRAY['staff'::character varying, 'doctor'::character varying])::text[])) |
+| employee_compensation_profile | employee_compensation_account_type_check | ((account_type)::text = ANY (ARRAY[('staff'::character varying)::text, ('doctor'::character varying)::text])) |
 | employee_compensation_profile | employee_compensation_payroll_cycle_check | ((payroll_cycle)::text = 'monthly'::text) |
+| employee_compensation_profile | employee_compensation_profile_account_type_not_null | account_type IS NOT NULL |
+| employee_compensation_profile | employee_compensation_profile_active_from_not_null | active_from IS NOT NULL |
+| employee_compensation_profile | employee_compensation_profile_base_monthly_salary_not_null | base_monthly_salary IS NOT NULL |
+| employee_compensation_profile | employee_compensation_profile_compensation_id_not_null | compensation_id IS NOT NULL |
+| employee_compensation_profile | employee_compensation_profile_created_at_not_null | created_at IS NOT NULL |
+| employee_compensation_profile | employee_compensation_profile_payroll_cycle_not_null | payroll_cycle IS NOT NULL |
+| employee_compensation_profile | employee_compensation_profile_per_patient_fee_not_null | per_patient_fee IS NOT NULL |
+| employee_compensation_profile | employee_compensation_profile_person_id_not_null | person_id IS NOT NULL |
+| employee_compensation_profile | employee_compensation_profile_salary_model_not_null | salary_model IS NOT NULL |
+| employee_compensation_profile | employee_compensation_profile_updated_at_not_null | updated_at IS NOT NULL |
 | employee_compensation_profile | employee_compensation_ref_check | ((((account_type)::text = 'staff'::text) AND (staff_id IS NOT NULL) AND (doctor_id IS NULL) AND (person_id = staff_id)) OR (((account_type)::text = 'doctor'::text) AND (doctor_id IS NOT NULL) AND (staff_id IS NULL) AND (person_id = doctor_id))) |
-| employee_compensation_profile | employee_compensation_salary_model_check | ((salary_model)::text = ANY ((ARRAY['fixed_monthly'::character varying, 'per_patient_seen'::character varying])::text[])) |
+| employee_compensation_profile | employee_compensation_salary_model_check | ((salary_model)::text = ANY (ARRAY[('fixed_monthly'::character varying)::text, ('per_patient_seen'::character varying)::text])) |
 
 
 
@@ -1120,10 +1291,10 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| employee_credential_events | 2200_37106_1_not_null | credential_event_id IS NOT NULL |
-| employee_credential_events | 2200_37106_2_not_null | credential_id IS NOT NULL |
-| employee_credential_events | 2200_37106_4_not_null | event_type IS NOT NULL |
-| employee_credential_events | 2200_37106_9_not_null | created_at IS NOT NULL |
+| employee_credential_events | employee_credential_events_created_at_not_null | created_at IS NOT NULL |
+| employee_credential_events | employee_credential_events_credential_event_id_not_null | credential_event_id IS NOT NULL |
+| employee_credential_events | employee_credential_events_credential_id_not_null | credential_id IS NOT NULL |
+| employee_credential_events | employee_credential_events_event_type_not_null | event_type IS NOT NULL |
 
 
 
@@ -1167,12 +1338,12 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| employee_credential_types | 2200_37046_1_not_null | credential_type_id IS NOT NULL |
-| employee_credential_types | 2200_37046_2_not_null | credential_code IS NOT NULL |
-| employee_credential_types | 2200_37046_3_not_null | credential_name IS NOT NULL |
-| employee_credential_types | 2200_37046_7_not_null | renewal_window_days IS NOT NULL |
-| employee_credential_types | 2200_37046_8_not_null | active IS NOT NULL |
-| employee_credential_types | 2200_37046_9_not_null | created_at IS NOT NULL |
+| employee_credential_types | employee_credential_types_active_not_null | active IS NOT NULL |
+| employee_credential_types | employee_credential_types_created_at_not_null | created_at IS NOT NULL |
+| employee_credential_types | employee_credential_types_credential_code_not_null | credential_code IS NOT NULL |
+| employee_credential_types | employee_credential_types_credential_name_not_null | credential_name IS NOT NULL |
+| employee_credential_types | employee_credential_types_credential_type_id_not_null | credential_type_id IS NOT NULL |
+| employee_credential_types | employee_credential_types_renewal_window_days_not_null | renewal_window_days IS NOT NULL |
 
 
 
@@ -1237,21 +1408,21 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| employee_credentials | 2200_37058_13_not_null | verification_status IS NOT NULL |
-| employee_credentials | 2200_37058_14_not_null | renewal_status IS NOT NULL |
-| employee_credentials | 2200_37058_15_not_null | reminder_status IS NOT NULL |
-| employee_credentials | 2200_37058_1_not_null | credential_id IS NOT NULL |
-| employee_credentials | 2200_37058_24_not_null | metadata IS NOT NULL |
-| employee_credentials | 2200_37058_25_not_null | created_at IS NOT NULL |
-| employee_credentials | 2200_37058_26_not_null | updated_at IS NOT NULL |
-| employee_credentials | 2200_37058_2_not_null | account_type IS NOT NULL |
-| employee_credentials | 2200_37058_3_not_null | person_id IS NOT NULL |
-| employee_credentials | 2200_37058_6_not_null | credential_type_id IS NOT NULL |
-| employee_credentials | 2200_37058_7_not_null | credential_number IS NOT NULL |
 | employee_credentials | employee_credentials_account_type_check | ((account_type)::text = ANY (ARRAY['staff'::text, 'doctor'::text])) |
+| employee_credentials | employee_credentials_account_type_not_null | account_type IS NOT NULL |
+| employee_credentials | employee_credentials_created_at_not_null | created_at IS NOT NULL |
+| employee_credentials | employee_credentials_credential_id_not_null | credential_id IS NOT NULL |
+| employee_credentials | employee_credentials_credential_number_not_null | credential_number IS NOT NULL |
+| employee_credentials | employee_credentials_credential_type_id_not_null | credential_type_id IS NOT NULL |
 | employee_credentials | employee_credentials_employee_ref_check | ((((account_type)::text = 'staff'::text) AND (staff_id IS NOT NULL) AND (doctor_id IS NULL) AND (person_id = staff_id)) OR (((account_type)::text = 'doctor'::text) AND (doctor_id IS NOT NULL) AND (staff_id IS NULL) AND (person_id = doctor_id))) |
+| employee_credentials | employee_credentials_metadata_not_null | metadata IS NOT NULL |
+| employee_credentials | employee_credentials_person_id_not_null | person_id IS NOT NULL |
+| employee_credentials | employee_credentials_reminder_status_not_null | reminder_status IS NOT NULL |
 | employee_credentials | employee_credentials_renewal_status_check | ((renewal_status)::text = ANY (ARRAY['not_due'::text, 'due'::text, 'in_progress'::text, 'renewed'::text, 'overdue'::text, 'blocked'::text])) |
+| employee_credentials | employee_credentials_renewal_status_not_null | renewal_status IS NOT NULL |
 | employee_credentials | employee_credentials_status_check | ((verification_status)::text = ANY (ARRAY['draft'::text, 'submitted'::text, 'under_review'::text, 'verified'::text, 'rejected'::text, 'revoked'::text, 'expired'::text])) |
+| employee_credentials | employee_credentials_updated_at_not_null | updated_at IS NOT NULL |
+| employee_credentials | employee_credentials_verification_status_not_null | verification_status IS NOT NULL |
 
 
 
@@ -1295,13 +1466,13 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| employee_document_requirements | 2200_37239_1_not_null | requirement_id IS NOT NULL |
-| employee_document_requirements | 2200_37239_2_not_null | document_type_id IS NOT NULL |
-| employee_document_requirements | 2200_37239_3_not_null | target_type IS NOT NULL |
-| employee_document_requirements | 2200_37239_5_not_null | mandatory IS NOT NULL |
-| employee_document_requirements | 2200_37239_8_not_null | active IS NOT NULL |
-| employee_document_requirements | 2200_37239_9_not_null | created_at IS NOT NULL |
+| employee_document_requirements | employee_document_requirements_active_not_null | active IS NOT NULL |
+| employee_document_requirements | employee_document_requirements_created_at_not_null | created_at IS NOT NULL |
+| employee_document_requirements | employee_document_requirements_document_type_id_not_null | document_type_id IS NOT NULL |
+| employee_document_requirements | employee_document_requirements_mandatory_not_null | mandatory IS NOT NULL |
+| employee_document_requirements | employee_document_requirements_requirement_id_not_null | requirement_id IS NOT NULL |
 | employee_document_requirements | employee_document_requirements_target_type_check | ((target_type)::text = ANY (ARRAY['global'::text, 'role'::text, 'department'::text, 'facility'::text, 'account_type'::text])) |
+| employee_document_requirements | employee_document_requirements_target_type_not_null | target_type IS NOT NULL |
 
 
 
@@ -1345,11 +1516,11 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| employee_document_reviews | 2200_37212_1_not_null | document_review_id IS NOT NULL |
-| employee_document_reviews | 2200_37212_2_not_null | document_id IS NOT NULL |
-| employee_document_reviews | 2200_37212_5_not_null | review_action IS NOT NULL |
-| employee_document_reviews | 2200_37212_7_not_null | created_at IS NOT NULL |
 | employee_document_reviews | employee_document_reviews_action_check | ((review_action)::text = ANY (ARRAY['submitted'::text, 'under_review'::text, 'approved'::text, 'rejected'::text, 'requested_changes'::text, 'archived'::text])) |
+| employee_document_reviews | employee_document_reviews_created_at_not_null | created_at IS NOT NULL |
+| employee_document_reviews | employee_document_reviews_document_id_not_null | document_id IS NOT NULL |
+| employee_document_reviews | employee_document_reviews_document_review_id_not_null | document_review_id IS NOT NULL |
+| employee_document_reviews | employee_document_reviews_review_action_not_null | review_action IS NOT NULL |
 
 
 
@@ -1393,13 +1564,13 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| employee_document_types | 2200_37127_1_not_null | document_type_id IS NOT NULL |
-| employee_document_types | 2200_37127_2_not_null | document_code IS NOT NULL |
-| employee_document_types | 2200_37127_3_not_null | document_name IS NOT NULL |
-| employee_document_types | 2200_37127_5_not_null | required_default IS NOT NULL |
-| employee_document_types | 2200_37127_6_not_null | requires_expiry IS NOT NULL |
-| employee_document_types | 2200_37127_8_not_null | active IS NOT NULL |
-| employee_document_types | 2200_37127_9_not_null | created_at IS NOT NULL |
+| employee_document_types | employee_document_types_active_not_null | active IS NOT NULL |
+| employee_document_types | employee_document_types_created_at_not_null | created_at IS NOT NULL |
+| employee_document_types | employee_document_types_document_code_not_null | document_code IS NOT NULL |
+| employee_document_types | employee_document_types_document_name_not_null | document_name IS NOT NULL |
+| employee_document_types | employee_document_types_document_type_id_not_null | document_type_id IS NOT NULL |
+| employee_document_types | employee_document_types_required_default_not_null | required_default IS NOT NULL |
+| employee_document_types | employee_document_types_requires_expiry_not_null | requires_expiry IS NOT NULL |
 
 
 
@@ -1448,13 +1619,13 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| employee_document_versions | 2200_37187_11_not_null | uploaded_at IS NOT NULL |
-| employee_document_versions | 2200_37187_12_not_null | is_active IS NOT NULL |
-| employee_document_versions | 2200_37187_13_not_null | metadata IS NOT NULL |
-| employee_document_versions | 2200_37187_1_not_null | version_id IS NOT NULL |
-| employee_document_versions | 2200_37187_2_not_null | document_id IS NOT NULL |
-| employee_document_versions | 2200_37187_3_not_null | version_no IS NOT NULL |
+| employee_document_versions | employee_document_versions_document_id_not_null | document_id IS NOT NULL |
+| employee_document_versions | employee_document_versions_is_active_not_null | is_active IS NOT NULL |
+| employee_document_versions | employee_document_versions_metadata_not_null | metadata IS NOT NULL |
+| employee_document_versions | employee_document_versions_uploaded_at_not_null | uploaded_at IS NOT NULL |
+| employee_document_versions | employee_document_versions_version_id_not_null | version_id IS NOT NULL |
 | employee_document_versions | employee_document_versions_version_no_check | (version_no > 0) |
+| employee_document_versions | employee_document_versions_version_no_not_null | version_no IS NOT NULL |
 
 
 
@@ -1516,21 +1687,21 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| employee_documents | 2200_37140_10_not_null | visibility IS NOT NULL |
-| employee_documents | 2200_37140_11_not_null | current_version_no IS NOT NULL |
-| employee_documents | 2200_37140_1_not_null | document_id IS NOT NULL |
-| employee_documents | 2200_37140_21_not_null | metadata IS NOT NULL |
-| employee_documents | 2200_37140_22_not_null | created_at IS NOT NULL |
-| employee_documents | 2200_37140_23_not_null | updated_at IS NOT NULL |
-| employee_documents | 2200_37140_2_not_null | account_type IS NOT NULL |
-| employee_documents | 2200_37140_3_not_null | person_id IS NOT NULL |
-| employee_documents | 2200_37140_6_not_null | document_type_id IS NOT NULL |
-| employee_documents | 2200_37140_7_not_null | document_title IS NOT NULL |
-| employee_documents | 2200_37140_9_not_null | review_status IS NOT NULL |
 | employee_documents | employee_documents_account_type_check | ((account_type)::text = ANY (ARRAY['staff'::text, 'doctor'::text])) |
+| employee_documents | employee_documents_account_type_not_null | account_type IS NOT NULL |
+| employee_documents | employee_documents_created_at_not_null | created_at IS NOT NULL |
+| employee_documents | employee_documents_current_version_no_not_null | current_version_no IS NOT NULL |
+| employee_documents | employee_documents_document_id_not_null | document_id IS NOT NULL |
+| employee_documents | employee_documents_document_title_not_null | document_title IS NOT NULL |
+| employee_documents | employee_documents_document_type_id_not_null | document_type_id IS NOT NULL |
 | employee_documents | employee_documents_employee_ref_check | ((((account_type)::text = 'staff'::text) AND (staff_id IS NOT NULL) AND (doctor_id IS NULL) AND (person_id = staff_id)) OR (((account_type)::text = 'doctor'::text) AND (doctor_id IS NOT NULL) AND (staff_id IS NULL) AND (person_id = doctor_id))) |
+| employee_documents | employee_documents_metadata_not_null | metadata IS NOT NULL |
+| employee_documents | employee_documents_person_id_not_null | person_id IS NOT NULL |
 | employee_documents | employee_documents_review_status_check | ((review_status)::text = ANY (ARRAY['draft'::text, 'submitted'::text, 'under_review'::text, 'approved'::text, 'rejected'::text, 'expired'::text, 'archived'::text])) |
+| employee_documents | employee_documents_review_status_not_null | review_status IS NOT NULL |
+| employee_documents | employee_documents_updated_at_not_null | updated_at IS NOT NULL |
 | employee_documents | employee_documents_visibility_check | ((visibility)::text = ANY (ARRAY['internal'::text, 'restricted'::text, 'confidential'::text])) |
+| employee_documents | employee_documents_visibility_not_null | visibility IS NOT NULL |
 
 
 
@@ -1577,9 +1748,9 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| employee_lifecycle_events | 2200_37385_10_not_null | created_at IS NOT NULL |
-| employee_lifecycle_events | 2200_37385_1_not_null | lifecycle_event_id IS NOT NULL |
-| employee_lifecycle_events | 2200_37385_5_not_null | event_type IS NOT NULL |
+| employee_lifecycle_events | employee_lifecycle_events_created_at_not_null | created_at IS NOT NULL |
+| employee_lifecycle_events | employee_lifecycle_events_event_type_not_null | event_type IS NOT NULL |
+| employee_lifecycle_events | employee_lifecycle_events_lifecycle_event_id_not_null | lifecycle_event_id IS NOT NULL |
 
 
 
@@ -1632,19 +1803,19 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| employee_lifecycle_runs | 2200_37303_13_not_null | metadata IS NOT NULL |
-| employee_lifecycle_runs | 2200_37303_14_not_null | created_at IS NOT NULL |
-| employee_lifecycle_runs | 2200_37303_15_not_null | updated_at IS NOT NULL |
-| employee_lifecycle_runs | 2200_37303_1_not_null | lifecycle_run_id IS NOT NULL |
-| employee_lifecycle_runs | 2200_37303_2_not_null | account_type IS NOT NULL |
-| employee_lifecycle_runs | 2200_37303_3_not_null | person_id IS NOT NULL |
-| employee_lifecycle_runs | 2200_37303_7_not_null | lifecycle_type IS NOT NULL |
-| employee_lifecycle_runs | 2200_37303_8_not_null | run_status IS NOT NULL |
-| employee_lifecycle_runs | 2200_37303_9_not_null | started_at IS NOT NULL |
 | employee_lifecycle_runs | employee_lifecycle_runs_account_type_check | ((account_type)::text = ANY (ARRAY['staff'::text, 'doctor'::text])) |
+| employee_lifecycle_runs | employee_lifecycle_runs_account_type_not_null | account_type IS NOT NULL |
+| employee_lifecycle_runs | employee_lifecycle_runs_created_at_not_null | created_at IS NOT NULL |
 | employee_lifecycle_runs | employee_lifecycle_runs_employee_ref_check | ((((account_type)::text = 'staff'::text) AND (staff_id IS NOT NULL) AND (doctor_id IS NULL) AND (person_id = staff_id)) OR (((account_type)::text = 'doctor'::text) AND (doctor_id IS NOT NULL) AND (staff_id IS NULL) AND (person_id = doctor_id))) |
+| employee_lifecycle_runs | employee_lifecycle_runs_lifecycle_run_id_not_null | lifecycle_run_id IS NOT NULL |
+| employee_lifecycle_runs | employee_lifecycle_runs_lifecycle_type_not_null | lifecycle_type IS NOT NULL |
+| employee_lifecycle_runs | employee_lifecycle_runs_metadata_not_null | metadata IS NOT NULL |
+| employee_lifecycle_runs | employee_lifecycle_runs_person_id_not_null | person_id IS NOT NULL |
+| employee_lifecycle_runs | employee_lifecycle_runs_run_status_not_null | run_status IS NOT NULL |
+| employee_lifecycle_runs | employee_lifecycle_runs_started_at_not_null | started_at IS NOT NULL |
 | employee_lifecycle_runs | employee_lifecycle_runs_status_check | ((run_status)::text = ANY (ARRAY['draft'::text, 'in_progress'::text, 'blocked'::text, 'completed'::text, 'cancelled'::text])) |
 | employee_lifecycle_runs | employee_lifecycle_runs_type_check | ((lifecycle_type)::text = ANY (ARRAY['onboarding'::text, 'offboarding'::text, 'probation'::text, 'transfer'::text])) |
+| employee_lifecycle_runs | employee_lifecycle_runs_updated_at_not_null | updated_at IS NOT NULL |
 
 
 
@@ -1699,15 +1870,15 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| employee_lifecycle_tasks | 2200_37344_14_not_null | metadata IS NOT NULL |
-| employee_lifecycle_tasks | 2200_37344_15_not_null | created_at IS NOT NULL |
-| employee_lifecycle_tasks | 2200_37344_16_not_null | updated_at IS NOT NULL |
-| employee_lifecycle_tasks | 2200_37344_1_not_null | lifecycle_task_id IS NOT NULL |
-| employee_lifecycle_tasks | 2200_37344_2_not_null | lifecycle_run_id IS NOT NULL |
-| employee_lifecycle_tasks | 2200_37344_4_not_null | task_code IS NOT NULL |
-| employee_lifecycle_tasks | 2200_37344_5_not_null | task_name IS NOT NULL |
-| employee_lifecycle_tasks | 2200_37344_8_not_null | task_status IS NOT NULL |
+| employee_lifecycle_tasks | employee_lifecycle_tasks_created_at_not_null | created_at IS NOT NULL |
+| employee_lifecycle_tasks | employee_lifecycle_tasks_lifecycle_run_id_not_null | lifecycle_run_id IS NOT NULL |
+| employee_lifecycle_tasks | employee_lifecycle_tasks_lifecycle_task_id_not_null | lifecycle_task_id IS NOT NULL |
+| employee_lifecycle_tasks | employee_lifecycle_tasks_metadata_not_null | metadata IS NOT NULL |
 | employee_lifecycle_tasks | employee_lifecycle_tasks_status_check | ((task_status)::text = ANY (ARRAY['pending'::text, 'in_progress'::text, 'completed'::text, 'skipped'::text, 'blocked'::text, 'cancelled'::text, 'overdue'::text])) |
+| employee_lifecycle_tasks | employee_lifecycle_tasks_task_code_not_null | task_code IS NOT NULL |
+| employee_lifecycle_tasks | employee_lifecycle_tasks_task_name_not_null | task_name IS NOT NULL |
+| employee_lifecycle_tasks | employee_lifecycle_tasks_task_status_not_null | task_status IS NOT NULL |
+| employee_lifecycle_tasks | employee_lifecycle_tasks_updated_at_not_null | updated_at IS NOT NULL |
 
 
 
@@ -1756,15 +1927,15 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| employee_lifecycle_template_tasks | 2200_37278_11_not_null | blocks_transition IS NOT NULL |
-| employee_lifecycle_template_tasks | 2200_37278_12_not_null | metadata IS NOT NULL |
-| employee_lifecycle_template_tasks | 2200_37278_13_not_null | created_at IS NOT NULL |
-| employee_lifecycle_template_tasks | 2200_37278_1_not_null | lifecycle_template_task_id IS NOT NULL |
-| employee_lifecycle_template_tasks | 2200_37278_2_not_null | lifecycle_template_id IS NOT NULL |
-| employee_lifecycle_template_tasks | 2200_37278_3_not_null | task_code IS NOT NULL |
-| employee_lifecycle_template_tasks | 2200_37278_4_not_null | task_name IS NOT NULL |
-| employee_lifecycle_template_tasks | 2200_37278_6_not_null | sequence_no IS NOT NULL |
-| employee_lifecycle_template_tasks | 2200_37278_8_not_null | mandatory IS NOT NULL |
+| employee_lifecycle_template_tasks | employee_lifecycle_template_lifecycle_template_task_id_not_null | lifecycle_template_task_id IS NOT NULL |
+| employee_lifecycle_template_tasks | employee_lifecycle_template_task_lifecycle_template_id_not_null | lifecycle_template_id IS NOT NULL |
+| employee_lifecycle_template_tasks | employee_lifecycle_template_tasks_blocks_transition_not_null | blocks_transition IS NOT NULL |
+| employee_lifecycle_template_tasks | employee_lifecycle_template_tasks_created_at_not_null | created_at IS NOT NULL |
+| employee_lifecycle_template_tasks | employee_lifecycle_template_tasks_mandatory_not_null | mandatory IS NOT NULL |
+| employee_lifecycle_template_tasks | employee_lifecycle_template_tasks_metadata_not_null | metadata IS NOT NULL |
+| employee_lifecycle_template_tasks | employee_lifecycle_template_tasks_sequence_no_not_null | sequence_no IS NOT NULL |
+| employee_lifecycle_template_tasks | employee_lifecycle_template_tasks_task_code_not_null | task_code IS NOT NULL |
+| employee_lifecycle_template_tasks | employee_lifecycle_template_tasks_task_name_not_null | task_name IS NOT NULL |
 
 
 
@@ -1813,15 +1984,15 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| employee_lifecycle_templates | 2200_37256_10_not_null | metadata IS NOT NULL |
-| employee_lifecycle_templates | 2200_37256_12_not_null | created_at IS NOT NULL |
-| employee_lifecycle_templates | 2200_37256_1_not_null | lifecycle_template_id IS NOT NULL |
-| employee_lifecycle_templates | 2200_37256_2_not_null | template_code IS NOT NULL |
-| employee_lifecycle_templates | 2200_37256_3_not_null | template_name IS NOT NULL |
-| employee_lifecycle_templates | 2200_37256_4_not_null | lifecycle_type IS NOT NULL |
-| employee_lifecycle_templates | 2200_37256_5_not_null | applies_to IS NOT NULL |
-| employee_lifecycle_templates | 2200_37256_9_not_null | is_active IS NOT NULL |
 | employee_lifecycle_templates | employee_lifecycle_templates_applies_to_check | ((applies_to)::text = ANY (ARRAY['staff'::text, 'doctor'::text, 'both'::text])) |
+| employee_lifecycle_templates | employee_lifecycle_templates_applies_to_not_null | applies_to IS NOT NULL |
+| employee_lifecycle_templates | employee_lifecycle_templates_created_at_not_null | created_at IS NOT NULL |
+| employee_lifecycle_templates | employee_lifecycle_templates_is_active_not_null | is_active IS NOT NULL |
+| employee_lifecycle_templates | employee_lifecycle_templates_lifecycle_template_id_not_null | lifecycle_template_id IS NOT NULL |
+| employee_lifecycle_templates | employee_lifecycle_templates_lifecycle_type_not_null | lifecycle_type IS NOT NULL |
+| employee_lifecycle_templates | employee_lifecycle_templates_metadata_not_null | metadata IS NOT NULL |
+| employee_lifecycle_templates | employee_lifecycle_templates_template_code_not_null | template_code IS NOT NULL |
+| employee_lifecycle_templates | employee_lifecycle_templates_template_name_not_null | template_name IS NOT NULL |
 | employee_lifecycle_templates | employee_lifecycle_templates_type_check | ((lifecycle_type)::text = ANY (ARRAY['onboarding'::text, 'offboarding'::text, 'probation'::text, 'transfer'::text])) |
 
 
@@ -1868,12 +2039,12 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| finance_asset_purchase | 2200_36952_11_not_null | created_at IS NOT NULL |
-| finance_asset_purchase | 2200_36952_1_not_null | asset_purchase_id IS NOT NULL |
-| finance_asset_purchase | 2200_36952_2_not_null | purchase_date IS NOT NULL |
-| finance_asset_purchase | 2200_36952_3_not_null | asset_name IS NOT NULL |
-| finance_asset_purchase | 2200_36952_4_not_null | asset_category IS NOT NULL |
-| finance_asset_purchase | 2200_36952_5_not_null | amount IS NOT NULL |
+| finance_asset_purchase | finance_asset_purchase_amount_not_null | amount IS NOT NULL |
+| finance_asset_purchase | finance_asset_purchase_asset_category_not_null | asset_category IS NOT NULL |
+| finance_asset_purchase | finance_asset_purchase_asset_name_not_null | asset_name IS NOT NULL |
+| finance_asset_purchase | finance_asset_purchase_asset_purchase_id_not_null | asset_purchase_id IS NOT NULL |
+| finance_asset_purchase | finance_asset_purchase_created_at_not_null | created_at IS NOT NULL |
+| finance_asset_purchase | finance_asset_purchase_purchase_date_not_null | purchase_date IS NOT NULL |
 
 
 
@@ -1911,10 +2082,10 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| finance_expense_category | 2200_37033_1_not_null | code IS NOT NULL |
-| finance_expense_category | 2200_37033_2_not_null | label IS NOT NULL |
-| finance_expense_category | 2200_37033_4_not_null | created_at IS NOT NULL |
-| finance_expense_category | 2200_37033_5_not_null | updated_at IS NOT NULL |
+| finance_expense_category | finance_expense_category_code_not_null | code IS NOT NULL |
+| finance_expense_category | finance_expense_category_created_at_not_null | created_at IS NOT NULL |
+| finance_expense_category | finance_expense_category_label_not_null | label IS NOT NULL |
+| finance_expense_category | finance_expense_category_updated_at_not_null | updated_at IS NOT NULL |
 
 
 
@@ -1960,11 +2131,11 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| finance_expense_entry | 2200_36936_11_not_null | created_at IS NOT NULL |
-| finance_expense_entry | 2200_36936_1_not_null | expense_id IS NOT NULL |
-| finance_expense_entry | 2200_36936_2_not_null | expense_date IS NOT NULL |
-| finance_expense_entry | 2200_36936_3_not_null | category IS NOT NULL |
-| finance_expense_entry | 2200_36936_5_not_null | amount IS NOT NULL |
+| finance_expense_entry | finance_expense_entry_amount_not_null | amount IS NOT NULL |
+| finance_expense_entry | finance_expense_entry_category_not_null | category IS NOT NULL |
+| finance_expense_entry | finance_expense_entry_created_at_not_null | created_at IS NOT NULL |
+| finance_expense_entry | finance_expense_entry_expense_date_not_null | expense_date IS NOT NULL |
+| finance_expense_entry | finance_expense_entry_expense_id_not_null | expense_id IS NOT NULL |
 
 
 
@@ -2016,13 +2187,13 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| lab_order | 2200_17547_1_not_null | order_id IS NOT NULL |
-| lab_order | 2200_17547_2_not_null | visit_id IS NOT NULL |
-| lab_order | 2200_17547_3_not_null | test_id IS NOT NULL |
-| lab_order | 2200_17547_4_not_null | ordered_by IS NOT NULL |
-| lab_order | 2200_17547_8_not_null | urgency IS NOT NULL |
+| lab_order | lab_order_order_id_not_null | order_id IS NOT NULL |
+| lab_order | lab_order_ordered_by_not_null | ordered_by IS NOT NULL |
 | lab_order | lab_order_status_check | ((status)::text = ANY (ARRAY[('Pending'::character varying)::text, ('Performed'::character varying)::text, ('Completed'::character varying)::text])) |
+| lab_order | lab_order_test_id_not_null | test_id IS NOT NULL |
 | lab_order | lab_order_urgency_check | ((urgency)::text = ANY (ARRAY[('STAT'::character varying)::text, ('Urgent'::character varying)::text, ('Routine'::character varying)::text, ('Timed'::character varying)::text])) |
+| lab_order | lab_order_urgency_not_null | urgency IS NOT NULL |
+| lab_order | lab_order_visit_id_not_null | visit_id IS NOT NULL |
 
 
 
@@ -2063,9 +2234,9 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| lab_result | 2200_17555_1_not_null | order_id IS NOT NULL |
-| lab_result | 2200_17555_3_not_null | reported_by IS NOT NULL |
-| lab_result | 2200_17555_5_not_null | result_id IS NOT NULL |
+| lab_result | lab_result_order_id_not_null | order_id IS NOT NULL |
+| lab_result | lab_result_reported_by_not_null | reported_by IS NOT NULL |
+| lab_result | lab_result_result_id_not_null | result_id IS NOT NULL |
 
 
 
@@ -2110,9 +2281,9 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| lab_result_approvals | 2200_17561_1_not_null | approval_id IS NOT NULL |
-| lab_result_approvals | 2200_17561_2_not_null | order_id IS NOT NULL |
-| lab_result_approvals | 2200_17561_3_not_null | approved_by IS NOT NULL |
+| lab_result_approvals | lab_result_approvals_approval_id_not_null | approval_id IS NOT NULL |
+| lab_result_approvals | lab_result_approvals_approved_by_not_null | approved_by IS NOT NULL |
+| lab_result_approvals | lab_result_approvals_order_id_not_null | order_id IS NOT NULL |
 
 
 
@@ -2150,8 +2321,8 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| lab_test | 2200_17570_1_not_null | test_id IS NOT NULL |
-| lab_test | 2200_17570_2_not_null | test_name IS NOT NULL |
+| lab_test | lab_test_test_id_not_null | test_id IS NOT NULL |
+| lab_test | lab_test_test_name_not_null | test_name IS NOT NULL |
 
 
 
@@ -2202,9 +2373,9 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| lab_test_parameters | 2200_17575_1_not_null | parameter_id IS NOT NULL |
-| lab_test_parameters | 2200_17575_2_not_null | test_id IS NOT NULL |
-| lab_test_parameters | 2200_17575_3_not_null | parameter_name IS NOT NULL |
+| lab_test_parameters | lab_test_parameters_parameter_id_not_null | parameter_id IS NOT NULL |
+| lab_test_parameters | lab_test_parameters_parameter_name_not_null | parameter_name IS NOT NULL |
+| lab_test_parameters | lab_test_parameters_test_id_not_null | test_id IS NOT NULL |
 
 
 
@@ -2255,9 +2426,9 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| lab_test_results | 2200_17586_1_not_null | result_id IS NOT NULL |
-| lab_test_results | 2200_17586_2_not_null | order_id IS NOT NULL |
-| lab_test_results | 2200_17586_3_not_null | parameter_id IS NOT NULL |
+| lab_test_results | lab_test_results_order_id_not_null | order_id IS NOT NULL |
+| lab_test_results | lab_test_results_parameter_id_not_null | parameter_id IS NOT NULL |
+| lab_test_results | lab_test_results_result_id_not_null | result_id IS NOT NULL |
 
 
 
@@ -2308,16 +2479,16 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| leave_employee_quota_override | 2200_36985_10_not_null | updated_at IS NOT NULL |
-| leave_employee_quota_override | 2200_36985_1_not_null | override_id IS NOT NULL |
-| leave_employee_quota_override | 2200_36985_2_not_null | account_type IS NOT NULL |
-| leave_employee_quota_override | 2200_36985_3_not_null | person_id IS NOT NULL |
-| leave_employee_quota_override | 2200_36985_6_not_null | leave_type_id IS NOT NULL |
-| leave_employee_quota_override | 2200_36985_7_not_null | annual_quota IS NOT NULL |
-| leave_employee_quota_override | 2200_36985_8_not_null | active IS NOT NULL |
-| leave_employee_quota_override | 2200_36985_9_not_null | created_at IS NOT NULL |
-| leave_employee_quota_override | leave_employee_override_account_type_check | ((account_type)::text = ANY ((ARRAY['staff'::character varying, 'doctor'::character varying])::text[])) |
+| leave_employee_quota_override | leave_employee_override_account_type_check | ((account_type)::text = ANY (ARRAY[('staff'::character varying)::text, ('doctor'::character varying)::text])) |
 | leave_employee_quota_override | leave_employee_override_ref_check | ((((account_type)::text = 'staff'::text) AND (staff_id IS NOT NULL) AND (doctor_id IS NULL) AND (person_id = staff_id)) OR (((account_type)::text = 'doctor'::text) AND (doctor_id IS NOT NULL) AND (staff_id IS NULL) AND (person_id = doctor_id))) |
+| leave_employee_quota_override | leave_employee_quota_override_account_type_not_null | account_type IS NOT NULL |
+| leave_employee_quota_override | leave_employee_quota_override_active_not_null | active IS NOT NULL |
+| leave_employee_quota_override | leave_employee_quota_override_annual_quota_not_null | annual_quota IS NOT NULL |
+| leave_employee_quota_override | leave_employee_quota_override_created_at_not_null | created_at IS NOT NULL |
+| leave_employee_quota_override | leave_employee_quota_override_leave_type_id_not_null | leave_type_id IS NOT NULL |
+| leave_employee_quota_override | leave_employee_quota_override_override_id_not_null | override_id IS NOT NULL |
+| leave_employee_quota_override | leave_employee_quota_override_person_id_not_null | person_id IS NOT NULL |
+| leave_employee_quota_override | leave_employee_quota_override_updated_at_not_null | updated_at IS NOT NULL |
 
 
 
@@ -2362,13 +2533,13 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| leave_role_quota | 2200_36968_1_not_null | role_quota_id IS NOT NULL |
-| leave_role_quota | 2200_36968_2_not_null | role_name IS NOT NULL |
-| leave_role_quota | 2200_36968_3_not_null | leave_type_id IS NOT NULL |
-| leave_role_quota | 2200_36968_4_not_null | annual_quota IS NOT NULL |
-| leave_role_quota | 2200_36968_5_not_null | active IS NOT NULL |
-| leave_role_quota | 2200_36968_6_not_null | created_at IS NOT NULL |
-| leave_role_quota | 2200_36968_7_not_null | updated_at IS NOT NULL |
+| leave_role_quota | leave_role_quota_active_not_null | active IS NOT NULL |
+| leave_role_quota | leave_role_quota_annual_quota_not_null | annual_quota IS NOT NULL |
+| leave_role_quota | leave_role_quota_created_at_not_null | created_at IS NOT NULL |
+| leave_role_quota | leave_role_quota_leave_type_id_not_null | leave_type_id IS NOT NULL |
+| leave_role_quota | leave_role_quota_role_name_not_null | role_name IS NOT NULL |
+| leave_role_quota | leave_role_quota_role_quota_id_not_null | role_quota_id IS NOT NULL |
+| leave_role_quota | leave_role_quota_updated_at_not_null | updated_at IS NOT NULL |
 
 
 
@@ -2431,10 +2602,10 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| medicine | 2200_17594_1_not_null | medicine_id IS NOT NULL |
-| medicine | 2200_17594_2_not_null | generic_name IS NOT NULL |
-| medicine | 2200_17594_3_not_null | brand_name IS NOT NULL |
-| medicine | 2200_17594_4_not_null | category IS NOT NULL |
+| medicine | medicine_brand_name_not_null | brand_name IS NOT NULL |
+| medicine | medicine_category_not_null | category IS NOT NULL |
+| medicine | medicine_generic_name_not_null | generic_name IS NOT NULL |
+| medicine | medicine_medicine_id_not_null | medicine_id IS NOT NULL |
 
 
 
@@ -2488,10 +2659,14 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| medicine_batch | 2200_17608_13_not_null | batch_code IS NOT NULL |
-| medicine_batch | 2200_17608_1_not_null | batch_id IS NOT NULL |
+| medicine_batch | ck_purchase_price_nonneg | (purchase_price >= (0)::numeric) |
+| medicine_batch | ck_purchase_sub_unit_price_nonneg | (purchase_sub_unit_price >= (0)::numeric) |
+| medicine_batch | ck_sale_price_nonneg | (sale_price >= (0)::numeric) |
+| medicine_batch | ck_sale_sub_unit_price_nonneg | (sale_sub_unit_price >= (0)::numeric) |
 | medicine_batch | ck_stock_qty_non_negative | (stock_quantity >= 0) |
 | medicine_batch | ck_sub_stock_qty_non_negative | (stock_sub_quantity >= 0) |
+| medicine_batch | medicine_batch_batch_code_not_null | batch_code IS NOT NULL |
+| medicine_batch | medicine_batch_batch_id_not_null | batch_id IS NOT NULL |
 
 
 
@@ -2528,10 +2703,10 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| medicine_category | 2200_34739_1_not_null | category_id IS NOT NULL |
-| medicine_category | 2200_34739_2_not_null | name IS NOT NULL |
-| medicine_category | 2200_34739_3_not_null | is_active IS NOT NULL |
-| medicine_category | 2200_34739_4_not_null | created_at IS NOT NULL |
+| medicine_category | medicine_category_category_id_not_null | category_id IS NOT NULL |
+| medicine_category | medicine_category_created_at_not_null | created_at IS NOT NULL |
+| medicine_category | medicine_category_is_active_not_null | is_active IS NOT NULL |
+| medicine_category | medicine_category_name_not_null | name IS NOT NULL |
 
 
 
@@ -2568,10 +2743,10 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| medicine_form | 2200_34755_1_not_null | form_id IS NOT NULL |
-| medicine_form | 2200_34755_2_not_null | name IS NOT NULL |
-| medicine_form | 2200_34755_3_not_null | is_active IS NOT NULL |
-| medicine_form | 2200_34755_4_not_null | created_at IS NOT NULL |
+| medicine_form | medicine_form_created_at_not_null | created_at IS NOT NULL |
+| medicine_form | medicine_form_form_id_not_null | form_id IS NOT NULL |
+| medicine_form | medicine_form_is_active_not_null | is_active IS NOT NULL |
+| medicine_form | medicine_form_name_not_null | name IS NOT NULL |
 
 
 
@@ -2608,10 +2783,10 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| medicine_manufacturer | 2200_34747_1_not_null | manufacturer_id IS NOT NULL |
-| medicine_manufacturer | 2200_34747_2_not_null | name IS NOT NULL |
-| medicine_manufacturer | 2200_34747_3_not_null | is_active IS NOT NULL |
-| medicine_manufacturer | 2200_34747_4_not_null | created_at IS NOT NULL |
+| medicine_manufacturer | medicine_manufacturer_created_at_not_null | created_at IS NOT NULL |
+| medicine_manufacturer | medicine_manufacturer_is_active_not_null | is_active IS NOT NULL |
+| medicine_manufacturer | medicine_manufacturer_manufacturer_id_not_null | manufacturer_id IS NOT NULL |
+| medicine_manufacturer | medicine_manufacturer_name_not_null | name IS NOT NULL |
 
 
 
@@ -2656,10 +2831,10 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| medicine_purchase | 2200_17616_1_not_null | purchase_id IS NOT NULL |
-| medicine_purchase | 2200_17616_2_not_null | party_id IS NOT NULL |
-| medicine_purchase | 2200_17616_3_not_null | invoice_no IS NOT NULL |
+| medicine_purchase | medicine_purchase_invoice_no_not_null | invoice_no IS NOT NULL |
+| medicine_purchase | medicine_purchase_party_id_not_null | party_id IS NOT NULL |
 | medicine_purchase | medicine_purchase_payment_status_check | ((payment_status)::text = ANY (ARRAY[('Paid'::character varying)::text, ('Unpaid'::character varying)::text, ('Partial'::character varying)::text])) |
+| medicine_purchase | medicine_purchase_purchase_id_not_null | purchase_id IS NOT NULL |
 
 
 
@@ -2704,10 +2879,10 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| medicine_purchase_detail | 2200_17622_1_not_null | id IS NOT NULL |
-| medicine_purchase_detail | 2200_17622_2_not_null | purchase_id IS NOT NULL |
-| medicine_purchase_detail | 2200_17622_3_not_null | medicine_id IS NOT NULL |
-| medicine_purchase_detail | 2200_17622_4_not_null | quantity IS NOT NULL |
+| medicine_purchase_detail | medicine_purchase_detail_id_not_null | id IS NOT NULL |
+| medicine_purchase_detail | medicine_purchase_detail_medicine_id_not_null | medicine_id IS NOT NULL |
+| medicine_purchase_detail | medicine_purchase_detail_purchase_id_not_null | purchase_id IS NOT NULL |
+| medicine_purchase_detail | medicine_purchase_detail_quantity_not_null | quantity IS NOT NULL |
 
 
 
@@ -2759,10 +2934,10 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| medicine_transaction | 2200_17629_1_not_null | txn_id IS NOT NULL |
-| medicine_transaction | 2200_17629_2_not_null | medicine_id IS NOT NULL |
-| medicine_transaction | 2200_17629_4_not_null | quantity IS NOT NULL |
-| medicine_transaction | 2200_17629_5_not_null | amount_per_unit IS NOT NULL |
+| medicine_transaction | medicine_transaction_amount_per_unit_not_null | amount_per_unit IS NOT NULL |
+| medicine_transaction | medicine_transaction_medicine_id_not_null | medicine_id IS NOT NULL |
+| medicine_transaction | medicine_transaction_quantity_not_null | quantity IS NOT NULL |
+| medicine_transaction | medicine_transaction_txn_id_not_null | txn_id IS NOT NULL |
 | medicine_transaction | medicine_transaction_txn_type_check | ((txn_type)::text = ANY (ARRAY[('purchase'::character varying)::text, ('sale'::character varying)::text, ('purchase_return'::character varying)::text, ('sale_return'::character varying)::text, ('adjustment'::character varying)::text])) |
 
 
@@ -2811,8 +2986,8 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| menstrual_history | 2200_17636_1_not_null | menstrual_history_id IS NOT NULL |
-| menstrual_history | 2200_17636_2_not_null | patient_id IS NOT NULL |
+| menstrual_history | menstrual_history_menstrual_history_id_not_null | menstrual_history_id IS NOT NULL |
+| menstrual_history | menstrual_history_patient_id_not_null | patient_id IS NOT NULL |
 
 
 
@@ -2859,8 +3034,8 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| obstetric_history | 2200_17642_1_not_null | obstetric_history_id IS NOT NULL |
-| obstetric_history | 2200_17642_2_not_null | patient_id IS NOT NULL |
+| obstetric_history | obstetric_history_obstetric_history_id_not_null | obstetric_history_id IS NOT NULL |
+| obstetric_history | obstetric_history_patient_id_not_null | patient_id IS NOT NULL |
 
 
 
@@ -2910,9 +3085,9 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| para_details | 2200_17648_1_not_null | para_id IS NOT NULL |
-| para_details | 2200_17648_2_not_null | obstetric_history_id IS NOT NULL |
 | para_details | para_details_gender_check | ((gender)::text = ANY (ARRAY[('Male'::character varying)::text, ('Female'::character varying)::text])) |
+| para_details | para_details_obstetric_history_id_not_null | obstetric_history_id IS NOT NULL |
+| para_details | para_details_para_id_not_null | para_id IS NOT NULL |
 
 
 
@@ -2953,8 +3128,8 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| party | 2200_17658_1_not_null | party_id IS NOT NULL |
-| party | 2200_17658_2_not_null | name IS NOT NULL |
+| party | party_name_not_null | name IS NOT NULL |
+| party | party_party_id_not_null | party_id IS NOT NULL |
 
 
 
@@ -2997,9 +3172,9 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| party_payment | 2200_34721_1_not_null | payment_id IS NOT NULL |
-| party_payment | 2200_34721_2_not_null | party_id IS NOT NULL |
-| party_payment | 2200_34721_3_not_null | amount IS NOT NULL |
+| party_payment | party_payment_amount_not_null | amount IS NOT NULL |
+| party_payment | party_payment_party_id_not_null | party_id IS NOT NULL |
+| party_payment | party_payment_payment_id_not_null | payment_id IS NOT NULL |
 
 
 
@@ -3040,9 +3215,9 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| patient | 2200_17665_1_not_null | patient_id IS NOT NULL |
-| patient | 2200_17665_2_not_null | patient_name IS NOT NULL |
 | patient | patient_gender_check | ((gender)::text = ANY (ARRAY[('Male'::character varying)::text, ('Female'::character varying)::text, ('Other'::character varying)::text])) |
+| patient | patient_patient_id_not_null | patient_id IS NOT NULL |
+| patient | patient_patient_name_not_null | patient_name IS NOT NULL |
 
 
 
@@ -3088,9 +3263,9 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| patient_vitals | 2200_17673_1_not_null | vital_id IS NOT NULL |
-| patient_vitals | 2200_17673_2_not_null | visit_id IS NOT NULL |
 | patient_vitals | patient_vitals_blood_group_check | ((blood_group)::text = ANY (ARRAY[('A+'::character varying)::text, ('A-'::character varying)::text, ('B+'::character varying)::text, ('B-'::character varying)::text, ('O+'::character varying)::text, ('O-'::character varying)::text, ('AB+'::character varying)::text, ('AB-'::character varying)::text])) |
+| patient_vitals | patient_vitals_visit_id_not_null | visit_id IS NOT NULL |
+| patient_vitals | patient_vitals_vital_id_not_null | vital_id IS NOT NULL |
 
 
 
@@ -3145,25 +3320,25 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| payroll_line_item | 2200_36896_10_not_null | per_patient_fee IS NOT NULL |
-| payroll_line_item | 2200_36896_11_not_null | allowance_total IS NOT NULL |
-| payroll_line_item | 2200_36896_12_not_null | deduction_total IS NOT NULL |
-| payroll_line_item | 2200_36896_13_not_null | adjustment_total IS NOT NULL |
-| payroll_line_item | 2200_36896_14_not_null | gross_amount IS NOT NULL |
-| payroll_line_item | 2200_36896_15_not_null | net_amount IS NOT NULL |
-| payroll_line_item | 2200_36896_16_not_null | calc_snapshot IS NOT NULL |
-| payroll_line_item | 2200_36896_17_not_null | created_at IS NOT NULL |
-| payroll_line_item | 2200_36896_18_not_null | updated_at IS NOT NULL |
-| payroll_line_item | 2200_36896_1_not_null | payroll_line_id IS NOT NULL |
-| payroll_line_item | 2200_36896_2_not_null | payroll_run_id IS NOT NULL |
-| payroll_line_item | 2200_36896_3_not_null | account_type IS NOT NULL |
-| payroll_line_item | 2200_36896_4_not_null | person_id IS NOT NULL |
-| payroll_line_item | 2200_36896_7_not_null | salary_model IS NOT NULL |
-| payroll_line_item | 2200_36896_8_not_null | base_amount IS NOT NULL |
-| payroll_line_item | 2200_36896_9_not_null | patient_count IS NOT NULL |
-| payroll_line_item | payroll_line_account_type_check | ((account_type)::text = ANY ((ARRAY['staff'::character varying, 'doctor'::character varying])::text[])) |
+| payroll_line_item | payroll_line_account_type_check | ((account_type)::text = ANY (ARRAY[('staff'::character varying)::text, ('doctor'::character varying)::text])) |
+| payroll_line_item | payroll_line_item_account_type_not_null | account_type IS NOT NULL |
+| payroll_line_item | payroll_line_item_adjustment_total_not_null | adjustment_total IS NOT NULL |
+| payroll_line_item | payroll_line_item_allowance_total_not_null | allowance_total IS NOT NULL |
+| payroll_line_item | payroll_line_item_base_amount_not_null | base_amount IS NOT NULL |
+| payroll_line_item | payroll_line_item_calc_snapshot_not_null | calc_snapshot IS NOT NULL |
+| payroll_line_item | payroll_line_item_created_at_not_null | created_at IS NOT NULL |
+| payroll_line_item | payroll_line_item_deduction_total_not_null | deduction_total IS NOT NULL |
+| payroll_line_item | payroll_line_item_gross_amount_not_null | gross_amount IS NOT NULL |
+| payroll_line_item | payroll_line_item_net_amount_not_null | net_amount IS NOT NULL |
+| payroll_line_item | payroll_line_item_patient_count_not_null | patient_count IS NOT NULL |
+| payroll_line_item | payroll_line_item_payroll_line_id_not_null | payroll_line_id IS NOT NULL |
+| payroll_line_item | payroll_line_item_payroll_run_id_not_null | payroll_run_id IS NOT NULL |
+| payroll_line_item | payroll_line_item_per_patient_fee_not_null | per_patient_fee IS NOT NULL |
+| payroll_line_item | payroll_line_item_person_id_not_null | person_id IS NOT NULL |
+| payroll_line_item | payroll_line_item_salary_model_not_null | salary_model IS NOT NULL |
+| payroll_line_item | payroll_line_item_updated_at_not_null | updated_at IS NOT NULL |
 | payroll_line_item | payroll_line_ref_check | ((((account_type)::text = 'staff'::text) AND (staff_id IS NOT NULL) AND (doctor_id IS NULL) AND (person_id = staff_id)) OR (((account_type)::text = 'doctor'::text) AND (doctor_id IS NOT NULL) AND (staff_id IS NULL) AND (person_id = doctor_id))) |
-| payroll_line_item | payroll_line_salary_model_check | ((salary_model)::text = ANY ((ARRAY['fixed_monthly'::character varying, 'per_patient_seen'::character varying])::text[])) |
+| payroll_line_item | payroll_line_salary_model_check | ((salary_model)::text = ANY (ARRAY[('fixed_monthly'::character varying)::text, ('per_patient_seen'::character varying)::text])) |
 
 
 
@@ -3207,12 +3382,12 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| payroll_run | 2200_36872_1_not_null | payroll_run_id IS NOT NULL |
-| payroll_run | 2200_36872_2_not_null | period_month IS NOT NULL |
-| payroll_run | 2200_36872_3_not_null | status IS NOT NULL |
-| payroll_run | 2200_36872_6_not_null | generated_at IS NOT NULL |
+| payroll_run | payroll_run_generated_at_not_null | generated_at IS NOT NULL |
 | payroll_run | payroll_run_month_first_day_check | ((date_trunc('month'::text, (period_month)::timestamp with time zone))::date = period_month) |
-| payroll_run | payroll_run_status_check | ((status)::text = ANY ((ARRAY['draft'::character varying, 'finalized'::character varying, 'void'::character varying])::text[])) |
+| payroll_run | payroll_run_payroll_run_id_not_null | payroll_run_id IS NOT NULL |
+| payroll_run | payroll_run_period_month_not_null | period_month IS NOT NULL |
+| payroll_run | payroll_run_status_check | ((status)::text = ANY (ARRAY[('draft'::character varying)::text, ('finalized'::character varying)::text, ('void'::character varying)::text])) |
+| payroll_run | payroll_run_status_not_null | status IS NOT NULL |
 
 
 
@@ -3255,7 +3430,7 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| pharmacy_customer | 2200_17679_1_not_null | customer_id IS NOT NULL |
+| pharmacy_customer | pharmacy_customer_customer_id_not_null | customer_id IS NOT NULL |
 
 
 
@@ -3318,9 +3493,9 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| pharmacy_sale | 2200_17687_1_not_null | sale_id IS NOT NULL |
-| pharmacy_sale | 2200_17687_5_not_null | handled_by IS NOT NULL |
+| pharmacy_sale | pharmacy_sale_handled_by_not_null | handled_by IS NOT NULL |
 | pharmacy_sale | pharmacy_sale_payment_type_check | ((payment_type)::text = ANY (ARRAY[('CASH'::character varying)::text, ('CARD'::character varying)::text, ('INSURANCE'::character varying)::text, ('MOBILE'::character varying)::text, ('SPLIT'::character varying)::text])) |
+| pharmacy_sale | pharmacy_sale_sale_id_not_null | sale_id IS NOT NULL |
 | pharmacy_sale | pharmacy_sale_settlement_channel_check | (settlement_channel = ANY (ARRAY['pharmacy'::text, 'cashier'::text])) |
 | pharmacy_sale | pharmacy_sale_settlement_status_check | (settlement_status = ANY (ARRAY['pending'::text, 'settled'::text])) |
 | pharmacy_sale | pharmacy_sale_status_check | ((status)::text = ANY (ARRAY[('Completed'::character varying)::text, ('Returned'::character varying)::text, ('Cancelled'::character varying)::text])) |
@@ -3376,11 +3551,11 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| pharmacy_sale_detail | 2200_17703_1_not_null | pharmacy_sale_detail_id IS NOT NULL |
-| pharmacy_sale_detail | 2200_17703_2_not_null | sale_id IS NOT NULL |
-| pharmacy_sale_detail | 2200_17703_3_not_null | medicine_id IS NOT NULL |
-| pharmacy_sale_detail | 2200_17703_4_not_null | quantity IS NOT NULL |
 | pharmacy_sale_detail | check_total_price | (line_total = round(((((quantity)::numeric * unit_sale_price) + ((sub_quantity)::numeric * COALESCE(sub_unit_sale_price, (0)::numeric))) - discount_amount), 2)) |
+| pharmacy_sale_detail | pharmacy_sale_detail_medicine_id_not_null | medicine_id IS NOT NULL |
+| pharmacy_sale_detail | pharmacy_sale_detail_pharmacy_sale_detail_id_not_null | pharmacy_sale_detail_id IS NOT NULL |
+| pharmacy_sale_detail | pharmacy_sale_detail_quantity_not_null | quantity IS NOT NULL |
+| pharmacy_sale_detail | pharmacy_sale_detail_sale_id_not_null | sale_id IS NOT NULL |
 
 
 
@@ -3424,8 +3599,8 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| pos_audit_log | 2200_17712_1_not_null | log_id IS NOT NULL |
-| pos_audit_log | 2200_17712_3_not_null | action_type IS NOT NULL |
+| pos_audit_log | pos_audit_log_action_type_not_null | action_type IS NOT NULL |
+| pos_audit_log | pos_audit_log_log_id_not_null | log_id IS NOT NULL |
 
 
 
@@ -3469,9 +3644,9 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| pos_held_transaction | 2200_17721_1_not_null | hold_id IS NOT NULL |
-| pos_held_transaction | 2200_17721_2_not_null | staff_id IS NOT NULL |
 | pos_held_transaction | pos_held_status_check | ((status)::text = ANY (ARRAY[('held'::character varying)::text, ('retrieved'::character varying)::text, ('cancelled'::character varying)::text])) |
+| pos_held_transaction | pos_held_transaction_hold_id_not_null | hold_id IS NOT NULL |
+| pos_held_transaction | pos_held_transaction_staff_id_not_null | staff_id IS NOT NULL |
 
 
 
@@ -3515,12 +3690,12 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| pos_held_transaction_detail | 2200_17729_1_not_null | detail_id IS NOT NULL |
-| pos_held_transaction_detail | 2200_17729_2_not_null | hold_id IS NOT NULL |
-| pos_held_transaction_detail | 2200_17729_3_not_null | medicine_id IS NOT NULL |
-| pos_held_transaction_detail | 2200_17729_4_not_null | qty IS NOT NULL |
-| pos_held_transaction_detail | 2200_17729_6_not_null | unit_price IS NOT NULL |
-| pos_held_transaction_detail | 2200_17729_8_not_null | line_total IS NOT NULL |
+| pos_held_transaction_detail | pos_held_transaction_detail_detail_id_not_null | detail_id IS NOT NULL |
+| pos_held_transaction_detail | pos_held_transaction_detail_hold_id_not_null | hold_id IS NOT NULL |
+| pos_held_transaction_detail | pos_held_transaction_detail_line_total_not_null | line_total IS NOT NULL |
+| pos_held_transaction_detail | pos_held_transaction_detail_medicine_id_not_null | medicine_id IS NOT NULL |
+| pos_held_transaction_detail | pos_held_transaction_detail_qty_not_null | qty IS NOT NULL |
+| pos_held_transaction_detail | pos_held_transaction_detail_unit_price_not_null | unit_price IS NOT NULL |
 
 
 
@@ -3566,8 +3741,8 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| pos_receipt_config | 2200_17736_1_not_null | config_id IS NOT NULL |
-| pos_receipt_config | 2200_17736_2_not_null | clinic_name IS NOT NULL |
+| pos_receipt_config | pos_receipt_config_clinic_name_not_null | clinic_name IS NOT NULL |
+| pos_receipt_config | pos_receipt_config_config_id_not_null | config_id IS NOT NULL |
 
 
 
@@ -3614,10 +3789,10 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| pos_session | 2200_17745_1_not_null | session_id IS NOT NULL |
-| pos_session | 2200_17745_2_not_null | staff_id IS NOT NULL |
-| pos_session | 2200_17745_3_not_null | opening_time IS NOT NULL |
-| pos_session | 2200_17745_5_not_null | opening_balance IS NOT NULL |
+| pos_session | pos_session_opening_balance_not_null | opening_balance IS NOT NULL |
+| pos_session | pos_session_opening_time_not_null | opening_time IS NOT NULL |
+| pos_session | pos_session_session_id_not_null | session_id IS NOT NULL |
+| pos_session | pos_session_staff_id_not_null | staff_id IS NOT NULL |
 | pos_session | pos_session_status_check | ((status)::text = ANY (ARRAY[('open'::character varying)::text, ('closed'::character varying)::text])) |
 
 
@@ -3660,9 +3835,9 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| prescription | 2200_17758_1_not_null | prescription_id IS NOT NULL |
-| prescription | 2200_17758_2_not_null | visit_id IS NOT NULL |
-| prescription | 2200_17758_3_not_null | doctor_id IS NOT NULL |
+| prescription | prescription_doctor_id_not_null | doctor_id IS NOT NULL |
+| prescription | prescription_prescription_id_not_null | prescription_id IS NOT NULL |
+| prescription | prescription_visit_id_not_null | visit_id IS NOT NULL |
 
 
 
@@ -3715,15 +3890,15 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| prescription_fulfillment_action | 2200_34786_13_not_null | handled_at IS NOT NULL |
-| prescription_fulfillment_action | 2200_34786_14_not_null | created_at IS NOT NULL |
-| prescription_fulfillment_action | 2200_34786_1_not_null | fulfillment_action_id IS NOT NULL |
-| prescription_fulfillment_action | 2200_34786_2_not_null | prescription_medicine_id IS NOT NULL |
-| prescription_fulfillment_action | 2200_34786_3_not_null | prescription_id IS NOT NULL |
-| prescription_fulfillment_action | 2200_34786_4_not_null | visit_id IS NOT NULL |
-| prescription_fulfillment_action | 2200_34786_5_not_null | patient_id IS NOT NULL |
-| prescription_fulfillment_action | 2200_34786_6_not_null | available_quantity_at_action IS NOT NULL |
-| prescription_fulfillment_action | 2200_34786_7_not_null | action_type IS NOT NULL |
+| prescription_fulfillment_action | prescription_fulfillment_ac_available_quantity_at_acti_not_null | available_quantity_at_action IS NOT NULL |
+| prescription_fulfillment_action | prescription_fulfillment_acti_prescription_medicine_id_not_null | prescription_medicine_id IS NOT NULL |
+| prescription_fulfillment_action | prescription_fulfillment_action_action_type_not_null | action_type IS NOT NULL |
+| prescription_fulfillment_action | prescription_fulfillment_action_created_at_not_null | created_at IS NOT NULL |
+| prescription_fulfillment_action | prescription_fulfillment_action_fulfillment_action_id_not_null | fulfillment_action_id IS NOT NULL |
+| prescription_fulfillment_action | prescription_fulfillment_action_handled_at_not_null | handled_at IS NOT NULL |
+| prescription_fulfillment_action | prescription_fulfillment_action_patient_id_not_null | patient_id IS NOT NULL |
+| prescription_fulfillment_action | prescription_fulfillment_action_prescription_id_not_null | prescription_id IS NOT NULL |
+| prescription_fulfillment_action | prescription_fulfillment_action_visit_id_not_null | visit_id IS NOT NULL |
 
 
 
@@ -3778,9 +3953,9 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| prescription_medicines | 2200_17762_1_not_null | prescription_medicine_id IS NOT NULL |
-| prescription_medicines | 2200_17762_2_not_null | prescription_id IS NOT NULL |
-| prescription_medicines | 2200_17762_3_not_null | medicine_id IS NOT NULL |
+| prescription_medicines | prescription_medicines_medicine_id_not_null | medicine_id IS NOT NULL |
+| prescription_medicines | prescription_medicines_prescription_id_not_null | prescription_id IS NOT NULL |
+| prescription_medicines | prescription_medicines_prescription_medicine_id_not_null | prescription_medicine_id IS NOT NULL |
 
 
 
@@ -3821,9 +3996,9 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| purchase_return | 2200_17774_1_not_null | return_id IS NOT NULL |
-| purchase_return | 2200_17774_2_not_null | purchase_id IS NOT NULL |
-| purchase_return | 2200_17774_5_not_null | created_by IS NOT NULL |
+| purchase_return | purchase_return_created_by_not_null | created_by IS NOT NULL |
+| purchase_return | purchase_return_purchase_id_not_null | purchase_id IS NOT NULL |
+| purchase_return | purchase_return_return_id_not_null | return_id IS NOT NULL |
 
 
 
@@ -3868,10 +4043,61 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| purchase_return_detail | 2200_17780_1_not_null | id IS NOT NULL |
-| purchase_return_detail | 2200_17780_2_not_null | return_id IS NOT NULL |
-| purchase_return_detail | 2200_17780_3_not_null | medicine_id IS NOT NULL |
-| purchase_return_detail | 2200_17780_4_not_null | quantity IS NOT NULL |
+| purchase_return_detail | purchase_return_detail_id_not_null | id IS NOT NULL |
+| purchase_return_detail | purchase_return_detail_medicine_id_not_null | medicine_id IS NOT NULL |
+| purchase_return_detail | purchase_return_detail_quantity_not_null | quantity IS NOT NULL |
+| purchase_return_detail | purchase_return_detail_return_id_not_null | return_id IS NOT NULL |
+
+
+
+## room
+
+### Columns
+
+| table_name | column_name | data_type | udt_name | is_nullable | column_default | character_maximum_length |
+| --- | --- | --- | --- | --- | --- | --- |
+| room | room_id | integer | int4 | NO | nextval('room_room_id_seq'::regclass) |  |
+| room | ward_id | integer | int4 | NO |  |  |
+| room | room_number | character varying | varchar | NO |  | 40 |
+| room | room_class | character varying | varchar | YES |  | 30 |
+| room | default_daily_rate | numeric | numeric | NO | 0 |  |
+| room | is_active | boolean | bool | NO | true |  |
+| room | created_at | timestamp without time zone | timestamp | NO | CURRENT_TIMESTAMP |  |
+
+
+### Primary key
+
+| table_name | column_name | constraint_name |
+| --- | --- | --- |
+| room | room_id | room_pkey |
+
+
+### Foreign keys
+
+| table_name | column_name | ref_table | ref_column | update_rule | delete_rule | constraint_name |
+| --- | --- | --- | --- | --- | --- | --- |
+| room | ward_id | ward | ward_id | NO ACTION | CASCADE | room_ward_id_fkey |
+
+
+### Unique constraints
+
+| table_name | column_name | constraint_name |
+| --- | --- | --- |
+| room | ward_id | uq_room_ward_number |
+| room | room_number | uq_room_ward_number |
+
+
+### Check constraints
+
+| table_name | constraint_name | check_clause |
+| --- | --- | --- |
+| room | ck_room_rate_nonneg | (default_daily_rate >= (0)::numeric) |
+| room | room_created_at_not_null | created_at IS NOT NULL |
+| room | room_default_daily_rate_not_null | default_daily_rate IS NOT NULL |
+| room | room_is_active_not_null | is_active IS NOT NULL |
+| room | room_room_id_not_null | room_id IS NOT NULL |
+| room | room_room_number_not_null | room_number IS NOT NULL |
+| room | room_ward_id_not_null | ward_id IS NOT NULL |
 
 
 
@@ -3886,6 +4112,8 @@ _(none)_
 | sale_return | reason | text | text | YES |  |  |
 | sale_return | return_timestamp | timestamp without time zone | timestamp | YES | CURRENT_TIMESTAMP |  |
 | sale_return | created_by | integer | int4 | NO |  |  |
+| sale_return | refund_amount | numeric | numeric | NO | 0 |  |
+| sale_return | refund_method | character varying | varchar | NO | 'CASH'::character varying | 50 |
 
 
 ### Primary key
@@ -3912,9 +4140,13 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| sale_return | 2200_17786_1_not_null | return_id IS NOT NULL |
-| sale_return | 2200_17786_2_not_null | sale_id IS NOT NULL |
-| sale_return | 2200_17786_5_not_null | created_by IS NOT NULL |
+| sale_return | ck_sale_return_refund_method | ((refund_method)::text = ANY ((ARRAY['CASH'::character varying, 'CARD'::character varying, 'INSURANCE'::character varying, 'MOBILE'::character varying, 'SPLIT'::character varying])::text[])) |
+| sale_return | ck_sale_return_refund_nonneg | (refund_amount >= (0)::numeric) |
+| sale_return | sale_return_created_by_not_null | created_by IS NOT NULL |
+| sale_return | sale_return_refund_amount_not_null | refund_amount IS NOT NULL |
+| sale_return | sale_return_refund_method_not_null | refund_method IS NOT NULL |
+| sale_return | sale_return_return_id_not_null | return_id IS NOT NULL |
+| sale_return | sale_return_sale_id_not_null | sale_id IS NOT NULL |
 
 
 
@@ -3959,10 +4191,10 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| sale_return_detail | 2200_17792_1_not_null | id IS NOT NULL |
-| sale_return_detail | 2200_17792_2_not_null | return_id IS NOT NULL |
-| sale_return_detail | 2200_17792_3_not_null | medicine_id IS NOT NULL |
-| sale_return_detail | 2200_17792_4_not_null | returned_quantity IS NOT NULL |
+| sale_return_detail | sale_return_detail_id_not_null | id IS NOT NULL |
+| sale_return_detail | sale_return_detail_medicine_id_not_null | medicine_id IS NOT NULL |
+| sale_return_detail | sale_return_detail_return_id_not_null | return_id IS NOT NULL |
+| sale_return_detail | sale_return_detail_returned_quantity_not_null | returned_quantity IS NOT NULL |
 
 
 
@@ -4038,17 +4270,17 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| staff | 2200_17797_10_not_null | employment_status IS NOT NULL |
-| staff | 2200_17797_13_not_null | failed_login_attempts IS NOT NULL |
-| staff | 2200_17797_1_not_null | staff_id IS NOT NULL |
-| staff | 2200_17797_20_not_null | mfa_enabled IS NOT NULL |
-| staff | 2200_17797_21_not_null | session_version IS NOT NULL |
-| staff | 2200_17797_2_not_null | user_code IS NOT NULL |
-| staff | 2200_17797_3_not_null | password IS NOT NULL |
-| staff | 2200_17797_41_not_null | staff_tags IS NOT NULL |
-| staff | 2200_17797_4_not_null | name IS NOT NULL |
 | staff | staff_employment_status_check | ((employment_status)::text = ANY (ARRAY['active'::text, 'inactive'::text, 'suspended'::text, 'resigned'::text])) |
+| staff | staff_employment_status_not_null | employment_status IS NOT NULL |
+| staff | staff_failed_login_attempts_not_null | failed_login_attempts IS NOT NULL |
+| staff | staff_mfa_enabled_not_null | mfa_enabled IS NOT NULL |
+| staff | staff_name_not_null | name IS NOT NULL |
+| staff | staff_password_not_null | password IS NOT NULL |
 | staff | staff_role_check | ((role)::text = ANY (ARRAY['Receptionist'::text, 'Lab_Technician'::text, 'Admin'::text, 'Super Admin'::text, 'Cashier'::text, 'Pharmacist'::text, 'Nurse'::text, 'Doctor'::text, 'Front_Desk'::text, 'Billing'::text, 'Technician'::text, 'Housekeeping'::text])) |
+| staff | staff_session_version_not_null | session_version IS NOT NULL |
+| staff | staff_staff_id_not_null | staff_id IS NOT NULL |
+| staff | staff_staff_tags_not_null | staff_tags IS NOT NULL |
+| staff | staff_user_code_not_null | user_code IS NOT NULL |
 
 
 
@@ -4109,16 +4341,16 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| staff_attendance | 2200_36044_12_not_null | late_minutes IS NOT NULL |
-| staff_attendance | 2200_36044_13_not_null | early_leave_minutes IS NOT NULL |
-| staff_attendance | 2200_36044_14_not_null | overtime_minutes IS NOT NULL |
-| staff_attendance | 2200_36044_15_not_null | break_minutes IS NOT NULL |
-| staff_attendance | 2200_36044_18_not_null | derived_status IS NOT NULL |
-| staff_attendance | 2200_36044_19_not_null | is_unscheduled IS NOT NULL |
-| staff_attendance | 2200_36044_1_not_null | attendance_id IS NOT NULL |
-| staff_attendance | 2200_36044_20_not_null | is_on_time IS NOT NULL |
-| staff_attendance | 2200_36044_3_not_null | date IS NOT NULL |
+| staff_attendance | staff_attendance_attendance_id_not_null | attendance_id IS NOT NULL |
+| staff_attendance | staff_attendance_break_minutes_not_null | break_minutes IS NOT NULL |
+| staff_attendance | staff_attendance_date_not_null | date IS NOT NULL |
 | staff_attendance | staff_attendance_derived_status_check | ((derived_status)::text = ANY (ARRAY['on_time'::text, 'late'::text, 'half_day'::text, 'early_leave'::text, 'overtime'::text, 'unscheduled'::text, 'absent'::text, 'leave'::text])) |
+| staff_attendance | staff_attendance_derived_status_not_null | derived_status IS NOT NULL |
+| staff_attendance | staff_attendance_early_leave_minutes_not_null | early_leave_minutes IS NOT NULL |
+| staff_attendance | staff_attendance_is_on_time_not_null | is_on_time IS NOT NULL |
+| staff_attendance | staff_attendance_is_unscheduled_not_null | is_unscheduled IS NOT NULL |
+| staff_attendance | staff_attendance_late_minutes_not_null | late_minutes IS NOT NULL |
+| staff_attendance | staff_attendance_overtime_minutes_not_null | overtime_minutes IS NOT NULL |
 
 
 
@@ -4161,11 +4393,11 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| staff_leave_approvals | 2200_36694_1_not_null | approval_id IS NOT NULL |
-| staff_leave_approvals | 2200_36694_2_not_null | leave_request_id IS NOT NULL |
-| staff_leave_approvals | 2200_36694_3_not_null | level_no IS NOT NULL |
-| staff_leave_approvals | 2200_36694_4_not_null | approver_staff_id IS NOT NULL |
-| staff_leave_approvals | 2200_36694_5_not_null | approval_status IS NOT NULL |
+| staff_leave_approvals | staff_leave_approvals_approval_id_not_null | approval_id IS NOT NULL |
+| staff_leave_approvals | staff_leave_approvals_approval_status_not_null | approval_status IS NOT NULL |
+| staff_leave_approvals | staff_leave_approvals_approver_staff_id_not_null | approver_staff_id IS NOT NULL |
+| staff_leave_approvals | staff_leave_approvals_leave_request_id_not_null | leave_request_id IS NOT NULL |
+| staff_leave_approvals | staff_leave_approvals_level_no_not_null | level_no IS NOT NULL |
 
 
 
@@ -4214,18 +4446,18 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| staff_leave_balances | 2200_36642_10_not_null | account_type IS NOT NULL |
-| staff_leave_balances | 2200_36642_11_not_null | person_id IS NOT NULL |
-| staff_leave_balances | 2200_36642_1_not_null | balance_id IS NOT NULL |
-| staff_leave_balances | 2200_36642_2_not_null | staff_id IS NOT NULL |
-| staff_leave_balances | 2200_36642_3_not_null | leave_type_id IS NOT NULL |
-| staff_leave_balances | 2200_36642_4_not_null | period_year IS NOT NULL |
-| staff_leave_balances | 2200_36642_5_not_null | opening_balance IS NOT NULL |
-| staff_leave_balances | 2200_36642_6_not_null | accrued IS NOT NULL |
-| staff_leave_balances | 2200_36642_7_not_null | consumed IS NOT NULL |
-| staff_leave_balances | 2200_36642_8_not_null | adjusted IS NOT NULL |
-| staff_leave_balances | 2200_36642_9_not_null | updated_at IS NOT NULL |
-| staff_leave_balances | staff_leave_balances_account_type_check | ((account_type)::text = ANY ((ARRAY['staff'::character varying, 'doctor'::character varying])::text[])) |
+| staff_leave_balances | staff_leave_balances_account_type_check | ((account_type)::text = ANY (ARRAY[('staff'::character varying)::text, ('doctor'::character varying)::text])) |
+| staff_leave_balances | staff_leave_balances_account_type_not_null | account_type IS NOT NULL |
+| staff_leave_balances | staff_leave_balances_accrued_not_null | accrued IS NOT NULL |
+| staff_leave_balances | staff_leave_balances_adjusted_not_null | adjusted IS NOT NULL |
+| staff_leave_balances | staff_leave_balances_balance_id_not_null | balance_id IS NOT NULL |
+| staff_leave_balances | staff_leave_balances_consumed_not_null | consumed IS NOT NULL |
+| staff_leave_balances | staff_leave_balances_leave_type_id_not_null | leave_type_id IS NOT NULL |
+| staff_leave_balances | staff_leave_balances_opening_balance_not_null | opening_balance IS NOT NULL |
+| staff_leave_balances | staff_leave_balances_period_year_not_null | period_year IS NOT NULL |
+| staff_leave_balances | staff_leave_balances_person_id_not_null | person_id IS NOT NULL |
+| staff_leave_balances | staff_leave_balances_staff_id_not_null | staff_id IS NOT NULL |
+| staff_leave_balances | staff_leave_balances_updated_at_not_null | updated_at IS NOT NULL |
 
 
 
@@ -4280,16 +4512,16 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| staff_leave_requests | 2200_36665_10_not_null | request_status IS NOT NULL |
-| staff_leave_requests | 2200_36665_11_not_null | requested_at IS NOT NULL |
-| staff_leave_requests | 2200_36665_15_not_null | account_type IS NOT NULL |
-| staff_leave_requests | 2200_36665_16_not_null | person_id IS NOT NULL |
-| staff_leave_requests | 2200_36665_1_not_null | leave_request_id IS NOT NULL |
-| staff_leave_requests | 2200_36665_3_not_null | leave_type_id IS NOT NULL |
-| staff_leave_requests | 2200_36665_4_not_null | from_date IS NOT NULL |
-| staff_leave_requests | 2200_36665_5_not_null | to_date IS NOT NULL |
-| staff_leave_requests | 2200_36665_6_not_null | is_half_day IS NOT NULL |
+| staff_leave_requests | staff_leave_requests_account_type_not_null | account_type IS NOT NULL |
 | staff_leave_requests | staff_leave_requests_employee_ref_check | ((((account_type)::text = 'staff'::text) AND (staff_id IS NOT NULL) AND (doctor_id IS NULL) AND (person_id = staff_id)) OR (((account_type)::text = 'doctor'::text) AND (doctor_id IS NOT NULL) AND (staff_id IS NULL) AND (person_id = doctor_id))) |
+| staff_leave_requests | staff_leave_requests_from_date_not_null | from_date IS NOT NULL |
+| staff_leave_requests | staff_leave_requests_is_half_day_not_null | is_half_day IS NOT NULL |
+| staff_leave_requests | staff_leave_requests_leave_request_id_not_null | leave_request_id IS NOT NULL |
+| staff_leave_requests | staff_leave_requests_leave_type_id_not_null | leave_type_id IS NOT NULL |
+| staff_leave_requests | staff_leave_requests_person_id_not_null | person_id IS NOT NULL |
+| staff_leave_requests | staff_leave_requests_request_status_not_null | request_status IS NOT NULL |
+| staff_leave_requests | staff_leave_requests_requested_at_not_null | requested_at IS NOT NULL |
+| staff_leave_requests | staff_leave_requests_to_date_not_null | to_date IS NOT NULL |
 
 
 
@@ -4331,12 +4563,12 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| staff_leave_types | 2200_36630_1_not_null | leave_type_id IS NOT NULL |
-| staff_leave_types | 2200_36630_2_not_null | leave_code IS NOT NULL |
-| staff_leave_types | 2200_36630_3_not_null | leave_name IS NOT NULL |
-| staff_leave_types | 2200_36630_5_not_null | is_paid IS NOT NULL |
-| staff_leave_types | 2200_36630_6_not_null | requires_attachment IS NOT NULL |
-| staff_leave_types | 2200_36630_7_not_null | active IS NOT NULL |
+| staff_leave_types | staff_leave_types_active_not_null | active IS NOT NULL |
+| staff_leave_types | staff_leave_types_is_paid_not_null | is_paid IS NOT NULL |
+| staff_leave_types | staff_leave_types_leave_code_not_null | leave_code IS NOT NULL |
+| staff_leave_types | staff_leave_types_leave_name_not_null | leave_name IS NOT NULL |
+| staff_leave_types | staff_leave_types_leave_type_id_not_null | leave_type_id IS NOT NULL |
+| staff_leave_types | staff_leave_types_requires_attachment_not_null | requires_attachment IS NOT NULL |
 
 
 
@@ -4379,9 +4611,9 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| staff_permission_audit | 2200_36529_1_not_null | event_id IS NOT NULL |
-| staff_permission_audit | 2200_36529_4_not_null | event_type IS NOT NULL |
-| staff_permission_audit | 2200_36529_7_not_null | created_at IS NOT NULL |
+| staff_permission_audit | staff_permission_audit_created_at_not_null | created_at IS NOT NULL |
+| staff_permission_audit | staff_permission_audit_event_id_not_null | event_id IS NOT NULL |
+| staff_permission_audit | staff_permission_audit_event_type_not_null | event_type IS NOT NULL |
 
 
 
@@ -4429,13 +4661,13 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| staff_permission_policies | 2200_36500_10_not_null | granted_at IS NOT NULL |
-| staff_permission_policies | 2200_36500_1_not_null | policy_id IS NOT NULL |
-| staff_permission_policies | 2200_36500_4_not_null | module IS NOT NULL |
-| staff_permission_policies | 2200_36500_5_not_null | action IS NOT NULL |
-| staff_permission_policies | 2200_36500_6_not_null | allowed IS NOT NULL |
-| staff_permission_policies | 2200_36500_7_not_null | scope_type IS NOT NULL |
 | staff_permission_policies | staff_permission_action_check | ((action)::text = ANY (ARRAY['view'::text, 'create'::text, 'edit'::text, 'delete'::text, 'approve'::text, 'export'::text])) |
+| staff_permission_policies | staff_permission_policies_action_not_null | action IS NOT NULL |
+| staff_permission_policies | staff_permission_policies_allowed_not_null | allowed IS NOT NULL |
+| staff_permission_policies | staff_permission_policies_granted_at_not_null | granted_at IS NOT NULL |
+| staff_permission_policies | staff_permission_policies_module_not_null | module IS NOT NULL |
+| staff_permission_policies | staff_permission_policies_policy_id_not_null | policy_id IS NOT NULL |
+| staff_permission_policies | staff_permission_policies_scope_type_not_null | scope_type IS NOT NULL |
 | staff_permission_policies | staff_permission_scope_check | ((scope_type)::text = ANY (ARRAY['global'::text, 'facility'::text, 'branch'::text, 'department'::text])) |
 | staff_permission_policies | staff_permission_target_check | (((staff_id IS NOT NULL) AND (role_id IS NULL)) OR ((staff_id IS NULL) AND (role_id IS NOT NULL))) |
 
@@ -4481,8 +4713,8 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| staff_permissions | 2200_36015_1_not_null | permission_id IS NOT NULL |
-| staff_permissions | 2200_36015_3_not_null | module IS NOT NULL |
+| staff_permissions | staff_permissions_module_not_null | module IS NOT NULL |
+| staff_permissions | staff_permissions_permission_id_not_null | permission_id IS NOT NULL |
 
 
 
@@ -4527,11 +4759,11 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| staff_role_assignments | 2200_36472_1_not_null | assignment_id IS NOT NULL |
-| staff_role_assignments | 2200_36472_2_not_null | staff_id IS NOT NULL |
-| staff_role_assignments | 2200_36472_3_not_null | role_id IS NOT NULL |
-| staff_role_assignments | 2200_36472_4_not_null | is_primary IS NOT NULL |
-| staff_role_assignments | 2200_36472_5_not_null | effective_from IS NOT NULL |
+| staff_role_assignments | staff_role_assignments_assignment_id_not_null | assignment_id IS NOT NULL |
+| staff_role_assignments | staff_role_assignments_effective_from_not_null | effective_from IS NOT NULL |
+| staff_role_assignments | staff_role_assignments_is_primary_not_null | is_primary IS NOT NULL |
+| staff_role_assignments | staff_role_assignments_role_id_not_null | role_id IS NOT NULL |
+| staff_role_assignments | staff_role_assignments_staff_id_not_null | staff_id IS NOT NULL |
 
 
 
@@ -4571,11 +4803,11 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| staff_roles | 2200_36461_1_not_null | role_id IS NOT NULL |
-| staff_roles | 2200_36461_2_not_null | role_code IS NOT NULL |
-| staff_roles | 2200_36461_3_not_null | role_name IS NOT NULL |
-| staff_roles | 2200_36461_4_not_null | is_system IS NOT NULL |
-| staff_roles | 2200_36461_5_not_null | created_at IS NOT NULL |
+| staff_roles | staff_roles_created_at_not_null | created_at IS NOT NULL |
+| staff_roles | staff_roles_is_system_not_null | is_system IS NOT NULL |
+| staff_roles | staff_roles_role_code_not_null | role_code IS NOT NULL |
+| staff_roles | staff_roles_role_id_not_null | role_id IS NOT NULL |
+| staff_roles | staff_roles_role_name_not_null | role_name IS NOT NULL |
 
 
 
@@ -4628,16 +4860,16 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| staff_roster_assignments | 2200_36575_10_not_null | assignment_status IS NOT NULL |
-| staff_roster_assignments | 2200_36575_12_not_null | created_at IS NOT NULL |
-| staff_roster_assignments | 2200_36575_13_not_null | account_type IS NOT NULL |
-| staff_roster_assignments | 2200_36575_14_not_null | person_id IS NOT NULL |
-| staff_roster_assignments | 2200_36575_1_not_null | roster_id IS NOT NULL |
-| staff_roster_assignments | 2200_36575_3_not_null | shift_template_id IS NOT NULL |
-| staff_roster_assignments | 2200_36575_4_not_null | roster_date IS NOT NULL |
-| staff_roster_assignments | 2200_36575_8_not_null | on_call IS NOT NULL |
-| staff_roster_assignments | 2200_36575_9_not_null | standby IS NOT NULL |
+| staff_roster_assignments | staff_roster_assignments_account_type_not_null | account_type IS NOT NULL |
+| staff_roster_assignments | staff_roster_assignments_assignment_status_not_null | assignment_status IS NOT NULL |
+| staff_roster_assignments | staff_roster_assignments_created_at_not_null | created_at IS NOT NULL |
 | staff_roster_assignments | staff_roster_assignments_employee_ref_check | ((((account_type)::text = 'staff'::text) AND (staff_id IS NOT NULL) AND (doctor_id IS NULL) AND (person_id = staff_id)) OR (((account_type)::text = 'doctor'::text) AND (doctor_id IS NOT NULL) AND (staff_id IS NULL) AND (person_id = doctor_id))) |
+| staff_roster_assignments | staff_roster_assignments_on_call_not_null | on_call IS NOT NULL |
+| staff_roster_assignments | staff_roster_assignments_person_id_not_null | person_id IS NOT NULL |
+| staff_roster_assignments | staff_roster_assignments_roster_date_not_null | roster_date IS NOT NULL |
+| staff_roster_assignments | staff_roster_assignments_roster_id_not_null | roster_id IS NOT NULL |
+| staff_roster_assignments | staff_roster_assignments_shift_template_id_not_null | shift_template_id IS NOT NULL |
+| staff_roster_assignments | staff_roster_assignments_standby_not_null | standby IS NOT NULL |
 
 
 
@@ -4682,12 +4914,12 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| staff_security_sessions | 2200_36434_1_not_null | session_id IS NOT NULL |
-| staff_security_sessions | 2200_36434_2_not_null | staff_id IS NOT NULL |
-| staff_security_sessions | 2200_36434_3_not_null | user_code IS NOT NULL |
-| staff_security_sessions | 2200_36434_4_not_null | role IS NOT NULL |
-| staff_security_sessions | 2200_36434_5_not_null | login_at IS NOT NULL |
-| staff_security_sessions | 2200_36434_6_not_null | last_seen_at IS NOT NULL |
+| staff_security_sessions | staff_security_sessions_last_seen_at_not_null | last_seen_at IS NOT NULL |
+| staff_security_sessions | staff_security_sessions_login_at_not_null | login_at IS NOT NULL |
+| staff_security_sessions | staff_security_sessions_role_not_null | role IS NOT NULL |
+| staff_security_sessions | staff_security_sessions_session_id_not_null | session_id IS NOT NULL |
+| staff_security_sessions | staff_security_sessions_staff_id_not_null | staff_id IS NOT NULL |
+| staff_security_sessions | staff_security_sessions_user_code_not_null | user_code IS NOT NULL |
 
 
 
@@ -4738,14 +4970,14 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| staff_shift_templates | 2200_36558_14_not_null | created_at IS NOT NULL |
-| staff_shift_templates | 2200_36558_1_not_null | shift_template_id IS NOT NULL |
-| staff_shift_templates | 2200_36558_2_not_null | shift_code IS NOT NULL |
-| staff_shift_templates | 2200_36558_3_not_null | shift_name IS NOT NULL |
-| staff_shift_templates | 2200_36558_4_not_null | start_time IS NOT NULL |
-| staff_shift_templates | 2200_36558_5_not_null | end_time IS NOT NULL |
-| staff_shift_templates | 2200_36558_6_not_null | is_night_shift IS NOT NULL |
-| staff_shift_templates | 2200_36558_7_not_null | is_split_shift IS NOT NULL |
+| staff_shift_templates | staff_shift_templates_created_at_not_null | created_at IS NOT NULL |
+| staff_shift_templates | staff_shift_templates_end_time_not_null | end_time IS NOT NULL |
+| staff_shift_templates | staff_shift_templates_is_night_shift_not_null | is_night_shift IS NOT NULL |
+| staff_shift_templates | staff_shift_templates_is_split_shift_not_null | is_split_shift IS NOT NULL |
+| staff_shift_templates | staff_shift_templates_shift_code_not_null | shift_code IS NOT NULL |
+| staff_shift_templates | staff_shift_templates_shift_name_not_null | shift_name IS NOT NULL |
+| staff_shift_templates | staff_shift_templates_shift_template_id_not_null | shift_template_id IS NOT NULL |
+| staff_shift_templates | staff_shift_templates_start_time_not_null | start_time IS NOT NULL |
 
 
 
@@ -4785,7 +5017,7 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| system_settings | 2200_36031_1_not_null | setting_key IS NOT NULL |
+| system_settings | system_settings_setting_key_not_null | setting_key IS NOT NULL |
 
 
 
@@ -4830,10 +5062,10 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| visit | 2200_17820_1_not_null | visit_id IS NOT NULL |
-| visit | 2200_17820_2_not_null | patient_id IS NOT NULL |
-| visit | 2200_17820_3_not_null | doctor_id IS NOT NULL |
+| visit | visit_doctor_id_not_null | doctor_id IS NOT NULL |
+| visit | visit_patient_id_not_null | patient_id IS NOT NULL |
 | visit | visit_status_check | ((status)::text = ANY (ARRAY[('waiting'::character varying)::text, ('seen_by_doctor'::character varying)::text, ('dispensing'::character varying)::text, ('medicines_dispensed'::character varying)::text, ('lab_tests_done'::character varying)::text, ('payment_done'::character varying)::text, ('completed'::character varying)::text, ('admitted'::character varying)::text, ('discharged'::character varying)::text])) |
+| visit | visit_visit_id_not_null | visit_id IS NOT NULL |
 | visit | visit_visit_type_check | ((visit_type)::text = ANY (ARRAY[('OPD'::character varying)::text, ('Emergency'::character varying)::text])) |
 
 
@@ -4877,8 +5109,53 @@ _(none)_
 
 | table_name | constraint_name | check_clause |
 | --- | --- | --- |
-| visit_status_history | 2200_17829_1_not_null | visit_status_id IS NOT NULL |
-| visit_status_history | 2200_17829_2_not_null | visit_id IS NOT NULL |
-| visit_status_history | visit_status_history_status_check | ((status)::text = ANY (ARRAY[('waiting'::character varying)::text, ('seen_by_doctor'::character varying)::text, ('dispensing'::character varying)::text, ('medicines_dispensed'::character varying)::text, ('lab_tests_done'::character varying)::text, ('payment_done'::character varying)::text, ('admitted'::character varying)::text, ('discharged'::character varying)::text])) |
+| visit_status_history | visit_status_history_status_check | ((status)::text = ANY (ARRAY['waiting'::text, 'seen_by_doctor'::text, 'dispensing'::text, 'medicines_dispensed'::text, 'lab_tests_done'::text, 'payment_done'::text, 'completed'::text, 'admitted'::text, 'discharged'::text])) |
+| visit_status_history | visit_status_history_visit_id_not_null | visit_id IS NOT NULL |
+| visit_status_history | visit_status_history_visit_status_id_not_null | visit_status_id IS NOT NULL |
+
+
+
+## ward
+
+### Columns
+
+| table_name | column_name | data_type | udt_name | is_nullable | column_default | character_maximum_length |
+| --- | --- | --- | --- | --- | --- | --- |
+| ward | ward_id | integer | int4 | NO | nextval('ward_ward_id_seq'::regclass) |  |
+| ward | name | character varying | varchar | NO |  | 120 |
+| ward | ward_type | character varying | varchar | NO | 'general'::character varying | 30 |
+| ward | block | character varying | varchar | YES |  | 60 |
+| ward | floor | character varying | varchar | YES |  | 60 |
+| ward | is_active | boolean | bool | NO | true |  |
+| ward | created_at | timestamp without time zone | timestamp | NO | CURRENT_TIMESTAMP |  |
+
+
+### Primary key
+
+| table_name | column_name | constraint_name |
+| --- | --- | --- |
+| ward | ward_id | ward_pkey |
+
+
+### Foreign keys
+
+_(none)_
+
+
+### Unique constraints
+
+_(none)_
+
+
+### Check constraints
+
+| table_name | constraint_name | check_clause |
+| --- | --- | --- |
+| ward | ck_ward_type | ((ward_type)::text = ANY ((ARRAY['general'::character varying, 'semi_private'::character varying, 'private'::character varying, 'icu'::character varying, 'nicu'::character varying, 'hdu'::character varying, 'isolation'::character varying, 'nursery'::character varying, 'maternity'::character varying])::text[])) |
+| ward | ward_created_at_not_null | created_at IS NOT NULL |
+| ward | ward_is_active_not_null | is_active IS NOT NULL |
+| ward | ward_name_not_null | name IS NOT NULL |
+| ward | ward_ward_id_not_null | ward_id IS NOT NULL |
+| ward | ward_ward_type_not_null | ward_type IS NOT NULL |
 
 
