@@ -144,20 +144,20 @@ export function HeaderAttendance() {
   const isCheckedOut = Boolean(record?.check_out_time);
 
   return (
-    <div className="flex items-center gap-3 border-r border-slate-200 pr-4 mr-2">
+    <div className="flex items-center gap-3 border-r border-border pr-3 mr-1">
       <div className="flex items-center gap-2">
         {isCheckedIn ? (
           <div className="flex flex-col items-end">
-             <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+             <span className="text-[10px] font-semibold uppercase tracking-wide text-success flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse"></span>
                 Checked In
              </span>
-             <span className="text-[10px] font-medium text-slate-500">
+             <span className="text-[10px] font-medium text-muted-foreground font-mono tabular-nums">
                 {renderedCheckInTime}
              </span>
           </div>
         ) : (
-          <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest">Not Checked In</span>
+          <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Not Checked In</span>
         )}
       </div>
 
@@ -165,7 +165,7 @@ export function HeaderAttendance() {
         <Button
           variant="outline"
           size="sm"
-          className="h-8 rounded-lg border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 disabled:opacity-50"
+          className="rounded-md border-success/30 bg-success/10 text-success hover:bg-success/20 disabled:opacity-50"
           onClick={() => mark("check_in")}
           disabled={Boolean(busy) || isCheckedIn}
         >
@@ -175,7 +175,7 @@ export function HeaderAttendance() {
         <Button
           variant="outline"
           size="sm"
-          className="h-8 rounded-lg border-slate-200 text-slate-700 hover:bg-slate-100 disabled:opacity-50"
+          className="rounded-md border-border text-foreground hover:bg-accent disabled:opacity-50"
           onClick={() => mark("check_out")}
           disabled={Boolean(busy) || !isCheckedIn || isCheckedOut}
         >

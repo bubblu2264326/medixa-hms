@@ -58,16 +58,16 @@ export default function Receptionist({
   return (
     <div className="flex flex-col h-screen w-screen bg-background overflow-hidden font-sans">
       {/* Premium Clinic Header - Restored to match Pharmacy Module */}
-      <div className="px-6 py-3 border-b border-border bg-card shadow-sm flex items-center justify-between z-50">
-        <div className="flex items-center gap-4">
-          <div className="relative h-10 w-10 bg-primary/10 rounded-md p-1.5 flex items-center justify-center border border-primary/20">
-            <Image src="/logo.png" alt="Clinic Logo" width={28} height={28} />
+      <div className="px-6 py-2 border-b border-border bg-card shadow-sm flex items-center justify-between z-50">
+        <div className="flex items-center gap-3">
+          <div className="relative h-9 w-9 bg-primary/10 rounded-md p-1 flex items-center justify-center border border-primary/20">
+            <Image src="/logo.png" alt="Clinic Logo" width={24} height={24} />
           </div>
           <div>
-            <h1 className="text-xl font-semibold tracking-tight text-foreground leading-none">
+            <h1 className="text-base font-semibold tracking-tight text-foreground leading-none">
               Fouzia Ishaq Clinic
             </h1>
-            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mt-1">Reception Portal</p>
+            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mt-0.5">Reception Portal</p>
           </div>
         </div>
 
@@ -96,7 +96,7 @@ export default function Receptionist({
                 <button
                   key={tab.id}
                   onClick={() => setSelectedTab(tab.id)}
-                  className={`flex items-center gap-2 px-5 py-2.5 rounded-md text-xs font-semibold uppercase tracking-wide transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2 rounded-md text-xs font-semibold uppercase tracking-wide transition-all ${
                     selectedTab === tab.id
                       ? "bg-card text-primary shadow-sm border border-border"
                       : "text-muted-foreground hover:bg-accent hover:text-foreground"
@@ -130,7 +130,7 @@ export default function Receptionist({
                   </div>
                 </div>
               ) : (
-                  <div className="h-12 w-48 flex items-center justify-center bg-muted border border-dashed border-border rounded-md">
+                  <div className="h-9 px-4 flex items-center justify-center bg-muted border border-dashed border-border rounded-md">
                       <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">No Active Patient</span>
                   </div>
               )}

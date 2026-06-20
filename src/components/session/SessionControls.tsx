@@ -11,25 +11,26 @@ export function SessionControls() {
   const router = useRouter();
 
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-3">
       <HeaderAttendance />
-      <div className="px-4 py-1.5 bg-slate-50 rounded-full border border-slate-100 flex items-center gap-2">
-        <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-        <span className="text-[11px] font-bold text-slate-500 uppercase">Live Session</span>
+      <div className="px-2.5 py-1 bg-muted rounded-full border border-border flex items-center gap-1.5">
+        <span className="w-1.5 h-1.5 bg-success rounded-full animate-pulse"></span>
+        <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Live Session</span>
       </div>
 
       <UserProfile />
 
       <Button
         variant="outline"
-        className="rounded-xl border-slate-200 hover:border-rose-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 transition-all gap-2 h-10"
+        size="sm"
+        className="rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 transition-all gap-1.5"
         onClick={async () => {
           await logoutUser();
           router.replace("/");
         }}
       >
-        <LogOut size={16} />
-        <span className="font-bold text-sm">Logout</span>
+        <LogOut size={15} />
+        <span className="font-semibold text-sm">Logout</span>
       </Button>
     </div>
   );
