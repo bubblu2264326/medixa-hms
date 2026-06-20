@@ -2110,6 +2110,55 @@ _(none)_
 
 
 
+## fbr_invoice_submission
+
+### Columns
+
+| table_name | column_name | data_type | udt_name | is_nullable | column_default | character_maximum_length |
+| --- | --- | --- | --- | --- | --- | --- |
+| fbr_invoice_submission | submission_id | integer | int4 | NO | nextval('fbr_invoice_submission_submission_id_seq'::regclass) |  |
+| fbr_invoice_submission | bill_id | integer | int4 | NO |  |  |
+| fbr_invoice_submission | status | character varying | varchar | NO | 'queued'::character varying | 12 |
+| fbr_invoice_submission | fbr_invoice_number | character varying | varchar | YES |  | 40 |
+| fbr_invoice_submission | qr_payload | text | text | YES |  |  |
+| fbr_invoice_submission | error | text | text | YES |  |  |
+| fbr_invoice_submission | attempts | integer | int4 | NO | 0 |  |
+| fbr_invoice_submission | created_at | timestamp without time zone | timestamp | NO | CURRENT_TIMESTAMP |  |
+| fbr_invoice_submission | submitted_at | timestamp without time zone | timestamp | YES |  |  |
+
+
+### Primary key
+
+| table_name | column_name | constraint_name |
+| --- | --- | --- |
+| fbr_invoice_submission | submission_id | fbr_invoice_submission_pkey |
+
+
+### Foreign keys
+
+| table_name | column_name | ref_table | ref_column | update_rule | delete_rule | constraint_name |
+| --- | --- | --- | --- | --- | --- | --- |
+| fbr_invoice_submission | bill_id | bill | bill_id | NO ACTION | NO ACTION | fbr_invoice_submission_bill_id_fkey |
+
+
+### Unique constraints
+
+_(none)_
+
+
+### Check constraints
+
+| table_name | constraint_name | check_clause |
+| --- | --- | --- |
+| fbr_invoice_submission | ck_fbr_status | ((status)::text = ANY ((ARRAY['queued'::character varying, 'submitted'::character varying, 'failed'::character varying])::text[])) |
+| fbr_invoice_submission | fbr_invoice_submission_attempts_not_null | attempts IS NOT NULL |
+| fbr_invoice_submission | fbr_invoice_submission_bill_id_not_null | bill_id IS NOT NULL |
+| fbr_invoice_submission | fbr_invoice_submission_created_at_not_null | created_at IS NOT NULL |
+| fbr_invoice_submission | fbr_invoice_submission_status_not_null | status IS NOT NULL |
+| fbr_invoice_submission | fbr_invoice_submission_submission_id_not_null | submission_id IS NOT NULL |
+
+
+
 ## finance_asset_purchase
 
 ### Columns

@@ -104,6 +104,9 @@
 | public | employee_lifecycle_template_tasks | uq_employee_lifecycle_template_task_code | CREATE UNIQUE INDEX uq_employee_lifecycle_template_task_code ON public.employee_lifecycle_template_tasks USING btree (lifecycle_template_id, task_code) |
 | public | employee_lifecycle_templates | employee_lifecycle_templates_pkey | CREATE UNIQUE INDEX employee_lifecycle_templates_pkey ON public.employee_lifecycle_templates USING btree (lifecycle_template_id) |
 | public | employee_lifecycle_templates | employee_lifecycle_templates_template_code_key | CREATE UNIQUE INDEX employee_lifecycle_templates_template_code_key ON public.employee_lifecycle_templates USING btree (template_code) |
+| public | fbr_invoice_submission | fbr_invoice_submission_pkey | CREATE UNIQUE INDEX fbr_invoice_submission_pkey ON public.fbr_invoice_submission USING btree (submission_id) |
+| public | fbr_invoice_submission | idx_fbr_status | CREATE INDEX idx_fbr_status ON public.fbr_invoice_submission USING btree (status) WHERE ((status)::text = 'queued'::text) |
+| public | fbr_invoice_submission | uq_fbr_bill | CREATE UNIQUE INDEX uq_fbr_bill ON public.fbr_invoice_submission USING btree (bill_id) |
 | public | finance_asset_purchase | finance_asset_purchase_pkey | CREATE UNIQUE INDEX finance_asset_purchase_pkey ON public.finance_asset_purchase USING btree (asset_purchase_id) |
 | public | finance_asset_purchase | idx_finance_asset_purchase_date | CREATE INDEX idx_finance_asset_purchase_date ON public.finance_asset_purchase USING btree (purchase_date DESC, asset_category) |
 | public | finance_expense_category | finance_expense_category_pkey | CREATE UNIQUE INDEX finance_expense_category_pkey ON public.finance_expense_category USING btree (code) |

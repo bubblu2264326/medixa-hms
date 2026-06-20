@@ -1,8 +1,8 @@
 # DB Snapshot — overview
 
-Generated: 2026-06-20T14:27:27.979Z
+Generated: 2026-06-20T14:37:59.546Z
 
-- Tables: 109
+- Tables: 110
 - Views: 6
 - Functions/Procedures: 15
 - Triggers: 17
@@ -50,6 +50,7 @@ Generated: 2026-06-20T14:27:27.979Z
 | employee_lifecycle_tasks | 0 |
 | employee_lifecycle_template_tasks | 6 |
 | employee_lifecycle_templates | 2 |
+| fbr_invoice_submission | 0 |
 | finance_asset_purchase | 0 |
 | finance_expense_category | 7 |
 | finance_expense_entry | 0 |
