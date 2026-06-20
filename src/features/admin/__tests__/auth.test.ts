@@ -35,10 +35,10 @@ describe("admin auth helpers", () => {
   });
 
   it("rejects missing token with 401", async () => {
-    await expect(getAuthenticatedUser(buildRequest())).rejects.toMatchObject<AuthError>({
+    await expect(getAuthenticatedUser(buildRequest())).rejects.toMatchObject({
       status: 401,
       message: "Not authenticated",
-    });
+    } satisfies Partial<AuthError>);
   });
 
   it("allows Admin and Super Admin roles", async () => {
@@ -60,9 +60,9 @@ describe("admin auth helpers", () => {
       payload: { user_code: "DOC-1", role: "Doctor", name: "Doctor" },
     });
 
-    await expect(requireAdminOrSuperAdmin(buildRequest("token-3"))).rejects.toMatchObject<AuthError>({
+    await expect(requireAdminOrSuperAdmin(buildRequest("token-3"))).rejects.toMatchObject({
       status: 403,
       message: "Forbidden",
-    });
+    } satisfies Partial<AuthError>);
   });
 });

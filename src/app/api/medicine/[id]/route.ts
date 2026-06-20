@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/database/db';
 import { ApiResponse, Medicine } from '@/src/lib/types';
+import { AuthError, getAuthenticatedUser } from "@/src/lib/server/auth";
 import { resolveMedicineMaster } from "@/src/lib/server/medicineMasters";
 
 export async function GET(
@@ -8,6 +9,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    await getAuthenticatedUser(request);
     const medicineId = params.id;
 
     const sql = `
@@ -30,6 +32,9 @@ export async function GET(
     });
 
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     console.error('Get medicine error:', error);
     return NextResponse.json<ApiResponse>({
       success: false,
@@ -43,6 +48,7 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
+    await getAuthenticatedUser(request);
     const medicineId = params.id;
     const body = await request.json();
 
@@ -132,6 +138,9 @@ export async function PUT(
     });
 
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     console.error('Update medicine error:', error);
     return NextResponse.json<ApiResponse>({
       success: false,

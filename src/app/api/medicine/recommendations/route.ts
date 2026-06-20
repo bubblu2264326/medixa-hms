@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { query } from "@/database/db";
+import { AuthError, getAuthenticatedUser } from "@/src/lib/server/auth";
 import { fetchMedicineMasterSuggestions } from "@/src/lib/server/medicineMasters";
 
 type Confidence = "high" | "medium" | "low" | null;
@@ -310,6 +311,7 @@ async function buildGeneratedSku(
 
 export async function GET(req: NextRequest) {
   try {
+    await getAuthenticatedUser(req);
     const searchParams = req.nextUrl.searchParams;
     const brandName = readText(searchParams, "brand_name");
     const genericName = readText(searchParams, "generic_name");
@@ -361,6 +363,9 @@ export async function GET(req: NextRequest) {
       stockGuidance,
     });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     console.error("Medicine recommendation error:", error);
     return NextResponse.json(EMPTY_RESPONSE, { status: 500 });
   }

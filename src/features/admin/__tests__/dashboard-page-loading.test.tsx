@@ -129,10 +129,23 @@ describe("AdminDashboard pulse feed + realtime", () => {
   it("keeps page mounted when range changes", async () => {
     const nextRangeResponse = createDeferred<Response>();
 
-    global.fetch = vi
-      .fn()
-      .mockResolvedValueOnce(jsonResponse(makePayload("30d", 3)))
-      .mockImplementationOnce(() => nextRangeResponse.promise) as unknown as typeof fetch;
+    // The dashboard also fetches /api/public/system-timezone on mount (via
+    // useSystemTimezone), so route by URL instead of relying on call order: the
+    // initial summary resolves with 30d data, and the range-change summary fetch
+    // is deferred to assert the page stays mounted while it is in flight.
+    let summaryCalls = 0;
+    const fetchMock = vi.fn().mockImplementation((input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("/api/admin/dashboard/summary")) {
+        summaryCalls += 1;
+        if (summaryCalls === 1) {
+          return Promise.resolve(jsonResponse(makePayload("30d", 3)));
+        }
+        return nextRangeResponse.promise;
+      }
+      return Promise.resolve(jsonResponse({}));
+    });
+    global.fetch = fetchMock as unknown as typeof fetch;
 
     render(<AdminDashboard />);
 
@@ -140,7 +153,10 @@ describe("AdminDashboard pulse feed + realtime", () => {
     fireEvent.click(screen.getByRole("button", { name: "1Y" }));
 
     await waitFor(() => {
-      expect((global.fetch as unknown as ReturnType<typeof vi.fn>).mock.calls[1][0]).toContain("range=1y");
+      const summaryUrls = fetchMock.mock.calls
+        .map((call) => String(call[0]))
+        .filter((url) => url.includes("/api/admin/dashboard/summary"));
+      expect(summaryUrls.some((url) => url.includes("range=1y"))).toBe(true);
     });
 
     expect(screen.getByText("Hospital Overview")).toBeTruthy();

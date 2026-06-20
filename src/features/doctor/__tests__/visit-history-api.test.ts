@@ -73,6 +73,8 @@ describe("doctor visit and history apis", () => {
         ],
       })
       .mockResolvedValueOnce({ rows: [{ visit_id: 44, blood_pressure: "120/80" }] })
+      // payment snapshot query (part of the initial Promise.all in getDoctorVisitContext)
+      .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({ rows: [{ cycle_length_days: 28, menstrual_regular: "Regular" }] })
       .mockResolvedValueOnce({ rows: [{ gravida: 2, para: 1, abortions: 0 }] })
       .mockResolvedValueOnce({ rows: [{ gestational_age_weeks: 20, complications: "None" }] });
@@ -128,6 +130,9 @@ describe("doctor visit and history apis", () => {
       })
       .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({ rows: [{ visit_id: 58, blood_pressure: "118/76" }] })
+      // payment snapshot query (part of the initial Promise.all in getDoctorVisitContext)
+      .mockResolvedValueOnce({ rows: [] })
+      // first optional women-health query fails -> summary should be null, route still 200
       .mockRejectedValueOnce(new Error("column does not exist"))
       .mockResolvedValueOnce({ rows: [{ gravida: 1, para: 0, abortions: 0 }] })
       .mockResolvedValueOnce({ rows: [{ gestational_age_weeks: 12, complications: null }] });

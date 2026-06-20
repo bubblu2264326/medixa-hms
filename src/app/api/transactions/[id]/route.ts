@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/database/db';
 import { ApiResponse, Transaction } from '@/src/lib/types';
-import { getCurrentStaffId } from '@/src/lib/utils';
+import type { PoolClient } from 'pg';
+import { AuthError, getAuthenticatedUser } from '@/src/lib/server/auth';
+import { resolveActorStaffId } from '@/src/lib/server/actor';
 import { StockValidationError, validateInventoryItemsForSale } from '../stockValidation';
 
 function getIncomingSaleDetailKey(item: Transaction["items"][number]) {
@@ -28,9 +30,11 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const client = await pool.connect();
+  let client: PoolClient | undefined;
 
   try {
+    await getAuthenticatedUser(request);
+    client = await pool.connect();
     const transaction: Transaction = await request.json();
 
     if (!transaction.items || transaction.items.length === 0) {
@@ -41,7 +45,7 @@ export async function PUT(
     }
 
     await client.query('BEGIN');
-    const staffId = getCurrentStaffId();
+    const staffId = await resolveActorStaffId(request, client);
 
     // Removed the check that blocked override edits
 
@@ -215,7 +219,10 @@ export async function PUT(
     });
 
   } catch (error) {
-    await client.query('ROLLBACK');
+    if (error instanceof AuthError) {
+      return NextResponse.json<ApiResponse>({ success: false, error: error.message }, { status: error.status });
+    }
+    if (client) await client.query('ROLLBACK');
     console.error('Transaction update error:', error);
 
     if (error instanceof StockValidationError) {
@@ -231,7 +238,7 @@ export async function PUT(
       error: 'Failed to update transaction'
     }, { status: 500 });
   } finally {
-    client.release();
+    if (client) client.release();
   }
 }
 
@@ -240,9 +247,11 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const client = await pool.connect();
+  let client: PoolClient | undefined;
 
   try {
+    await getAuthenticatedUser(request);
+    client = await pool.connect();
     // 1. Fetch sale header
     const saleResult = await client.query(`
       SELECT 
@@ -367,12 +376,15 @@ export async function GET(
     });
 
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json<ApiResponse>({ success: false, error: error.message }, { status: error.status });
+    }
     console.error('Fetch transaction error:', error);
     return NextResponse.json<ApiResponse>({
       success: false,
       error: 'Failed to fetch transaction details'
     }, { status: 500 });
   } finally {
-    client.release();
+    if (client) client.release();
   }
 }

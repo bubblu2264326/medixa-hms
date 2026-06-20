@@ -116,3 +116,5 @@ export const QuantityInput = React.forwardRef<HTMLInputElement, QuantityInputPro
     </div>
   );
 });
+
+QuantityInput.displayName = "QuantityInput";

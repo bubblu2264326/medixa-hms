@@ -1,4 +1,5 @@
 import { query } from "@/database/db";
+import { AuthError, getAuthenticatedUser } from "@/src/lib/server/auth";
 import { NextRequest, NextResponse } from "next/server";
 
 /**
@@ -19,6 +20,7 @@ export async function GET(
   const id = (await params).patientId;
 
   try {
+    await getAuthenticatedUser(req);
     // 1️⃣ Get latest visit_id for the patient
     const visitRes = await query(
       `SELECT visit_id
@@ -155,6 +157,9 @@ export async function GET(
 
     return NextResponse.json(returnableRows, { status: 200 });
   } catch (err) {
+    if (err instanceof AuthError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
     console.error("Error fetching returnable medicines:", err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }

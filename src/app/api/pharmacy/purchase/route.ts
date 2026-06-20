@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/database/db';
 import { ApiResponse } from '@/src/lib/types';
-import { getCurrentStaffId } from '@/src/lib/utils';
+import type { PoolClient } from 'pg';
+import { AuthError, getAuthenticatedUser } from '@/src/lib/server/auth';
+import { resolveActorStaffId } from '@/src/lib/server/actor';
 
 export async function POST(request: NextRequest) {
-    const client = await pool.connect();
+    let client: PoolClient | undefined;
 
     try {
+        await getAuthenticatedUser(request);
+        client = await pool.connect();
         const body = await request.json();
         const { party_id, total_amount, payment_status, items } = body;
 
@@ -17,7 +21,7 @@ export async function POST(request: NextRequest) {
             }, { status: 400 });
         }
 
-        const staffId = getCurrentStaffId();
+        const staffId = await resolveActorStaffId(request, client);
 
         // Start database transaction
         await client.query('BEGIN');
@@ -206,12 +210,15 @@ export async function POST(request: NextRequest) {
         });
 
     } catch (error: any) {
-        await client.query('ROLLBACK');
+        if (error instanceof AuthError) {
+            return NextResponse.json<ApiResponse>({ success: false, error: error.message }, { status: error.status });
+        }
+        if (client) await client.query('ROLLBACK');
         console.error('Medicine purchase error:', error);
-        
+
         let status = 500;
         let errorMessage = 'Failed to process medicine purchase transaction.';
-        if (error.message.startsWith('BATCH_MISMATCH')) {
+        if (typeof error?.message === 'string' && error.message.startsWith('BATCH_MISMATCH')) {
             status = 400;
             errorMessage = error.message;
         }
@@ -221,6 +228,6 @@ export async function POST(request: NextRequest) {
             error: errorMessage
         }, { status });
     } finally {
-        client.release();
+        if (client) client.release();
     }
 }

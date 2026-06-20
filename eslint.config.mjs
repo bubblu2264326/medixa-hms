@@ -10,15 +10,24 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
+  // Global ignores MUST be in a standalone object (only `ignores`) to apply
+  // repo-wide. Bundling `ignores` with other keys (e.g. `rules`) makes it
+  // local to that config object, so build output was being linted.
   {
     ignores: [
       "node_modules/**",
       ".next/**",
       "out/**",
       "build/**",
+      "coverage/**",
+      "docs/**",
       "next-env.d.ts",
+      "db/seed/**",
+      "database/snapshot/**",
     ],
+  },
+  ...compat.extends("next/core-web-vitals", "next/typescript"),
+  {
     rules: {
       "@typescript-eslint/no-explicit-any": "off",
       "no-restricted-properties": [

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { AuthError, getAuthenticatedUser } from "@/src/lib/server/auth";
 import {
   archiveMedicineMaster,
   ensureMedicineMaster,
@@ -18,6 +19,7 @@ function readType(value: string | null): MedicineMasterType | null {
 
 export async function GET(request: NextRequest) {
   try {
+    await getAuthenticatedUser(request);
     const type = readType(request.nextUrl.searchParams.get("type"));
     const term = request.nextUrl.searchParams.get("q") ?? "";
 
@@ -31,6 +33,9 @@ export async function GET(request: NextRequest) {
       data: records,
     });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     console.error("Get medicine masters error:", error);
     return NextResponse.json({ error: "Failed to fetch medicine masters" }, { status: 500 });
   }
@@ -38,6 +43,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    await getAuthenticatedUser(request);
     const body = await request.json();
     const type = readType(body?.type);
     const name = typeof body?.name === "string" ? body.name : "";
@@ -61,6 +67,9 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     console.error("Create medicine master error:", error);
     const message = error instanceof Error ? error.message : "Failed to create medicine master";
     return NextResponse.json({ error: message }, { status: 500 });
@@ -69,6 +78,7 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    await getAuthenticatedUser(request);
     const body = await request.json();
     const type = readType(body?.type);
     const id = Number(body?.id);
@@ -96,6 +106,9 @@ export async function DELETE(request: NextRequest) {
       },
     });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     console.error("Delete medicine master error:", error);
     return NextResponse.json({ error: "Failed to delete medicine master" }, { status: 500 });
   }

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const { queryMock, requireAdminOrSuperAdminMock, getAdminInventorySummaryMock } = vi.hoisted(() => ({
   queryMock: vi.fn(),
@@ -99,7 +99,12 @@ function installQueryRouter({
 }
 
 describe("admin dashboard summary API", () => {
+  // The route derives trend buckets from the real `new Date()`. The fixtures use
+  // March 2026 bucket keys, so freeze the clock to that era to keep the
+  // trend-bucket assertions deterministic regardless of the real calendar date.
   beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-03-23T08:00:00.000Z"));
     queryMock.mockReset();
     requireAdminOrSuperAdminMock.mockReset();
     getAdminInventorySummaryMock.mockReset();
@@ -108,6 +113,10 @@ describe("admin dashboard summary API", () => {
       healthyItems: 8,
       lowStockCount: 2,
     });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it("returns 403 when role is not authorized", async () => {

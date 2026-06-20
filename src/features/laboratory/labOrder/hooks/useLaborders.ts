@@ -6,7 +6,7 @@ import { fetchLabOrders } from "../api";
 
 export function useLabOrders(){
      const [orders,setOrders]=useState<GroupedPatientOrders[]>([]);
-     const [loading,setLoading]=useState<Boolean>(true);
+     const [loading,setLoading]=useState<boolean>(true);
      const [error,setError]=useState<string|null>(null);
      const [startDate,setStartDate]=useState<Date>(new Date());
      const [endDate,setEndDate]=useState<Date>(new Date());

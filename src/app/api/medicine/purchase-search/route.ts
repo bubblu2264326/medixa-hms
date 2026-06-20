@@ -1,11 +1,13 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { query } from '@/database/db'
+import { AuthError, getAuthenticatedUser } from "@/src/lib/server/auth";
 import { getCurrentDateInTimezone, getSystemTimezone } from "@/src/lib/server/systemTimezone";
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
     try {
+        await getAuthenticatedUser(req);
         const timeZone = await getSystemTimezone();
         const localDate = getCurrentDateInTimezone(timeZone);
         /**
@@ -58,6 +60,9 @@ export async function GET() {
         return NextResponse.json(data.rows);
 
     } catch (err) {
+        if (err instanceof AuthError) {
+            return NextResponse.json({ error: err.message }, { status: err.status });
+        }
         console.error("Critical: Purchase Search Endpoint Failure", err);
         return NextResponse.json({ error: "Failed to load purchase search results" }, { status: 500 });
     }

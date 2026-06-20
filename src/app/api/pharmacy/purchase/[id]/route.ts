@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/database/db';
 import { ApiResponse } from '@/src/lib/types';
-import { getCurrentStaffId } from '@/src/lib/utils';
+import type { PoolClient } from 'pg';
+import { AuthError, getAuthenticatedUser } from '@/src/lib/server/auth';
+import { resolveActorStaffId } from '@/src/lib/server/actor';
 
 /**
  * GET /api/pharmacy/purchase/[id]
@@ -12,9 +14,11 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const client = await pool.connect();
+  let client: PoolClient | undefined;
 
   try {
+    await getAuthenticatedUser(request);
+    client = await pool.connect();
     // 1. Fetch purchase header
     const headerResult = await client.query(`
       SELECT
@@ -94,13 +98,16 @@ export async function GET(
     });
 
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json<ApiResponse>({ success: false, error: error.message }, { status: error.status });
+    }
     console.error('Fetch purchase error:', error);
     return NextResponse.json<ApiResponse>({
       success: false,
       error: 'Failed to fetch purchase details'
     }, { status: 500 });
   } finally {
-    client.release();
+    if (client) client.release();
   }
 }
 
@@ -117,9 +124,11 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const client = await pool.connect();
+  let client: PoolClient | undefined;
 
   try {
+    await getAuthenticatedUser(request);
+    client = await pool.connect();
     const body = await request.json();
     const { party_id, invoice_no, total_amount, payment_status, items } = body;
 
@@ -130,7 +139,7 @@ export async function PUT(
       }, { status: 400 });
     }
 
-    const staffId = getCurrentStaffId();
+    const staffId = await resolveActorStaffId(request, client);
     await client.query('BEGIN');
 
     // 1. Update purchase header
@@ -152,8 +161,9 @@ export async function PUT(
     const existingDetails = existingResult.rows;
 
     // Use a mapping to reconcile incoming vs existing
+    const conn = client;
     const existingItems = await Promise.all(existingDetails.map(async (row: any) => {
-      const batchRes = await client.query(
+      const batchRes = await conn.query(
         `SELECT batch_number FROM medicine_batch WHERE batch_id = $1`, [row.batch_id]
       );
       const batchNumber = batchRes.rows[0]?.batch_number || '';
@@ -288,12 +298,15 @@ export async function PUT(
     });
 
   } catch (error: any) {
-    await client.query('ROLLBACK');
+    if (error instanceof AuthError) {
+      return NextResponse.json<ApiResponse>({ success: false, error: error.message }, { status: error.status });
+    }
+    if (client) await client.query('ROLLBACK');
     console.error('Purchase update error:', error);
-    
+
     let status = 500;
     let errorMessage = 'Failed to update purchase invoice.';
-    if (error.message.startsWith('BATCH_MISMATCH')) {
+    if (typeof error?.message === 'string' && error.message.startsWith('BATCH_MISMATCH')) {
         status = 400;
         errorMessage = error.message;
     }
@@ -303,6 +316,6 @@ export async function PUT(
       error: errorMessage
     }, { status });
   } finally {
-    client.release();
+    if (client) client.release();
   }
 }

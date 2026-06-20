@@ -88,3 +88,5 @@ export const DiscountInput = React.forwardRef<HTMLInputElement, DiscountInputPro
     </div>
   );
 });
+
+DiscountInput.displayName = "DiscountInput";

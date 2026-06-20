@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from '@/database/db'
+import { AuthError, getAuthenticatedUser } from "@/src/lib/server/auth";
 import { resolveMedicineMaster } from "@/src/lib/server/medicineMasters";
 import { getCurrentDateInTimezone, getSystemTimezone } from "@/src/lib/server/systemTimezone";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
 
     //fetch patient party from db
     try {
+        await getAuthenticatedUser(req);
         const timeZone = await getSystemTimezone();
         const localDate = getCurrentDateInTimezone(timeZone);
 
@@ -37,6 +39,9 @@ export async function GET() {
 
 
     } catch (err) {
+        if (err instanceof AuthError) {
+            return NextResponse.json({ error: err.message }, { status: err.status });
+        }
         console.error(err);
         return NextResponse.json({ error: "something went wrong" }, { status: 500 });
     }
@@ -44,6 +49,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
     try {
+        await getAuthenticatedUser(req);
         const body = await req.json();
         
         // Destructure and validate required fields
@@ -107,6 +113,9 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: true, data: data.rows[0] });
 
     } catch (err) {
+        if (err instanceof AuthError) {
+            return NextResponse.json({ error: err.message }, { status: err.status });
+        }
         console.error("POST medicine error:", err);
         return NextResponse.json({ error: "Failed to create medicine" }, { status: 500 });
     }

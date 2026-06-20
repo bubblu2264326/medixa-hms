@@ -1,10 +1,12 @@
 // app/api/laborder/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import pool from "@/database/db";
+import { AuthError, getAuthenticatedUser } from "@/src/lib/server/auth";
 
 export async function GET(req:NextRequest){
   const client =await pool.connect();
   try{
+    await getAuthenticatedUser(req);
     const res=await client.query("select * from lab_test");
     if(res.rows.length <= 0){
       throw new Error("Failed to Get Lab test from DB");
@@ -12,6 +14,9 @@ export async function GET(req:NextRequest){
     return NextResponse.json(res.rows,{status:200});
   }
   catch(err){
+    if (err instanceof AuthError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
     console.error(err);
     return NextResponse.json({error:err},{status:500})
   }
@@ -25,6 +30,7 @@ export async function GET(req:NextRequest){
 // POST: create a new lab order
 export async function POST(req: NextRequest) {
   try {
+    await getAuthenticatedUser(req);
     const { patient_id, tests } = await req.json();
 
     if (!patient_id || !tests?.length) {
@@ -82,6 +88,9 @@ export async function POST(req: NextRequest) {
       client.release();
     }
   } catch (err) {
+    if (err instanceof AuthError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
     console.error("Server error:", err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
@@ -90,6 +99,7 @@ export async function POST(req: NextRequest) {
 // PATCH: update lab order (e.g. status or performed_by)
 export async function PATCH(req: NextRequest) {
   try {
+    await getAuthenticatedUser(req);
     const { order_id, status, performed_by } = await req.json();
 
     if (!order_id) {
@@ -130,6 +140,9 @@ export async function PATCH(req: NextRequest) {
 
     return NextResponse.json({ success: true, updated: res.rows[0] });
   } catch (err) {
+    if (err instanceof AuthError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
     console.error("Server error:", err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }

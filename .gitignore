@@ -45,3 +45,9 @@ next-env.d.ts
 /.vscode/
 agents/
 .agents/
+
+# database backups / dumps — never commit (may contain patient PII)
+*.dump
+*.sql.gz
+/backups/
+.env.supabase

@@ -15,9 +15,10 @@ if (!process.env.DATABASE_URL) {
   process.exit(1);
 }
 
+const isLocal = /@(localhost|127\.0\.0\.1)\b/.test(process.env.DATABASE_URL);
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
+  ssl: isLocal ? false : { rejectUnauthorized: false },
 });
 
 const OUT_DIR = path.join(process.cwd(), "database", "snapshot");

@@ -73,3 +73,5 @@ export const CustomPriceInput = React.forwardRef<HTMLInputElement, CustomPriceIn
     </div>
   );
 });
+
+CustomPriceInput.displayName = "CustomPriceInput";

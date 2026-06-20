@@ -8,6 +8,30 @@ vi.mock("@/database/db", () => ({
   query: queryMock,
 }));
 
+// The search route now requires an authenticated user. The stub request below
+// has no `cookies`, so mock the auth helper to resolve a valid user and let the
+// route exercise its query logic.
+vi.mock("@/src/lib/server/auth", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/src/lib/server/auth")>();
+  return {
+    ...actual,
+    getAuthenticatedUser: vi.fn(async () => ({
+      user_code: "STAFF-1",
+      role: "Pharmacy",
+      name: "Test Staff",
+    })),
+  };
+});
+
+// The route resolves the active system timezone via getSystemTimezone(), which
+// issues its own DB query. Stub the timezone helpers so the only mocked `query`
+// call is the medicine-search query (kept as mock.calls[0]) and the route does
+// not 500 on an unmocked timezone lookup.
+vi.mock("@/src/lib/server/systemTimezone", () => ({
+  getSystemTimezone: vi.fn(async () => "Asia/Karachi"),
+  getCurrentDateInTimezone: vi.fn(() => "2026-03-23"),
+}));
+
 import { GET as searchMedicines } from "@/src/app/api/medicine/search/route";
 
 describe("medicine search route", () => {

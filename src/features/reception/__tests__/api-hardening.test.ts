@@ -19,13 +19,17 @@ vi.mock("@/src/lib/server/queueEvents", () => ({
   publishQueueInvalidation: publishQueueInvalidationMock,
 }));
 
-vi.mock("@/src/lib/server/auth", () => ({
-  getAuthenticatedUser: vi.fn(async () => ({
-    user_code: "STAFF-1",
-    role: "Receptionist",
-    name: "Test Staff",
-  })),
-}));
+vi.mock("@/src/lib/server/auth", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/src/lib/server/auth")>();
+  return {
+    ...actual,
+    getAuthenticatedUser: vi.fn(async () => ({
+      user_code: "STAFF-1",
+      role: "Receptionist",
+      name: "Test Staff",
+    })),
+  };
+});
 
 import { GET as getQueue } from "@/src/app/api/queue/route";
 import { PATCH as patchVisit } from "@/src/app/api/visit/route";
@@ -67,6 +71,26 @@ describe("reception API hardening", () => {
     expect(queryMock).toHaveBeenCalledTimes(2);
     expect(queryMock.mock.calls[1]?.[0]).toContain("where visit_id = $1");
     expect(queryMock.mock.calls[1]?.[0]).not.toContain("where patient_id");
+  });
+
+  it("routes an actual status change on /api/visit through update_and_log_visit_status", async () => {
+    queryMock
+      .mockResolvedValueOnce({ rows: [{ status: "waiting" }] }) // current status
+      .mockResolvedValueOnce({ rows: [{ staff_id: 1 }] }) // resolveActorStaffId staff lookup
+      .mockResolvedValueOnce({ rows: [] }) // proc call
+      .mockResolvedValueOnce({ rows: [{ visit_id: 44 }] }); // metadata update
+
+    const response = await patchVisit({
+      json: async () => ({ visit_id: 44, status: "seen_by_doctor", doctor_id: 2 }),
+    } as any);
+
+    expect(response.status).toBe(200);
+    const sqls = queryMock.mock.calls.map((c) => String(c[0]));
+    // status change is logged via the proc, not written directly
+    expect(sqls.some((s) => s.includes("call update_and_log_visit_status"))).toBe(true);
+    const updateSql = sqls.find((s) => s.startsWith("update visit set"));
+    expect(updateSql).toBeDefined();
+    expect(updateSql).not.toContain("status =");
   });
 
   it("routes status changes through update_and_log_visit_status", async () => {
@@ -162,7 +186,7 @@ describe("reception API hardening", () => {
       .mockResolvedValueOnce({ rows: [{ visit_id: 44, status: "waiting" }] })
       .mockResolvedValueOnce({ rows: [] });
 
-    const response = await getQueue();
+    const response = await getQueue({} as any);
     const body = await response.json();
 
     expect(response.status).toBe(200);
@@ -179,7 +203,7 @@ describe("reception API hardening", () => {
       .mockRejectedValueOnce({ code: "57014" })
       .mockResolvedValueOnce({ rows: [] });
 
-    const response = await getQueue();
+    const response = await getQueue({} as any);
     const body = await response.json();
 
     expect(response.status).toBe(503);

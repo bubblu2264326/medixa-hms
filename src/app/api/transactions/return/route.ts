@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/database/db';
 import { ApiResponse, Transaction } from '@/src/lib/types';
-import { generateReference, getCurrentStaffId } from '@/src/lib/utils';
+import { generateReference } from '@/src/lib/utils';
+import type { PoolClient } from 'pg';
+import { AuthError, getAuthenticatedUser } from '@/src/lib/server/auth';
+import { resolveActorStaffId } from '@/src/lib/server/actor';
 
 export async function POST(request: NextRequest) {
-  const client = await pool.connect();
+  let client: PoolClient | undefined;
 
   try {
+    await getAuthenticatedUser(request);
+    client = await pool.connect();
     const transaction: Transaction & { ref_sale_id?: number } = await request.json();
 
     // Validate request
@@ -21,7 +26,7 @@ export async function POST(request: NextRequest) {
     await client.query('BEGIN');
 
     const reference = transaction.reference || generateReference();
-    const staffId = getCurrentStaffId();
+    const staffId = await resolveActorStaffId(request, client);
 
     // We ALWAYS use the sale_return system to ensure stock is incremented correctly
     // by the database triggers (fn_tg_sale_return_detail_to_txn).
@@ -174,8 +179,11 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json<ApiResponse>({ success: false, error: error.message }, { status: error.status });
+    }
     // Rollback on error
-    await client.query('ROLLBACK');
+    if (client) await client.query('ROLLBACK');
     console.error('Return process error:', error);
 
     return NextResponse.json<ApiResponse>({
@@ -184,6 +192,6 @@ export async function POST(request: NextRequest) {
     }, { status: 500 });
 
   } finally {
-    client.release();
+    if (client) client.release();
   }
 }

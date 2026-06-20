@@ -23,6 +23,20 @@ vi.mock("@/src/lib/server/auth", async () => {
   };
 });
 
+// The settle route resolves the active system timezone (via the top-level pool
+// `query`) and stamps the receipt date. Stub these helpers so the route does not
+// 500 on an unmocked timezone lookup; the test only queues the transactional
+// `client.query` calls.
+vi.mock("@/src/lib/server/systemTimezone", async () => {
+  const actual = await vi.importActual<typeof import("@/src/lib/server/systemTimezone")>(
+    "@/src/lib/server/systemTimezone"
+  );
+  return {
+    ...actual,
+    getSystemTimezone: vi.fn(async () => "Asia/Karachi"),
+  };
+});
+
 import { GET as getOutstanding } from "@/src/app/api/cashier/outstanding/route";
 import { POST as postSettle } from "@/src/app/api/cashier/settle/route";
 

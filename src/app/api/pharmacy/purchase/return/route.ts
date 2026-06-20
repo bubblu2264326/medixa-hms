@@ -1,53 +1,86 @@
 import { NextRequest, NextResponse } from "next/server";
-import { query } from "@/database/db";
+import type { PoolClient } from "pg";
+import pool from "@/database/db";
+import { AuthError, getAuthenticatedUser } from "@/src/lib/server/auth";
+import { resolveActorStaffId } from "@/src/lib/server/actor";
+import { logAuditEvent } from "@/src/lib/server/audit";
+import { purchaseReturnSchema } from "@/src/lib/server/validation/pharmacy";
 
 export async function POST(req: NextRequest) {
+    let client: PoolClient | undefined;
     try {
-        const body = await req.json();
-        const { purchase_id, reason, created_by, items } = body;
+        await getAuthenticatedUser(req);
 
-        if (!purchase_id || !items || items.length === 0) {
-            return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+        const parsed = purchaseReturnSchema.safeParse(await req.json());
+        if (!parsed.success) {
+            return NextResponse.json(
+                { error: "Invalid purchase return data", issues: parsed.error.flatten() },
+                { status: 400 }
+            );
         }
+        const { purchase_id, reason, items } = parsed.data;
 
-        // Start Transaction
-        await query("BEGIN");
+        // Real transaction on a single dedicated connection. (Previously BEGIN/
+        // COMMIT/ROLLBACK ran through the pooled `query()` helper on arbitrary
+        // connections, so detail inserts — which fire the stock-reducing trigger
+        // tg_purchase_return_detail_to_txn — could autocommit while the BEGIN sat
+        // idle on another connection: a failure left partial stock decrements
+        // permanently committed. Audit C1.)
+        client = await pool.connect();
+        try {
+            await client.query("BEGIN");
 
-        // 1. Create Purchase Return Header
-        const returnHeaderSql = `
-            INSERT INTO purchase_return (purchase_id, reason, created_by)
-            VALUES ($1, $2, $3)
-            RETURNING return_id
-        `;
-        const headerResult = await query(returnHeaderSql, [purchase_id, reason, created_by]);
-        const returnId = headerResult.rows[0].return_id;
+            // Actor is the authenticated staff member, not a body-supplied id.
+            const staffId = await resolveActorStaffId(req, client);
 
-        // 2. Insert Return Details
-        // existing DB trigger tg_purchase_return_detail_to_txn will handle stock reduction automatically
-        const detailSql = `
-            INSERT INTO purchase_return_detail (
-                return_id, medicine_id, batch_id, quantity, sub_quantity, returned_unit_price
-            )
-            VALUES ($1, $2, $3, $4, $5, $6)
-        `;
+            const headerResult = await client.query(
+                `INSERT INTO purchase_return (purchase_id, reason, created_by)
+                 VALUES ($1, $2, $3)
+                 RETURNING return_id`,
+                [purchase_id, reason ?? null, staffId]
+            );
+            const returnId = headerResult.rows[0].return_id;
 
-        for (const item of items) {
-            await query(detailSql, [
-                returnId,
-                item.medicine_id,
-                item.batch_id,
-                item.quantity,
-                item.sub_quantity || 0,
-                item.unit_cost
-            ]);
+            // DB trigger tg_purchase_return_detail_to_txn handles stock reduction.
+            const detailSql = `
+                INSERT INTO purchase_return_detail (
+                    return_id, medicine_id, batch_id, quantity, sub_quantity, returned_unit_price
+                ) VALUES ($1, $2, $3, $4, $5, $6)`;
+            for (const item of items) {
+                await client.query(detailSql, [
+                    returnId,
+                    item.medicine_id,
+                    item.batch_id,
+                    item.quantity,
+                    item.sub_quantity ?? 0,
+                    item.unit_cost ?? null,
+                ]);
+            }
+
+            await logAuditEvent(
+                {
+                    actorStaffId: staffId,
+                    action: "pharmacy.purchase_return",
+                    entityType: "purchase_return",
+                    entityId: returnId,
+                    details: { purchase_id, item_count: items.length },
+                },
+                client
+            );
+
+            await client.query("COMMIT");
+            return NextResponse.json({ success: true, returnId });
+        } catch (txErr) {
+            await client.query("ROLLBACK");
+            throw txErr;
         }
-
-        await query("COMMIT");
-
-        return NextResponse.json({ success: true, returnId });
-    } catch (error: any) {
-        await query("ROLLBACK");
+    } catch (error) {
+        if (error instanceof AuthError) {
+            return NextResponse.json({ error: error.message }, { status: error.status });
+        }
         console.error("Process Purchase Return Error:", error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: "Failed to process purchase return" }, { status: 500 });
+    } finally {
+        if (client) client.release();
     }
 }

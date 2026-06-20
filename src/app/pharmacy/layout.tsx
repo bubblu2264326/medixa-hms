@@ -37,14 +37,15 @@ export default function Pharmacist({
 }) {
   return (
     <Suspense fallback={<div className="h-screen flex items-center justify-center">Loading...</div>}>
-      <PharmacistContent 
-        retail={retail} 
-        returnMedicine={returnMedicine} 
-        purchase={purchase} 
-        medicines={medicines} 
+      <PharmacistContent
+        retail={retail}
+        returnMedicine={returnMedicine}
+        purchase={purchase}
+        medicines={medicines}
         reports={reports}
-        children={children}
-      />
+      >
+        {children}
+      </PharmacistContent>
     </Suspense>
   )
 }

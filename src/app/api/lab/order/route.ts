@@ -1,5 +1,6 @@
 import { query } from "@/database/db";
 import { NextRequest, NextResponse } from "next/server";
+import { AuthError, getAuthenticatedUser } from "@/src/lib/server/auth";
 
 // We remove { params } and extract date range from searchParams
 export async function GET(req: NextRequest) {
@@ -17,6 +18,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
+    await getAuthenticatedUser(req);
     const res = await query(
       `
       SELECT
@@ -59,6 +61,9 @@ export async function GET(req: NextRequest) {
     // The front-end will need to group this flat list by patient_id or visit_id for the UI.
     return NextResponse.json(res.rows, { status: 200 });
   } catch (err) {
+    if (err instanceof AuthError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
     console.error("API Error in Lab Orders GET:", err);
     return NextResponse.json({ error: "Failed to retrieve lab orders." }, { status: 500 });
   }

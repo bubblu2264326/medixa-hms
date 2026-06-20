@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { jwtVerify } from "jose";
 
-const secret = new TextEncoder().encode(process.env.secret_key || "hms_super_secure_2026_clinic_key");
+import { JWT_SECRET as secret } from "@/src/lib/server/jwtSecret";
 
 export default async function LoginPage() {
   const cookieStore = await cookies();

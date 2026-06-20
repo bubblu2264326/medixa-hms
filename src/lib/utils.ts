@@ -25,8 +25,13 @@ export function calculateLineTotal(
   return subtotal - discount;
 }
 
+/**
+ * @deprecated Returns a hardcoded `1`, which falsifies audit attribution
+ * (audit H1/M4). Use `resolveActorStaffId(request, client)` from
+ * `@/src/lib/server/actor` to attribute actions to the real authenticated
+ * staff member. Retained only as the test-environment fallback inside
+ * resolveActorStaffId; remaining direct callers are migrated per Stage A module.
+ */
 export function getCurrentStaffId(): number {
-  // TODO: Get from session/auth
-  // For now, return a default value
   return 1;
 }

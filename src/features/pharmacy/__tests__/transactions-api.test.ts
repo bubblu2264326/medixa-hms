@@ -17,6 +17,20 @@ vi.mock("@/src/lib/utils", () => ({
   getCurrentStaffId: getCurrentStaffIdMock,
 }));
 
+// The [id] / return[id] routes now require auth, so getAuthenticatedUser must
+// resolve (no 401). Role "Doctor" also keeps transactions/route POST on its
+// getCurrentStaffId fallback (resolveStaffIdFromRequest rejects doctors),
+// preserving this file's existing query sequence. resolveActorStaffId is mocked
+// so the [id] PUT does not insert an extra staff-lookup query.
+vi.mock("@/src/lib/server/auth", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/src/lib/server/auth")>();
+  return {
+    ...actual,
+    getAuthenticatedUser: vi.fn(async () => ({ user_code: "DOC001", role: "Doctor", name: "Doc" })),
+  };
+});
+vi.mock("@/src/lib/server/actor", () => ({ resolveActorStaffId: vi.fn(async () => 1) }));
+
 import { POST as postTransaction, GET as getInvoices } from "@/src/app/api/transactions/route";
 import { GET as getTransaction, PUT as putTransaction } from "@/src/app/api/transactions/[id]/route";
 import { GET as getSaleReturn } from "@/src/app/api/transactions/return/[id]/route";

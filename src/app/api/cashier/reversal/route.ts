@@ -223,6 +223,36 @@ export async function POST(req: NextRequest) {
 
     await client.query(`UPDATE bill SET payment_status = $2 WHERE bill_id = $1`, [billId, paymentStatus]);
 
+    // H2: if this reversal leaves the bill no longer fully paid, revert the
+    // visit status that settle auto-advanced to 'payment_done' back to the
+    // status it held immediately before payment (from visit_status_history),
+    // via the audited proc. Terminal states (completed/discharged) are left
+    // untouched — reversing a payment on those is a policy edge (TODO review).
+    if (visitId && dueAmount > 0) {
+      const currentVisit = await client.query(
+        `SELECT status FROM visit WHERE visit_id = $1 LIMIT 1`,
+        [visitId]
+      );
+      if (currentVisit.rows[0]?.status === "payment_done") {
+        const priorStatus = await client.query(
+          `SELECT status FROM visit_status_history
+           WHERE visit_id = $1 AND status <> 'payment_done'
+           ORDER BY updated_at DESC, visit_status_id DESC
+           LIMIT 1`,
+          [visitId]
+        );
+        const revertTo = priorStatus.rows[0]?.status;
+        if (revertTo) {
+          await client.query(`CALL update_and_log_visit_status($1, $2, $3, $4)`, [
+            visitId,
+            revertTo,
+            null,
+            staffId,
+          ]);
+        }
+      }
+    }
+
     await client.query(
       `
         INSERT INTO cashier_audit_event (

@@ -1,4 +1,5 @@
 import pool from "@/database/db";
+import { AuthError, getAuthenticatedUser } from "@/src/lib/server/auth";
 import { NextRequest, NextResponse } from "next/server";
 
 type ReturnItemPayload = {
@@ -74,6 +75,7 @@ export async function POST(req: NextRequest) {
   const client = await pool.connect();
 
   try {
+    await getAuthenticatedUser(req);
     await client.query("BEGIN");
 
     const { reason, created_by } = body;
@@ -279,6 +281,9 @@ export async function POST(req: NextRequest) {
     );
   } catch (err: any) {
     await client.query("ROLLBACK");
+    if (err instanceof AuthError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
     console.error("Return API Error:", err);
 
     return NextResponse.json(

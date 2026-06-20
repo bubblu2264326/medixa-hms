@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/database/db';
 import { ApiResponse, Transaction } from '@/src/lib/types';
-import { getCurrentStaffId } from '@/src/lib/utils';
+import type { PoolClient } from 'pg';
+import { AuthError, getAuthenticatedUser } from '@/src/lib/server/auth';
+import { resolveActorStaffId } from '@/src/lib/server/actor';
 
 const NOTE_TAG_REGEX = /\[([A-Z_]+):([^\]]*)\]/g;
 
@@ -81,9 +83,11 @@ function parseHoldModeFromNotes(notes: string | null | undefined): 'SALE' | 'RET
 }
 
 export async function POST(request: NextRequest) {
-  const client = await pool.connect();
+  let client: PoolClient | undefined;
 
   try {
+    await getAuthenticatedUser(request);
+    client = await pool.connect();
     const transaction: Transaction = await request.json();
 
     if (!transaction.items || transaction.items.length === 0) {
@@ -95,7 +99,7 @@ export async function POST(request: NextRequest) {
 
     await client.query('BEGIN');
 
-    const staffId = getCurrentStaffId();
+    const staffId = await resolveActorStaffId(request, client);
     const holdMode: 'SALE' | 'RETURN' = transaction.mode === 'RETURN' ? 'RETURN' : 'SALE';
     const notes = buildHoldNotes(transaction, holdMode);
 
@@ -182,7 +186,10 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    await client.query('ROLLBACK');
+    if (error instanceof AuthError) {
+      return NextResponse.json<ApiResponse>({ success: false, error: error.message }, { status: error.status });
+    }
+    if (client) await client.query('ROLLBACK');
     console.error('Hold transaction error:', error);
 
     return NextResponse.json<ApiResponse>({
@@ -191,14 +198,16 @@ export async function POST(request: NextRequest) {
     }, { status: 500 });
 
   } finally {
-    client.release();
+    if (client) client.release();
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  let client: PoolClient | undefined;
   try {
-    const staffId = getCurrentStaffId();
-    const client = await pool.connect();
+    await getAuthenticatedUser(request);
+    client = await pool.connect();
+    const staffId = await resolveActorStaffId(request, client);
     const supportsModeColumn = await hasColumn(client, 'mode');
     const result = await client.query(`
       SELECT 
@@ -288,18 +297,25 @@ export async function GET() {
     });
 
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json<ApiResponse>({ success: false, error: error.message }, { status: error.status });
+    }
     console.error('Get held transactions error:', error);
     return NextResponse.json<ApiResponse>({
       success: false,
       error: 'Failed to fetch held transactions'
     }, { status: 500 });
+  } finally {
+    if (client) client.release();
   }
 }
 
 export async function DELETE(request: NextRequest) {
-  const client = await pool.connect();
+  let client: PoolClient | undefined;
 
   try {
+    await getAuthenticatedUser(request);
+    client = await pool.connect();
     const holdIdParam = request.nextUrl.searchParams.get('holdId');
     const holdId = Number(holdIdParam);
     if (!Number.isFinite(holdId) || holdId <= 0) {
@@ -309,7 +325,7 @@ export async function DELETE(request: NextRequest) {
       }, { status: 400 });
     }
 
-    const staffId = getCurrentStaffId();
+    const staffId = await resolveActorStaffId(request, client);
     await client.query('BEGIN');
 
     const deleteResult = await client.query(
@@ -339,13 +355,16 @@ export async function DELETE(request: NextRequest) {
       message: 'Held transaction deleted successfully'
     });
   } catch (error) {
-    await client.query('ROLLBACK');
+    if (error instanceof AuthError) {
+      return NextResponse.json<ApiResponse>({ success: false, error: error.message }, { status: error.status });
+    }
+    if (client) await client.query('ROLLBACK');
     console.error('Delete held transaction error:', error);
     return NextResponse.json<ApiResponse>({
       success: false,
       error: 'Failed to delete held transaction'
     }, { status: 500 });
   } finally {
-    client.release();
+    if (client) client.release();
   }
 }
