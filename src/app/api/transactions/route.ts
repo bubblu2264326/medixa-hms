@@ -555,11 +555,21 @@ export async function POST(request: NextRequest) {
       ]);
 
       if (appendLinkResult.rows.length > 0) {
+        // Recompute payment_status from the live total vs the payment ledger
+        // (reversals are negative rows, so SUM nets out). Hard-coding 'Unpaid'
+        // here discarded prior payments when a dispense was appended to an
+        // already-(part-)paid bill (audit M2). The single atomic UPDATE takes
+        // the bill's row lock, so it also serializes against cashier settle
+        // (which holds FOR UPDATE) rather than racing it (audit M1).
         await client.query(`
           UPDATE bill
           SET
             total_amount = COALESCE(total_amount, 0) + $2,
-            payment_status = 'Unpaid'
+            payment_status = CASE
+              WHEN (COALESCE(total_amount, 0) + $2) <= (SELECT COALESCE(SUM(cpt.amount), 0) FROM cashier_payment_txn cpt WHERE cpt.bill_id = bill.bill_id) THEN 'Paid'
+              WHEN (SELECT COALESCE(SUM(cpt.amount), 0) FROM cashier_payment_txn cpt WHERE cpt.bill_id = bill.bill_id) > 0 THEN 'Partial'
+              ELSE 'Unpaid'
+            END
           WHERE bill_id = $1
         `, [resolvedBillId, transaction.payment.payableAmount]);
 
