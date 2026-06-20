@@ -4,6 +4,7 @@ import { AuthError } from "@/src/lib/server/auth";
 import { deriveBillPaymentStatus, requireCashierOrAdmin } from "@/src/lib/server/cashier";
 import { logAuditEvent } from "@/src/lib/server/audit";
 import { getReceiptDateStamp, getSystemTimezone } from "@/src/lib/server/systemTimezone";
+import { enqueueFbrInvoice } from "@/src/lib/server/fbrInvoice";
 
 type SettlePayload = {
   billId?: number;
@@ -277,6 +278,16 @@ export async function POST(req: NextRequest) {
         ]);
       } catch (error) {
         console.warn("Unable to auto-transition visit to payment_done", { visitId, error });
+      }
+    }
+
+    // FBR e-invoicing: once the bill is fully paid, queue it for PRAL submission
+    // (best-effort, idempotent — a pluggable worker delivers it; never fails settle).
+    if (dueAfter <= 0) {
+      try {
+        await enqueueFbrInvoice(client, billId);
+      } catch (error) {
+        console.warn("FBR enqueue failed", { billId, error });
       }
     }
 
