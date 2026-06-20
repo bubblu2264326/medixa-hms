@@ -2,9 +2,7 @@ import { query } from "@/database/db";
 import { jwtVerify } from "jose";
 import { NextRequest } from "next/server";
 
-const secret = new TextEncoder().encode(
-  process.env.secret_key || "hms_super_secure_2026_clinic_key"
-);
+import { JWT_SECRET as secret } from "./jwtSecret";
 const FORCED_LOGOUT_MESSAGE = "Admin has force logged you out. Please sign in again.";
 
 export type AuthenticatedDoctor = {

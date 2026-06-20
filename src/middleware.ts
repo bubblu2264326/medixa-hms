@@ -1,8 +1,7 @@
 import { jwtVerify } from "jose";
 import { NextRequest, NextResponse } from "next/server";
 import { normalizeRole } from "@/src/lib/server/roles";
-
-const JWT_Secret = new TextEncoder().encode(process.env.secret_key || "hms_super_secure_2026_clinic_key");
+import { JWT_SECRET as JWT_Secret } from "@/src/lib/server/jwtSecret";
 
 export async function middleware(req: NextRequest) {
     //get token from request

@@ -2,10 +2,7 @@ import { jwtVerify } from "jose";
 import { NextRequest } from "next/server";
 import { query } from "@/database/db";
 import { rolesMatch } from "./roles";
-
-const secret = new TextEncoder().encode(
-  process.env.secret_key || "hms_super_secure_2026_clinic_key"
-);
+import { JWT_SECRET as secret } from "./jwtSecret";
 
 export type AuthenticatedUser = {
   user_code: string;

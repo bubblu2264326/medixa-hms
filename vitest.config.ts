@@ -11,5 +11,11 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     clearMocks: true,
+    // Modules that read the JWT secret now fail-fast if `secret_key` is unset
+    // (see src/lib/server/jwtSecret.ts). Tests import those modules (they mock
+    // `jose`), so provide a dummy secret for the test environment.
+    env: {
+      secret_key: "test-secret-key-vitest-only",
+    },
   },
 });

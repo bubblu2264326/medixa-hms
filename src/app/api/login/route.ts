@@ -4,7 +4,7 @@ import { SignJWT } from "jose";
 import { logAuditEvent } from "@/src/lib/server/audit";
 import { hashPassword, isPasswordHash, verifyPassword } from "@/src/lib/server/password";
 
-const secret = new TextEncoder().encode(process.env.secret_key || "hms_super_secure_2026_clinic_key");
+import { JWT_SECRET as secret } from "@/src/lib/server/jwtSecret";
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCK_MINUTES = 15;
 
