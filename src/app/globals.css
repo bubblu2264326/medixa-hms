@@ -21,18 +21,15 @@
   animation: gradient-x 5s ease infinite;
 }
 
-/* Density base. Tailwind's spacing AND type scales are rem-based, so the
-   root font-size is a single density knob. We scale it with viewport width:
-   large monitors keep the full 16px base (unchanged), while smaller laptop
-   canvases — common once Windows display scaling (125%/150%) shrinks the
-   effective viewport — step down so the UI isn't oversized / "zoomed in".
-   Tune the clamp bounds to taste; print is pinned to 16px below. */
-html {
-  font-size: clamp(13.5px, 0.5vw + 8px, 16px);
-}
-
+/* Density foundation (DESIGN_SYSTEM.md "Density & sizing — v2", measured against
+   shadcn/Linear/Doctolib at 1536px). Root stays 16px so rem spacing is stable;
+   density comes from the type scale + control heights, not a root shrink. The
+   default body text is 14px (text-sm) — the in-app reading size — so anything
+   that doesn't set an explicit size inherits the dense default. */
 body {
   font-family: var(--font-sans);
+  font-size: 0.875rem; /* 14px */
+  line-height: 1.5;
   overflow-x: hidden;
 }
 
@@ -56,11 +53,6 @@ body {
 }
 
 @media print {
-  html {
-    /* keep receipts at a fixed base, independent of viewport density */
-    font-size: 16px;
-  }
-
   @page {
     size: 80mm auto;
     /* Receipt width */

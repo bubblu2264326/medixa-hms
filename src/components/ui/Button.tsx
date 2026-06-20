@@ -48,10 +48,12 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     };
 
     // Size styles (heights give adequate touch targets; "touch" = 48px for POS)
+    // Heights per DESIGN_SYSTEM.md "Density & sizing — v2": 32/36/40 for desk,
+    // 48 (touch) reserved for POS register + kiosk.
     const sizeStyles = {
       sm: "h-8 px-3 text-sm",
-      md: "h-10 px-4 text-sm",
-      lg: "h-11 px-6 text-base",
+      md: "h-9 px-4 text-sm",
+      lg: "h-10 px-5 text-sm",
       touch: "h-12 px-6 text-base",
     };
 
