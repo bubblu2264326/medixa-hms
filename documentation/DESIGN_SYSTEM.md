@@ -52,3 +52,42 @@ The canonical design language for the HMS UI. Goal: a **trustworthy, calm, indus
 - ❌ hardcoded hex/named colors, emojis, `font-black uppercase tracking-widest` on small text, `rounded-[2.5rem]`, dark panels mid-light-app, decorative gradients/blur, color-only status.
 
 See research notes + this file before any UI work. Reference: clinical-UX + enterprise design-system best practices (neutral base, one accent, semantic safety color, density-with-scannability, WCAG AA).
+
+---
+
+## Density & sizing — v2 (measured, authoritative)
+
+Benchmarked from live DOMs of professional UIs at a 1536px viewport (shadcn/ui
+dashboard — our exact component lineage — plus Linear, Tailwind, GitHub, Square
+POS). Captures in `ux-shots/ref-*.png`. The prior UI felt "zoomed/bloated"
+because it used a 16px body, 44–48px controls, `text-xl/2xl` headings, `p-8`,
+and `rounded-[2rem]`. The fix is the **shadcn-grade scale below** — not shrinking
+the root font.
+
+**Root:** keep `html` at **16px** (no vw clamp). Density comes from the scale.
+
+**Type scale (anchor = 14px body):**
+| Token | px | Use |
+|---|---|---|
+| text-xs | 12 | labels, secondary, table meta |
+| **text-sm** | **14** | **default body / form values / table cells** |
+| text-base | 16 | emphasis only |
+| text-lg | 18 | card titles |
+| text-xl | 20 | section / page titles |
+| text-2xl | 24 | page title (max in-app) |
+| text-3xl+ | 30+ | the single hero figure only (e.g. POS total) |
+Line-height 1.4–1.5. Headings `font-semibold`, not `font-black`. Eyebrows: 11–12px `font-semibold uppercase tracking-wide text-muted-foreground`.
+
+**Control heights:**
+- Desk default (inputs, selects, buttons): **36px (`h-9`)**; compact **32px (`h-8`)**; comfortable **40px (`h-10`)** for primary CTAs.
+- **Touch 44–48px (`h-11`/`h-12`) is reserved for the POS register and attendance kiosk only** (Square POS confirms 36–63px there). Do not use `h-12` on ordinary desk forms.
+
+**Radius:** cards/panels **8px (`rounded-lg`)**, controls/pills/inputs **6px (`rounded-md`)**. Never `rounded-[2rem]`/`3xl`.
+
+**Spacing rhythm (4/8-pt):** page gutter 16–24 (`p-4`–`p-6`); card padding **16–20 (`p-4`/`p-5`)**, not `p-8`; section gap 16–24; field gap 12–16. Fill width with multi-column grids — don't stretch single fields across the page.
+
+**Forms:** cap content width (~`max-w-3xl`–`max-w-5xl`) and use 2–3 column grids; no giant single-column cards with acres of vertical gap.
+
+**Empty states:** compact centered icon + one line (+ optional action). Never a full-height blank panel.
+
+These are enforced via the shared primitives (`PageHeader/FormField/FormGrid/Card/Toolbar/EmptyState/DataTable`) — compose those instead of hand-rolling sizes.

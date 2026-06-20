@@ -122,3 +122,56 @@ We can mix: extension for fast DOM/measurement inspection, manual screenshots fo
 4. **Which debug loop** (§3): Claude-in-Chrome extension, or paste-screenshots, or both.
 
 Once I have (1) and at least the reference direction (3), we can start the session.
+
+---
+
+## 8. Reference research (done) + the density spec it produced
+
+Measured live DOMs of professional UIs at 1536px via `scripts/ux-research.mjs`
+(screenshots in `ux-shots/ref-*.png`):
+
+| Reference | Body | Control h | Radius |
+|---|---|---|---|
+| shadcn/ui dashboard (our lineage) | 14px | 32px | 8px |
+| Linear | 12–13px | 20–28px | 2–6px |
+| Tailwind docs | 13px | — | — |
+| GitHub | 14–16px | 40px | 6px |
+| Square POS | 14–16px | 36–63px (touch) | 4–10px |
+
+→ Adopted as **DESIGN_SYSTEM.md "Density & sizing — v2"** (authoritative): 14px
+body / 12px labels / 36px desk controls / 44–48px POS-only / 8px card & 6px
+control radius / `p-4`–`p-5` cards / modest headings / capped form widths /
+compact empty states. **Root stays 16px** — density comes from the scale, not a
+shrink. (The earlier vw clamp in `globals.css` is a no-op at wide viewports and
+will be removed in Phase 1.)
+
+## 9. The execution engine: screenshot loop (validated)
+
+`scripts/ux-shots.mjs` mints a token cookie per role and screenshots every
+workspace at **1536×864** (owner's effective viewport) into `ux-shots/`. The
+loop per screen:
+1. `node --env-file=.env.local scripts/ux-shots.mjs` (dev server must be up on :3000; Turbopack reflects edits).
+2. **Read** the relevant `ux-shots/NN-*.png` — audit against the v2 spec + the per-screen checklist (§ Phase 3).
+3. Fix code → re-run harness → re-Read → iterate until it passes.
+4. Gate (`tsc`/`lint`/`build`/`test`) → commit that screen → pinned push.
+
+## 10. `/goal` prompt for the 6-hour session
+
+> Run the HMS frontend UX overhaul per documentation/FRONTEND_UX_OVERHAUL_PLAN.md
+> and the DESIGN_SYSTEM.md "Density & sizing — v2" spec. Use the screenshot loop
+> (scripts/ux-shots.mjs at 1536×864) as the verification engine — actually Read
+> the ux-shots PNGs and iterate until each screen matches the spec. Phase 1
+> density foundation → Phase 2 primitives (h-9 desk controls, FormField/FormGrid/
+> PageHeader/EmptyState/Toolbar/DataTable) → Phase 3 screen-by-screen
+> (Reception → POS → Cashier → Doctor → Lab → IPD → Admin → Attendance/Login) →
+> Phase 4 polish + an ESLint guard banning hardcoded palette colors. Visual only;
+> no logic/DB changes; IPD safety logic byte-for-byte. Gate every screen
+> (tsc/lint/build/test green) and commit per screen with pinned push to
+> feat/hms-completion (gh auth switch bubblu2264326 first). Keep going until all
+> screens meet the v2 density spec at 1536px and the full gate is green.
+
+## 11. Pre-flight before starting `/goal`
+
+- Dev server running on **:3000** (the harness targets it). If down: `pnpm dev`.
+- On `feat/hms-completion`, working tree clean (this plan + harness committed).
+- `ux-shots/` is gitignored (artifacts never committed).
