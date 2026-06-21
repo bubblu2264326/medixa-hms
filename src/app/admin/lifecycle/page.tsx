@@ -96,6 +96,18 @@ export default function LifecyclePage() {
     summary_note: "",
   });
 
+  // Template builder — surfaces the lifecycle create_template action (define a
+  // reusable onboarding/offboarding checklist that runs instantiate from).
+  const [templateForm, setTemplateForm] = useState({
+    template_code: "",
+    template_name: "",
+    lifecycle_type: "onboarding",
+    applies_to: "both",
+  });
+  const [templateTasks, setTemplateTasks] = useState<Array<{ task_code: string; task_name: string }>>([
+    { task_code: "", task_name: "" },
+  ]);
+
   const statusClass = (status: string) => {
     if (status === "completed") return "bg-success/10 text-success";
     if (status === "blocked" || status === "overdue") return "bg-destructive/10 text-destructive";
@@ -194,6 +206,42 @@ export default function LifecyclePage() {
     }
   };
 
+  const createTemplate = async () => {
+    if (!templateForm.template_code.trim() || !templateForm.template_name.trim()) {
+      setError("Template code and name are required.");
+      return;
+    }
+    setSaving(true);
+    setError("");
+    try {
+      const tasks = templateTasks
+        .filter((t) => t.task_code.trim() && t.task_name.trim())
+        .map((t, i) => ({ task_code: t.task_code.trim(), task_name: t.task_name.trim(), sequence_no: i + 1 }));
+      const res = await fetch("/api/admin/staff/v2/lifecycle", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          action: "create_template",
+          template_code: templateForm.template_code.trim(),
+          template_name: templateForm.template_name.trim(),
+          lifecycle_type: templateForm.lifecycle_type,
+          applies_to: templateForm.applies_to,
+          tasks,
+        }),
+      });
+      const payload = await res.json();
+      if (!res.ok) throw new Error(payload?.error || "Failed to create template");
+      setTemplateForm({ template_code: "", template_name: "", lifecycle_type: "onboarding", applies_to: "both" });
+      setTemplateTasks([{ task_code: "", task_name: "" }]);
+      await loadLifecycle(selectedRunId);
+    } catch (e: any) {
+      setError(e?.message || "Failed to create template");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const patchLifecycle = async (payload: Record<string, unknown>) => {
     setSaving(true);
     setError("");
@@ -244,6 +292,35 @@ export default function LifecyclePage() {
         <Card className="rounded-lg p-3"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Task Blocked</p><p className="text-xl font-semibold text-destructive font-mono tabular-nums">{summary.blocked_tasks}</p></Card>
         <Card className="rounded-lg p-3"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Overdue</p><p className="text-xl font-semibold text-destructive font-mono tabular-nums">{summary.overdue_tasks}</p></Card>
       </div>
+
+      <Card className="rounded-lg border border-border p-5 space-y-3">
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Define Lifecycle Template</h2>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+          <input className="h-10 rounded-md border border-input px-3 text-sm" placeholder="Template code" value={templateForm.template_code} onChange={(e) => setTemplateForm((p) => ({ ...p, template_code: e.target.value }))} />
+          <input className="h-10 rounded-md border border-input px-3 text-sm" placeholder="Template name" value={templateForm.template_name} onChange={(e) => setTemplateForm((p) => ({ ...p, template_name: e.target.value }))} />
+          <select className="h-10 rounded-md border border-input px-3 text-sm" value={templateForm.lifecycle_type} onChange={(e) => setTemplateForm((p) => ({ ...p, lifecycle_type: e.target.value }))}>
+            <option value="onboarding">onboarding</option>
+            <option value="offboarding">offboarding</option>
+          </select>
+          <select className="h-10 rounded-md border border-input px-3 text-sm" value={templateForm.applies_to} onChange={(e) => setTemplateForm((p) => ({ ...p, applies_to: e.target.value }))}>
+            <option value="both">both</option>
+            <option value="staff">staff</option>
+            <option value="doctor">doctor</option>
+          </select>
+        </div>
+        <div className="space-y-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Tasks</p>
+          {templateTasks.map((t, i) => (
+            <div key={i} className="grid grid-cols-1 gap-2 md:grid-cols-[1fr_2fr_auto]">
+              <input className="h-9 rounded-md border border-input px-3 text-sm" placeholder="task code" value={t.task_code} onChange={(e) => setTemplateTasks((prev) => prev.map((x, idx) => (idx === i ? { ...x, task_code: e.target.value } : x)))} />
+              <input className="h-9 rounded-md border border-input px-3 text-sm" placeholder="task name" value={t.task_name} onChange={(e) => setTemplateTasks((prev) => prev.map((x, idx) => (idx === i ? { ...x, task_name: e.target.value } : x)))} />
+              <Button onClick={() => setTemplateTasks((prev) => (prev.length > 1 ? prev.filter((_, idx) => idx !== i) : prev))} disabled={templateTasks.length <= 1} className="h-9 rounded-md bg-muted text-foreground hover:bg-accent text-xs px-3">Remove</Button>
+            </div>
+          ))}
+          <Button onClick={() => setTemplateTasks((prev) => [...prev, { task_code: "", task_name: "" }])} className="h-9 rounded-md bg-muted text-foreground hover:bg-accent text-xs px-3">+ Add task</Button>
+        </div>
+        <Button disabled={saving || !templateForm.template_code.trim() || !templateForm.template_name.trim()} onClick={createTemplate} className="h-10 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold px-4">Create Template</Button>
+      </Card>
 
       <Card className="rounded-lg border border-border p-5 space-y-3">
         <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Start Lifecycle Run</h2>
