@@ -3,16 +3,16 @@
   "title": "Pharmacy & Point-of-Sale",
   "subtitle": "Retail dispensing, inventory and supplier operations — one fast, accurate terminal",
   "overview": {
-    "lead": "The Pharmacy module runs the whole retail and stock operation from a single screen: a keyboard-first point-of-sale, a live multi-batch inventory, supplier purchasing, returns, and reporting. Stock is never edited by hand — it is driven entirely by purchases, sales and returns through the database, so on-hand quantities, batch expiry and valuation always reconcile.",
+    "lead": "The Pharmacy module runs the whole retail and stock operation from a single screen: a keyboard-first point-of-sale with hold-and-resume and a distraction-free full-screen Sale Mode, a live multi-batch inventory, supplier purchasing, sale and purchase returns, and reporting. Stock is never edited by hand — it is driven entirely by purchases, sales and returns through the database, so on-hand quantities, batch expiry and valuation always reconcile.",
     "highlights": [
       "Keyboard-first POS with brand/generic search and automatic batch selection",
-      "Live multi-batch stock with FEFO (first-expiry-first-out) dispensing",
+      "Hold a sale and resume it; full-screen Sale Mode for busy counters",
+      "Live multi-batch stock with first-expiry-first-out dispensing",
       "Supplier purchasing that updates stock through a database trigger chain",
+      "Sale returns and purchase returns with automatic ledger reversal",
       "Immutable stock-movement ledger for every purchase, sale and return",
-      "Purchase returns with full batch traceability and automatic reversal",
       "Expiring-soon, dead-stock and medicine-stock reports with CSV export",
-      "Append-to-bill or collect-now settlement, integrated with the cashier",
-      "Demo shown on 117 catalogue items across 6 suppliers and 100+ batches"
+      "Shown on 117 catalogue items across 6 suppliers and 100+ live batches"
     ]
   },
   "features": {
@@ -39,6 +39,28 @@
       ],
       "impact": "Stock truth at the point of decision — the cashier never promises what isn't there."
     },
+    "pos-fullscreen": {
+      "title": "Full-screen Sale Mode",
+      "description": "One press of the maximise control (or F10) drops the terminal into a distraction-free, full-screen Sale Mode: the navigation chrome disappears and the cart, entry and finalize panels fill the screen. Built for high-volume counters where every pixel and keystroke counts.",
+      "bullets": [
+        "Maximise to a focused, full-screen till in one click (or F10)",
+        "Navigation chrome hidden — only the sale is on screen",
+        "Larger, denser cart and finalize panels",
+        "Esc or the minimise control returns to the normal workspace"
+      ],
+      "impact": "A focused checkout surface that keeps a fast counter moving without visual clutter."
+    },
+    "pos-hold": {
+      "title": "Hold & resume sales",
+      "description": "Mid-sale, a customer forgets their card or needs to fetch a prescription — the cashier parks the entire cart with Hold and immediately serves the next person. Held sales are retrieved later with Load, exactly as they were, so the counter never stalls.",
+      "bullets": [
+        "Hold the active cart in one click — confirmed instantly",
+        "Serve the next customer without losing the parked sale",
+        "Load a held sale back with its items, batches and discounts intact",
+        "Multiple sales can be held and resumed independently"
+      ],
+      "impact": "No customer blocks the queue — interrupted sales are parked and resumed cleanly."
+    },
     "products": {
       "title": "Medicine & supply catalogue",
       "description": "One catalogue holds everything the clinic dispenses or consumes — medicines, syrups, injectables, IV fluids, surgical consumables and devices — each with form, strength, manufacturer and live multi-batch stock. Full-text search and category structure keep a large catalogue navigable.",
@@ -51,40 +73,52 @@
       ],
       "impact": "A single source of truth for everything on the shelves and in the store room."
     },
-    "purchases": {
-      "title": "Supplier purchasing",
-      "description": "Purchases are recorded against a supplier with per-line batch number, expiry, cost and selling price. Saving a purchase writes only the purchase detail — the database trigger chain then creates or updates the batch and increments stock automatically, so receiving stock can never drift from the ledger.",
+    "purchase": {
+      "title": "Recording a purchase",
+      "description": "Goods-in is one screen: choose the supplier, search the product, and enter the batch — supplier lot number, expiry, unit cost and selling price. Adding the line writes only the purchase detail; the database trigger chain then creates or tops up the batch and increments stock automatically, so received stock can never drift from the ledger.",
       "bullets": [
-        "Per-line batch number, expiry, unit cost and sale price",
-        "Auto-generated invoice numbers",
+        "Supplier, auto-generated invoice number and internal batch code",
+        "Per-line batch/lot number, expiry, unit cost and sale price",
         "Stock updated by the trigger chain — never edited directly",
         "New batches created automatically; existing batches topped up",
         "Price/expiry mismatch protection on repeat batches"
       ],
-      "impact": "Goods-in is one screen, and inventory stays provably consistent with what was received."
+      "impact": "Receiving stock is fast and provably consistent with what was physically received."
     },
     "transactions": {
       "title": "Stock movement ledger",
-      "description": "Every purchase, sale, return and adjustment is written as an immutable, colour-coded movement with its batch, reference and timestamp. This is the audit trail behind on-hand stock — nothing changes quantities without leaving a row here.",
+      "description": "Every purchase, sale, sale-return, purchase-return and adjustment is written as an immutable, colour-coded movement with its batch, reference and timestamp. This is the audit trail behind on-hand stock — nothing changes a quantity without leaving a row here — and it is where returns are initiated.",
       "bullets": [
-        "Purchase-in, sale-out, returns and adjustments in one ledger",
+        "Purchase-in, sale-out, sale/purchase returns and adjustments in one ledger",
         "Batch, supplier/reference and timestamp on every movement",
-        "Colour-coded movement types for fast scanning",
-        "Filterable by type and searchable by medicine or reference",
+        "Colour-coded movement types, filterable and searchable",
+        "Start a return directly from any sale or purchase row",
         "The single explanation for any stock level"
       ],
       "impact": "Complete inventory accountability — every unit is traceable to a movement."
     },
-    "preturn": {
-      "title": "Purchase returns",
-      "description": "Damaged, expired or over-ordered stock is returned to the supplier against its original batch. The return reverses stock through the same trigger chain that received it, so quantities and valuation stay correct and the movement is logged for the supplier ledger.",
+    "sale-return": {
+      "title": "Sale return",
+      "description": "When a dispensed item comes back, the cashier opens Return Mode from the original sale: the same fast terminal now computes a refund instead of a charge. The returned units flow back into stock through the ledger and the refundable amount is calculated against the original invoice.",
       "bullets": [
-        "Return against the original supplier and batch",
-        "Automatic stock and ledger reversal",
-        "Full traceability back to the source purchase",
-        "Keeps supplier balances and valuation accurate"
+        "Initiated from the original sale in the movement ledger",
+        "Return Mode mirrors the POS — search, quantity, refund total",
+        "Refundable amount computed against the original invoice",
+        "Returned stock restored through the same trigger chain",
+        "Cash / card / insurance refund channels"
       ],
-      "impact": "Returns are handled cleanly without ever corrupting stock or supplier accounts."
+      "impact": "Refunds are handled at the same counter, with stock and money both kept correct."
+    },
+    "preturn": {
+      "title": "Purchase return",
+      "description": "Damaged, expired or over-ordered stock is returned to the supplier against its original invoice. Searching the invoice surfaces the supplier and value; confirming the return reverses stock through the same trigger chain that received it, keeping quantities, valuation and the supplier ledger accurate.",
+      "bullets": [
+        "Search and select the original supplier invoice",
+        "Return against the exact batch received",
+        "Automatic stock and ledger reversal",
+        "Supplier balances and inventory valuation stay correct"
+      ],
+      "impact": "Returns to suppliers are clean and fully traceable — no manual stock fixes."
     },
     "parties": {
       "title": "Suppliers & parties",
@@ -108,16 +142,6 @@
         "One-click CSV export"
       ],
       "impact": "The pharmacy lead sees risk and opportunity without building a spreadsheet."
-    },
-    "settings": {
-      "title": "Pharmacy configuration",
-      "description": "Receipt, tax and point-of-sale preferences are configured per clinic so the till behaves the way the business runs — from receipt content to default settlement behaviour.",
-      "bullets": [
-        "Receipt and POS preferences",
-        "Tax and discount defaults",
-        "Configured per clinic"
-      ],
-      "impact": "The terminal adapts to the clinic, not the other way around."
     }
   },
   "closing": {

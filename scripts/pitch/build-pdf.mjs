@@ -80,10 +80,10 @@ function richHtml(m, manifest, content) {
   const order = manifest.shots.map((s) => s.label).filter((l) => content.features[l]);
   const total = 2 + order.length + 1; // cover + overview + features + closing
   let pn = 1;
-  const ft = (label) => `<div class="ft"><span>HMS · ${esc(content.title)}</span><span>${esc(label)} · ${pn} / ${total}</span></div>`;
+  const ft = (label) => `<div class="ft"><span>Medixa · ${esc(content.title)}</span><span>${esc(label)} · ${pn} / ${total}</span></div>`;
 
   const cover = `<div class="page cover">
-    <div class="brand">HMS<small>Hospital Management System</small></div>
+    <div class="brand">Medixa<small>Hospital Management System</small></div>
     <div class="mid"><h1>${esc(content.title)}</h1><div class="sub">${esc(content.subtitle)}</div>
       <div class="chips">${content.overview.highlights.slice(0, 6).map((h) => `<span>${esc(h)}</span>`).join("")}</div>
     </div>
@@ -103,7 +103,7 @@ function richHtml(m, manifest, content) {
     const f = content.features[label];
     const shot = byLabel[label];
     return `<div class="page">
-      <div class="hd"><span class="mod"><span class="fno">Feature ${String(i + 1).padStart(2, "0")}</span> &nbsp;·&nbsp; ${esc(f.title)}</span><span class="wm">HMS &nbsp;·&nbsp; ${pn} / ${total}</span></div>
+      <div class="hd"><span class="mod"><span class="fno">Feature ${String(i + 1).padStart(2, "0")}</span> &nbsp;·&nbsp; ${esc(f.title)}</span><span class="wm">Medixa &nbsp;·&nbsp; ${pn} / ${total}</span></div>
       <div class="feat">
         <div class="shotwrap"><div class="shot"><img src="${dataUri(`${SHOTS}/${m}/${shot.file}`)}"/></div></div>
         <div class="txt">
@@ -118,7 +118,7 @@ function richHtml(m, manifest, content) {
   const closing = `<div class="page close">
     <h2>${esc(content.closing.lead)}</h2>
     <ul>${content.closing.points.map((p) => `<li>${esc(p)}</li>`).join("")}</ul>
-    <div class="end">HMS · Hospital Management System</div>
+    <div class="end">Medixa · Hospital Management System</div>
   </div>`;
 
   return `<!doctype html><html><head><meta charset="utf-8"><style>${CSS}</style></head><body>${cover}${overview}${features}${closing}</body></html>`;
@@ -140,7 +140,7 @@ async function build(browser, key) {
   const page = await browser.newPage();
   await page.setContent(html, { waitUntil: "networkidle" });
   mkdirSync(OUT, { recursive: true });
-  const out = `${OUT}/HMS-${key}.pdf`;
+  const out = `${OUT}/Medixa-${key}.pdf`;
   await page.pdf({ path: out, printBackground: true, preferCSSPageSize: true });
   if (process.env.PREVIEW === "1") {
     await page.setViewportSize(rich ? { width: 1123, height: 794 } : { width: 794, height: 1123 });

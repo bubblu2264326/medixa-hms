@@ -1,7 +1,7 @@
-# HMS — Workflow & QA Log
+# Medixa — Workflow & QA Log
 
 Live walkthroughs captured against the running system (demo data, no real PII).
-Screenshots live under `pitch/shots/<module>/`. PDFs: `pitch/HMS-<module>.pdf`.
+Screenshots: `pitch/shots/<module>/`. PDFs: `pitch/Medixa-<module>.pdf`.
 
 > Scope so far: **Pharmacy / Point-of-Sale** (other modules pending).
 
@@ -13,35 +13,32 @@ Demo state backing these screens: 117-item catalogue, 5 supplier purchases
 (stock established via the trigger chain), 113 batches in stock, 7 low-stock and
 12 zero-stock items for realistic alerts.
 
-### 3.1 Sales flow
+### Sales — performed
 | # | Action | Expected UI | Screenshot |
 |---|---|---|---|
-| 1 | Open the POS (Retail tab) | Medicine Entry + Active Billing Cart + Finalize Sale (Total Rs 0.00) | `shots/pharmacy/pos.png` |
-| 2 | Search a medicine (F1) and add to bill | Item drops into the cart with batch (FEFO), qty, line total | `shots/pharmacy/pos.png` |
-| 3 | Add more items | Cart recalculates; Total Payable updates live (demo shows 3 items → **Rs 59.00**) | `shots/pharmacy/pos.png` |
-| 4 | Choose payment + settlement | Cash/Card/Insure; Collect-now vs Append-to-bill; amount received → change/due | `shots/pharmacy/pos.png` |
+| 1 | Open POS, search a medicine, add to bill | Item enters the cart with FEFO batch; totals update live | `shots/pharmacy/pos.png` |
+| 2 | Type in the medicine search | Dropdown of matches with batch, stock, expiry, price | `shots/pharmacy/pos-search.png` |
+| 3 | Press the maximise (□) control / F10 | Full-screen Sale Mode — nav chrome gone, cart + finalize fill the screen (3-item cart, Rs 59) | `shots/pharmacy/pos-fullscreen.png` |
+| 4 | Click **Hold** with items in the cart | Toast "Transaction held successfully"; cart clears; **Load** to resume | `shots/pharmacy/pos-hold.png` |
 
-### 3.2 Purchase flow
+### Purchasing & returns — performed
 | # | Action | Expected UI | Screenshot |
 |---|---|---|---|
-| 1 | Open Purchases tab | Purchase entry against a supplier with batch/expiry/cost/sale-price lines | `shots/pharmacy/purchases.png` |
-| 2 | Save the purchase | Invoice number generated; stock + ledger updated via the trigger chain | `shots/pharmacy/transactions.png` |
-| 3 | Verify movement | Transactions ledger shows `PURCHASE IN` with batch, supplier and reference | `shots/pharmacy/transactions.png` |
+| 5 | Purchases → pick supplier, search product, fill batch, **Add** | "… added to invoice" toast; line in the purchase basket | `shots/pharmacy/purchase.png` |
+| 6 | Verify in the ledger | Colour-coded PURCHASE-IN / SALE-OUT / returns with batch + reference | `shots/pharmacy/transactions.png` |
+| 7 | Ledger → **Return** on a sale | Return Mode (red) — refund computed against the original sale | `shots/pharmacy/sale-return.png` |
+| 8 | Ledger → **Return** on a purchase | Purchase Return — invoice searched, supplier + value surfaced | `shots/pharmacy/preturn.png` |
 
-### 3.3 Catalogue, suppliers & reporting
+### Catalogue, suppliers & reporting
 | # | Area | Expected UI | Screenshot |
 |---|---|---|---|
-| 1 | Products | Medicines, consumables and devices with form, strength, manufacturer, multi-batch stock | `shots/pharmacy/products.png` |
-| 2 | Suppliers | Party directory with contact/tax details, linked to purchases | `shots/pharmacy/parties.png` |
-| 3 | Reports | Expiring-soon / dead-stock / medicine-stock (batch summary), CSV export | `shots/pharmacy/reports.png` |
+| 9 | Products | Medicines, consumables & devices with multi-batch stock | `shots/pharmacy/products.png` |
+| 10 | Suppliers | Party directory with contact/tax, linked to purchases | `shots/pharmacy/parties.png` |
+| 11 | Reports | Medicine-stock batch summary (+ expiring / dead stock), CSV export | `shots/pharmacy/reports.png` |
 
-### 3.4 Full-screen UI — UX observations (honest)
-- The POS is intentionally information-dense: three columns (Medicine Entry, Active Billing Cart, Finalize Sale). On a 1536-wide laptop it reads well; below ~1280 the Finalize-Sale panel competes with the cart and the layout can feel crowded.
-- "Sale Mode (F10)" / full-screen maximises the till, which helps on smaller screens, but section boundaries between cart and finalize could be clearer for a first-time cashier.
-- Net: strong for trained daily users; a brief onboarding tooltip pass would reduce first-use confusion.
+### UX observations (honest)
+- The POS is information-dense; **Full-screen Sale Mode** materially helps on smaller laptops by removing chrome and enlarging the cart/finalize panels.
+- Hold/Load and the dual collect-now / append-to-bill settlement are powerful but benefit from a one-time onboarding tooltip for first-time cashiers.
 
-### Phase 4 — scenarios verified during seeding
-- **Walk-in purchase** — OTC sale, Cash, Collect-now → stock decremented, movement logged.
-- **Bulk restock** — large multi-line purchase → batches created, stock + ledger updated.
-- **Low-stock / dead-stock** — 7 items intentionally below threshold surface in Reports + admin alerts; 12 zero-stock.
-- **Mixed batch/expiry** — same medicine, two batches with different expiry → FEFO selection at sale.
+### Phase-4 scenarios exercised during seeding
+- Walk-in sale, bulk restock, low/dead-stock alerts, mixed batch/expiry (FEFO), sale return and purchase return.

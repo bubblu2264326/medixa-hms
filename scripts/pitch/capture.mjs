@@ -39,6 +39,22 @@ async function posSearch(page) {
     await wait(page, 1300);
   } catch { /* */ }
 }
+async function posFullscreen(page) {
+  await fillPos(page);
+  // press the maximize (square) button; the component applies a CSS fixed-inset
+  // fullscreen layout when isFullscreen flips true (after requestFullscreen).
+  try {
+    await page.locator('button[title="Enter Fullscreen"]').first().click({ timeout: 4000 });
+    await wait(page, 1200);
+  } catch {
+    try { await page.keyboard.press("F10"); await wait(page, 1000); } catch { /* */ }
+  }
+}
+async function posHold(page) {
+  await fillPos(page);
+  await clickByText(page, /^hold$/i, 1500);
+  await wait(page, 800); // let the success toast render
+}
 async function fillPos(page) {
   // search + add a few medicines to the cart so the hero shot shows live totals
   const names = ["Panadol", "Augmentin", "Risek"];
@@ -57,6 +73,41 @@ async function fillPos(page) {
     } catch { /* keep going */ }
   }
   await wait(page, 600);
+}
+async function performPurchase(page) {
+  // drive the purchase form: pick supplier, search+select a medicine, fill batch
+  // details, and add the line to the invoice — i.e. a purchase being recorded.
+  try {
+    await page.locator("select").first().selectOption({ index: 1 }).catch(() => {});
+    await wait(page, 500);
+    const ms = page.getByPlaceholder(/Type Brand or Generic/i).first();
+    await ms.click(); await ms.fill("Brufen"); await wait(page, 1200);
+    const res = page.locator("text=Brufen").last();
+    if (await res.count()) await res.click({ timeout: 3000 }).catch(() => {});
+    await wait(page, 700);
+    await page.getByPlaceholder("BATCH-00001").fill("BCH-DEMO-07").catch(() => {});
+    await page.locator('input[type="date"]').first().fill("2027-12-31").catch(() => {});
+    const fillByLabel = async (label, val) => {
+      try { await page.locator(`label:has-text("${label}")`).first().locator('xpath=following::input[1]').fill(String(val), { timeout: 2500 }); } catch { /* */ }
+    };
+    await fillByLabel("Unit Cost", 45);
+    await fillByLabel("Sale Price", 62);
+    await wait(page, 400);
+    await page.locator('button[title="Add to cart"]').first().click({ timeout: 3000 }).catch(() => {});
+    await wait(page, 900);
+  } catch { /* keep current view */ }
+}
+function returnFrom(filterLabel) {
+  // on the ledger: filter to the movement type, then start a return on the first
+  // matching row (sale -> sale-return flow; purchase -> purchase-return flow)
+  return async (page) => {
+    try {
+      await page.getByRole("button", { name: new RegExp(`^${filterLabel}$`, "i") }).first().click({ timeout: 4000 }).catch(() => {});
+      await wait(page, 1000);
+      const ret = page.getByRole("button", { name: /^return$/i }).first();
+      if (await ret.count()) { await ret.click({ timeout: 4000 }); await wait(page, 1900); }
+    } catch { /* */ }
+  };
 }
 async function openSettleDrawer(page) {
   // from the Collect worklist, open the first bill into the Settle drawer
@@ -83,15 +134,17 @@ const MODULES = {
     title: "Pharmacy & Point-of-Sale", user: "STF002",
     subtitle: "Retail dispensing, inventory and supplier operations in one terminal",
     shots: [
-      { label: "pos", route: "/pharmacy", caption: "Point-of-Sale terminal", blurb: "Keyboard-first dispensing: search by brand or generic, automatic batch selection, live totals and a single dominant Pay action.", prepare: fillPos },
-      { label: "pos-search", route: "/pharmacy", caption: "Live medicine search", blurb: "Type a brand or generic and the formulary filters instantly with stock and price.", prepare: posSearch },
-      { label: "products", route: "/pharmacy?tab=medicines", caption: "Medicine & supply catalogue", blurb: "Every product — medicines, consumables and devices — with form, strength, manufacturer and live multi-batch stock." },
-      { label: "purchases", route: "/pharmacy?tab=purchases", caption: "Purchase entry", blurb: "Supplier purchases recorded against batches; stock updates automatically through the database trigger chain." },
-      { label: "transactions", route: "/pharmacy?tab=transactions", caption: "Stock movement ledger", blurb: "Every purchase, sale and return as an immutable, colour-coded movement with batch and reference." },
-      { label: "preturn", route: "/pharmacy?tab=purchaseReturn", caption: "Purchase returns", blurb: "Return stock to a supplier with full batch traceability and an automatic ledger reversal." },
-      { label: "parties", route: "/pharmacy?tab=addParty", caption: "Suppliers & parties", blurb: "Supplier directory with contact and tax details, linked to every purchase and batch." },
-      { label: "reports", route: "/pharmacy?tab=reports", caption: "Inventory reporting", blurb: "Expiring-soon, dead-stock and full medicine-stock reports — exportable to CSV.", clicks: ["Medicine Stock"] },
-      { label: "settings", route: "/pharmacy?tab=settings", caption: "Pharmacy settings", blurb: "Receipt, tax and POS preferences for the pharmacy desk." },
+      { label: "pos", route: "/pharmacy", caption: "Point-of-Sale terminal", blurb: "Keyboard-first dispensing with a live cart.", prepare: fillPos },
+      { label: "pos-search", route: "/pharmacy", caption: "Live medicine search", blurb: "Instant brand/generic search with stock and price.", prepare: posSearch },
+      { label: "pos-fullscreen", route: "/pharmacy", caption: "Full-screen Sale Mode", blurb: "Distraction-free maximised till.", prepare: posFullscreen },
+      { label: "pos-hold", route: "/pharmacy", caption: "Hold & resume sales", blurb: "Park a sale and serve the next customer.", prepare: posHold },
+      { label: "products", route: "/pharmacy?tab=medicines", caption: "Medicine & supply catalogue", blurb: "Medicines, consumables and devices with live multi-batch stock." },
+      { label: "purchase", route: "/pharmacy?tab=purchases", caption: "Recording a purchase", blurb: "A supplier purchase being entered against a batch.", prepare: performPurchase },
+      { label: "transactions", route: "/pharmacy?tab=transactions", caption: "Stock movement ledger", blurb: "Colour-coded purchases, sales and returns with batch and reference." },
+      { label: "sale-return", route: "/pharmacy?tab=transactions", caption: "Sale return", blurb: "Returning a dispensed item against its original sale.", prepare: returnFrom("sale") },
+      { label: "preturn", route: "/pharmacy?tab=transactions", caption: "Purchase return", blurb: "Returning received stock to a supplier against its invoice.", prepare: returnFrom("purchase") },
+      { label: "parties", route: "/pharmacy?tab=addParty", caption: "Suppliers & parties", blurb: "Supplier directory linked to every purchase and batch." },
+      { label: "reports", route: "/pharmacy?tab=reports", caption: "Inventory reporting", blurb: "Expiring-soon, dead-stock and medicine-stock reports with CSV export.", clicks: ["Medicine Stock"] },
     ],
   },
   cashier: {
