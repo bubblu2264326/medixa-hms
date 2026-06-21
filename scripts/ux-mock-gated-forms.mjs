@@ -43,8 +43,14 @@ async function main() {
       const route = isDoctor ? "/doctor" : "/receptionist";
       await page.goto(`${BASE}${route}`, { waitUntil: "networkidle", timeout: 60000 }).catch(() => {});
       await page.waitForTimeout(1500);
-      try { await page.getByText(NAME, { exact: false }).first().click({ timeout: 6000 }); await page.waitForTimeout(1500); }
-      catch (e) { console.log("  queue-select failed:", e.message); }
+      // click the queue card (unique "Visit #990001" text) to set patient+visit context
+      try {
+        await page.getByText(/Visit\s*#?990001/i).first().click({ timeout: 6000 });
+        await page.waitForTimeout(1600);
+      } catch (e) {
+        try { await page.getByText(NAME, { exact: false }).first().click({ timeout: 4000 }); await page.waitForTimeout(1600); }
+        catch (e2) { console.log("  queue-select failed:", e2.message); }
+      }
       for (const [tab, label] of tabs) {
         try { await page.getByRole("button", { name: tab, exact: false }).first().click({ timeout: 4000 }); await page.waitForTimeout(1300); } catch {}
         await page.screenshot({ path: `${OUT}/${label}.png` });
