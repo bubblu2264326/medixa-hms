@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Bell, Send, CheckCircle2, XCircle, Clock } from "lucide-react";
 import { Card } from "@/src/components/ui/Card";
 import { Button } from "@/src/components/ui/Button";
@@ -33,27 +33,46 @@ export default function NotificationsPage() {
   const [rows, setRows] = useState<NotificationRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("");
+  const [retryingId, setRetryingId] = useState<number | null>(null);
+  const [notice, setNotice] = useState("");
+
+  const fetchRows = useCallback(async () => {
+    setLoading(true);
+    try {
+      const qs = statusFilter ? `?status=${encodeURIComponent(statusFilter)}` : "";
+      const res = await fetch(`/api/admin/notifications${qs}`);
+      const data = await res.json();
+      if (res.ok && Array.isArray(data)) setRows(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, [statusFilter]);
 
   useEffect(() => {
-    let cancelled = false;
-    const fetchRows = async () => {
-      setLoading(true);
-      try {
-        const qs = statusFilter ? `?status=${encodeURIComponent(statusFilter)}` : "";
-        const res = await fetch(`/api/admin/notifications${qs}`);
-        const data = await res.json();
-        if (!cancelled && res.ok && Array.isArray(data)) setRows(data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
     void fetchRows();
-    return () => {
-      cancelled = true;
-    };
-  }, [statusFilter]);
+  }, [fetchRows]);
+
+  const retryNotification = async (notificationId: number) => {
+    setRetryingId(notificationId);
+    setNotice("");
+    try {
+      const res = await fetch("/api/admin/notifications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notification_id: notificationId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Failed to retry notification");
+      setNotice(`Notification #${notificationId} re-queued for delivery.`);
+      await fetchRows();
+    } catch (err) {
+      setNotice(err instanceof Error ? err.message : "Failed to retry notification");
+    } finally {
+      setRetryingId(null);
+    }
+  };
 
   const counts = {
     queued: rows.filter((r) => r.status === "queued").length,
@@ -70,6 +89,12 @@ export default function NotificationsPage() {
           <p className="text-muted-foreground text-sm mt-1">WhatsApp &amp; SMS delivery queue with retry tracking</p>
         </div>
       </div>
+
+      {notice ? (
+        <Card className="rounded-lg border border-info/20 bg-info/10 p-4">
+          <p className="text-sm font-semibold text-info">{notice}</p>
+        </Card>
+      ) : null}
 
       {/* Stat cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -141,6 +166,7 @@ export default function NotificationsPage() {
                   <th className="px-6 py-4 text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Status</th>
                   <th className="px-6 py-4 text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Attempts</th>
                   <th className="px-6 py-4 text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Created</th>
+                  <th className="px-6 py-4 text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -156,6 +182,21 @@ export default function NotificationsPage() {
                     </td>
                     <td className="px-6 py-4 font-semibold text-foreground font-mono tabular-nums">{r.attempts}</td>
                     <td className="px-6 py-4 text-muted-foreground font-mono tabular-nums text-xs">{formatDateTimeInTimezone(r.created_at, systemTimezone)}</td>
+                    <td className="px-6 py-4">
+                      {r.status !== "sent" ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="rounded-md text-xs font-medium"
+                          disabled={retryingId === r.notification_id}
+                          onClick={() => retryNotification(r.notification_id)}
+                        >
+                          {retryingId === r.notification_id ? "Re-queuing…" : r.status === "failed" ? "Retry" : "Re-queue"}
+                        </Button>
+                      ) : (
+                        <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Sent</span>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
