@@ -172,7 +172,7 @@ export const HeldTransactionsModal: React.FC<HeldTransactionsModalProps> = ({ on
               {transactions.map((tx) => (
                 <div 
                   key={tx.id} 
-                  className="group relative bg-white border border-border rounded-lg p-6 hover:border-amber-400 hover:shadow-xl hover: transition-all duration-300"
+                  className="group relative bg-white border border-border rounded-lg p-6 hover:border-amber-400 hover:shadow-xl  transition-all duration-300"
                 >
                   <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex min-w-0 items-start gap-5">
@@ -225,7 +225,7 @@ export const HeldTransactionsModal: React.FC<HeldTransactionsModalProps> = ({ on
                       <button
                         onClick={() => onLoad(tx)}
                         disabled={deletingId === tx.id}
-                        className="shrink-0 px-8 py-4 bg-foreground text-white rounded-md font-semibold text-sm uppercase tracking-widest hover:bg-amber-600 hover:shadow-lg hover: active:scale-95 transition-all duration-300"
+                        className="shrink-0 px-8 py-4 bg-foreground text-white rounded-md font-semibold text-sm uppercase tracking-widest hover:bg-amber-600 hover:shadow-lg  active:scale-95 transition-all duration-300"
                       >
                         {tx.mode === 'RETURN' ? 'Load Return' : 'Load Sale'}
                       </button>

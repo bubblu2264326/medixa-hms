@@ -187,7 +187,7 @@ export function Login() {
   }, []);
 
   return (
-    <div className="flex min-h-screen w-full    to-cyan-50 items-center justify-center p-4">
+    <div className="flex min-h-screen w-full bg-background items-center justify-center p-4">
       <div className="flex w-full max-w-5xl min-h-[640px] lg:h-[640px] shadow-2xl rounded-lg overflow-hidden">
         {/* LEFT - LOGIN FORM */}
         <div className="flex flex-col w-full lg:w-1/2 bg-white p-6 lg:p-10 relative">
@@ -385,7 +385,7 @@ export function Login() {
             <button
               onClick={handleSubmit}
               disabled={isLoading || isFetchingInfo}
-              className="w-full h-11 mt-2 text-white font-semibold    rounded-xl hover: hover: transition-all shadow-lg disabled:opacity-50"
+              className="w-full h-11 mt-2 text-primary-foreground font-semibold bg-primary rounded-xl hover:bg-primary/90 transition-all shadow-sm disabled:opacity-50"
             >
               {isLoading ? (
                 <div className="flex items-center justify-center gap-2">
@@ -412,7 +412,7 @@ export function Login() {
         </div>
 
         {/* RIGHT - QUOTES */}
-        <div className="hidden lg:flex w-1/2    to-cyan-600 items-center justify-center p-12 relative overflow-hidden">
+        <div className="hidden lg:flex w-1/2 bg-primary items-center justify-center p-12 relative overflow-hidden">
           <div className="absolute top-0 left-0 w-64 h-64 bg-white/10 rounded-full -translate-x-32 -translate-y-32" />
           <div className="absolute bottom-0 right-0 w-96 h-96 bg-white/10 rounded-full translate-x-48 translate-y-48" />
 

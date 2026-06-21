@@ -66,7 +66,7 @@ export function PartyLedgerPanel({ party, onClose }: PartyLedgerPanelProps) {
       <div className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm" onClick={onClose} />
       <div className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-xl bg-white shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
         {/* Header */}
-        <div className="p-6 border-b border-border flex items-center justify-between   to-white">
+        <div className="p-6 border-b border-border flex items-center justify-between  ">
           <div>
             <h3 className="text-lg font-semibold text-foreground">{party.name}</h3>
             <p className="text-xs text-muted-foreground font-semibold mt-0.5">

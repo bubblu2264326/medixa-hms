@@ -110,11 +110,11 @@ export function PublicQueue() {
       {/* Header Section */}
       <header className="flex flex-col md:flex-row items-center justify-between gap-6 mb-12">
         <div className="flex items-center gap-6">
-          <div className="h-16 w-16 rounded-md    flex items-center justify-center shadow-xl  rotate-3">
+          <div className="h-16 w-16 rounded-md bg-primary flex items-center justify-center shadow-sm rotate-3">
             <Users size={32} className="text-white" />
           </div>
           <div>
-            <h1 className="text-4xl font-semibold tracking-tight  text-foreground  from-white ">
+            <h1 className="text-4xl font-semibold tracking-tight  text-foreground  ">
               Patient Queue
             </h1>
             <div className="flex items-center gap-4 mt-2 text-muted-foreground font-bold uppercase tracking-widest text-xs">

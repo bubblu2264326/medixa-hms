@@ -129,7 +129,7 @@ export const InvoiceSearchModal: React.FC<InvoiceSearchModalProps> = ({ onClose,
               placeholder="Search by Invoice Number or Patient Name..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-16 pl-16 pr-6 bg-white border-2 border-border rounded-[1.25rem] text-lg font-semibold placeholder:text-muted-foreground focus:outline-none focus:border-ring focus:shadow-lg focus: transition-all"
+              className="w-full h-16 pl-16 pr-6 bg-white border-2 border-border rounded-[1.25rem] text-lg font-semibold placeholder:text-muted-foreground focus:outline-none focus:border-ring focus:shadow-lg  transition-all"
               autoFocus
             />
             {loading && (
@@ -161,7 +161,7 @@ export const InvoiceSearchModal: React.FC<InvoiceSearchModalProps> = ({ onClose,
               {transactions.map((tx) => (
                 <div 
                   key={tx.id} 
-                  className="group relative bg-white border border-border rounded-lg p-6 hover:border-indigo-400 hover:shadow-xl hover: transition-all duration-300"
+                  className="group relative bg-white border border-border rounded-lg p-6 hover:border-indigo-400 hover:shadow-xl  transition-all duration-300"
                 >
                   <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex min-w-0 items-start gap-5">
@@ -201,7 +201,7 @@ export const InvoiceSearchModal: React.FC<InvoiceSearchModalProps> = ({ onClose,
                       </div>
                       <button
                         onClick={() => onSelect(tx)}
-                        className="flex items-center gap-2 shrink-0 px-8 py-4 bg-foreground text-white rounded-md font-semibold text-sm uppercase tracking-widest hover:bg-primary hover:shadow-lg hover: active:scale-95 transition-all duration-300"
+                        className="flex items-center gap-2 shrink-0 px-8 py-4 bg-foreground text-white rounded-md font-semibold text-sm uppercase tracking-widest hover:bg-primary hover:shadow-lg  active:scale-95 transition-all duration-300"
                       >
                         Select for Return
                         <ArrowRight size={18} />

@@ -132,7 +132,7 @@ export function PartiesView() {
             <button
               key={party.party_id}
               onClick={() => setSelectedParty(party)}
-              className="group text-left bg-white border border-border rounded-md p-4 hover:border-primary/30 hover:shadow-lg hover: transition-all duration-200 flex items-start gap-3"
+              className="group text-left bg-white border border-border rounded-md p-4 hover:border-primary/30 hover:shadow-lg  transition-all duration-200 flex items-start gap-3"
             >
               <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-white font-semibold text-sm shrink-0 ${avatarColor(party.name)}`}>
                 {initials(party.name)}
