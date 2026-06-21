@@ -9,11 +9,13 @@ import {
   ArrowRight,
   Filter,
   MoreVertical,
-  ChevronDown
+  ChevronDown,
+  Download
 } from "lucide-react";
 import { Card } from "@/src/components/ui/Card";
 import { Button } from "@/src/components/ui/Button";
 import toast from "react-hot-toast";
+import { downloadCsv } from "@/src/lib/csv";
 import { formatDateTimeInTimezone } from "@/src/lib/timezone/client";
 import { useSystemTimezone } from "@/src/lib/timezone/useSystemTimezone";
 
@@ -160,6 +162,29 @@ export default function AuditLogsPage() {
            >
                <Filter className="w-4 h-4 mr-2" aria-hidden />
                Critical Only
+           </Button>
+           <Button
+              variant="outline"
+              className="rounded-md border-border"
+              disabled={filteredLogs.length === 0}
+              onClick={() =>
+                downloadCsv(
+                  "audit-logs.csv",
+                  ["Timestamp", "Action", "Entity", "Entity ID", "Staff", "Role", "Details"],
+                  filteredLogs.map((l) => [
+                    formatDateTimeInTimezone(l.created_at, systemTimezone),
+                    l.action,
+                    l.entity_type ?? "",
+                    l.entity_id ?? "",
+                    l.staff_name ?? "",
+                    l.staff_role ?? "",
+                    l.details ? (typeof l.details === "string" ? l.details : JSON.stringify(l.details)) : "",
+                  ])
+                )
+              }
+           >
+               <Download className="w-4 h-4 mr-2" aria-hidden />
+               Export CSV
            </Button>
         </div>
       </div>

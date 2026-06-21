@@ -1,9 +1,10 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { ShieldAlert, Pill } from "lucide-react";
+import { ShieldAlert, Pill, Download } from "lucide-react";
 import { Card } from "@/src/components/ui/Card";
 import { Button } from "@/src/components/ui/Button";
 import { Input } from "@/src/components/ui/Input";
+import { downloadCsv } from "@/src/lib/csv";
 import { formatDateTimeInTimezone, getTimezoneNowDateInput, getDateInputInTimezone } from "@/src/lib/timezone/client";
 import { useSystemTimezone } from "@/src/lib/timezone/useSystemTimezone";
 
@@ -66,7 +67,6 @@ export default function NarcoticsRegisterPage() {
   useEffect(() => {
     if (!from && !to) return;
     void fetchRows(from, to);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [from, to]);
 
   return (
@@ -95,6 +95,33 @@ export default function NarcoticsRegisterPage() {
           onClick={() => void fetchRows(from, to)}
         >
           Apply
+        </Button>
+        <Button
+          variant="outline"
+          className="rounded-md font-medium"
+          disabled={rows.length === 0}
+          onClick={() =>
+            downloadCsv(
+              `narcotics-register${from ? `-${from}` : ""}${to ? `-to-${to}` : ""}.csv`,
+              ["Movement At", "Type", "Generic", "Brand", "Schedule", "Batch", "Qty Units", "Qty Sub-units", "Sale ID", "Visit ID", "Staff"],
+              rows.map((r) => [
+                formatDateTimeInTimezone(r.movement_at, systemTimezone),
+                r.movement_type,
+                r.generic_name ?? "",
+                r.brand_name ?? "",
+                r.controlled_schedule ?? "",
+                r.batch_id ?? "",
+                r.qty_units ?? "",
+                r.qty_sub_units ?? "",
+                r.sale_id ?? "",
+                r.visit_id ?? "",
+                r.staff_name ?? "",
+              ])
+            )
+          }
+        >
+          <Download className="w-4 h-4 mr-2" aria-hidden />
+          Export CSV
         </Button>
       </Card>
 
