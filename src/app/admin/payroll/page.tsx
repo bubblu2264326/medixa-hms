@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Card } from "@/src/components/ui/Card";
 import { Button } from "@/src/components/ui/Button";
+import { Dialog } from "@/src/components/ui/Dialog";
 import { getTimezoneNowMonthInput } from "@/src/lib/timezone/client";
 import { useSystemTimezone } from "@/src/lib/timezone/useSystemTimezone";
 
@@ -40,6 +41,9 @@ export default function PayrollRunsPage() {
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  // Per-line manual adjustment (+/- to net). Only on a draft run; the backend
+  // also rejects adjustments on finalized runs (the finalized-run lock).
+  const [adjustModal, setAdjustModal] = useState<{ lineId: number; personName: string; amount: string } | null>(null);
 
   const totals = useMemo(() => {
     return lines.reduce(
@@ -121,6 +125,39 @@ export default function PayrollRunsPage() {
       if (data?.payroll_run_id) setSelectedRunId(Number(data.payroll_run_id));
     } catch (e: any) {
       setError(e?.message || "Failed to generate payroll");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const activeRun = useMemo(
+    () => runs.find((r) => r.payroll_run_id === selectedRunId) ?? selectedRun,
+    [runs, selectedRunId, selectedRun]
+  );
+  const canAdjust = activeRun?.status === "draft";
+
+  const applyAdjustment = async () => {
+    if (!selectedRunId || !adjustModal) return;
+    const amount = Number(adjustModal.amount);
+    if (!Number.isFinite(amount) || amount === 0) {
+      setError("Enter a non-zero adjustment amount (use a negative value to deduct).");
+      return;
+    }
+    setBusy(true);
+    setError("");
+    try {
+      const res = await fetch(`/api/admin/payroll/runs/${selectedRunId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ adjustment: { payroll_line_id: adjustModal.lineId, amount } }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Failed to adjust payroll line");
+      setAdjustModal(null);
+      await loadRunDetail(selectedRunId);
+    } catch (e: any) {
+      setError(e?.message || "Failed to adjust payroll line");
     } finally {
       setBusy(false);
     }
@@ -277,12 +314,13 @@ export default function PayrollRunsPage() {
                   <th className="px-2 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Deduction</th>
                   <th className="px-2 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Adjust</th>
                   <th className="px-2 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Net</th>
+                  <th className="px-2 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground text-right">Action</th>
                 </tr>
               </thead>
               <tbody>
                 {lines.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-2 py-6 text-sm text-muted-foreground font-semibold">
+                    <td colSpan={9} className="px-2 py-6 text-sm text-muted-foreground font-semibold">
                       No line items for this run.
                     </td>
                   </tr>
@@ -299,6 +337,18 @@ export default function PayrollRunsPage() {
                       <td className="px-2 py-2 text-xs font-semibold text-foreground font-mono tabular-nums">{Number(line.deduction_total).toLocaleString()}</td>
                       <td className="px-2 py-2 text-xs font-semibold text-foreground font-mono tabular-nums">{Number(line.adjustment_total).toLocaleString()}</td>
                       <td className="px-2 py-2 text-xs font-semibold text-foreground font-mono tabular-nums">{Number(line.net_amount).toLocaleString()}</td>
+                      <td className="px-2 py-2 text-right">
+                        {canAdjust ? (
+                          <Button
+                            onClick={() => { setError(""); setAdjustModal({ lineId: line.payroll_line_id, personName: line.person_name || "employee", amount: "" }); }}
+                            className="h-8 rounded-md bg-muted text-foreground hover:bg-accent text-[10px] font-semibold uppercase tracking-wide px-3"
+                          >
+                            Adjust
+                          </Button>
+                        ) : (
+                          <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Locked</span>
+                        )}
+                      </td>
                     </tr>
                   ))
                 )}
@@ -307,6 +357,31 @@ export default function PayrollRunsPage() {
           </div>
         </Card>
       </div>
+
+      <Dialog
+        open={adjustModal !== null}
+        onClose={() => setAdjustModal(null)}
+        title="Adjust payroll line"
+        description={adjustModal ? `Manual adjustment to ${adjustModal.personName}'s net pay. Use a negative value to deduct.` : undefined}
+        footer={
+          <>
+            <Button onClick={() => setAdjustModal(null)} className="h-9 rounded-md bg-muted text-foreground hover:bg-accent text-xs font-semibold px-4">Cancel</Button>
+            <Button disabled={busy || !adjustModal?.amount} onClick={applyAdjustment} className="h-9 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold px-4">{busy ? "Applying…" : "Apply Adjustment"}</Button>
+          </>
+        }
+      >
+        <div className="space-y-1">
+          <label className="text-xs font-semibold text-foreground">Adjustment amount (PKR)</label>
+          <input
+            autoFocus
+            type="number"
+            className="h-10 w-full rounded-md border border-input px-3 text-sm font-mono tabular-nums"
+            placeholder="e.g. 2000 or -500"
+            value={adjustModal?.amount ?? ""}
+            onChange={(e) => setAdjustModal((p) => (p ? { ...p, amount: e.target.value } : p))}
+          />
+        </div>
+      </Dialog>
     </div>
   );
 }
