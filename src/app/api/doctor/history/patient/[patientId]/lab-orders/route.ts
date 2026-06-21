@@ -67,7 +67,7 @@ export async function GET(
         `,
         [orderIds]
       );
-      for (const row of rres.rows as Array<{ order_id: number }>) {
+      for (const row of ((rres?.rows ?? []) as Array<{ order_id: number }>)) {
         (resultsByOrder[row.order_id] ||= []).push(row);
       }
     }
