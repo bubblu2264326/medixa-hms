@@ -105,7 +105,12 @@ type OverdueItem = {
   agingBucket: string;
 };
 
-const PAYMENT_TYPES = ["CASH", "CARD", "INSURANCE", "MOBILE", "SPLIT"] as const;
+// INSURANCE and SPLIT were selectable but unimplemented — the settle/correct
+// routes store payment_type as a plain string with no split-tender capture and
+// no insurance-claim linkage, so picking them recorded a normal payment under a
+// misleading label. Removed until those flows exist. (Backend unions still
+// tolerate the old values so historical rows render unchanged.)
+const PAYMENT_TYPES = ["CASH", "CARD", "MOBILE"] as const;
 
 const tabs: Array<{ id: CashierTab; label: string; icon: React.ReactNode }> = [
   { id: "worklist", label: "Worklist", icon: <ListFilter className="h-4 w-4" /> },
