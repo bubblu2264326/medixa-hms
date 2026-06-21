@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import pool from "@/database/db";
 import { AuthError } from "@/src/lib/server/auth";
-import { deriveBillPaymentStatus, requireCashierAdminOnlyForReversal } from "@/src/lib/server/cashier";
+import { deriveBillPaymentStatus, getIdempotencyKey, requireCashierAdminOnlyForReversal } from "@/src/lib/server/cashier";
 import { getReceiptDateStamp, getSystemTimezone } from "@/src/lib/server/systemTimezone";
 
 type CorrectPayload = {
@@ -28,6 +28,7 @@ export async function POST(req: NextRequest) {
   try {
     const user = await requireCashierAdminOnlyForReversal(req);
     const systemTimezone = await getSystemTimezone();
+    const idempotencyKey = getIdempotencyKey(req);
     const body = (await req.json()) as CorrectPayload;
 
     const targetTxnId = Number(body.cashierPaymentTxnId ?? 0);
@@ -70,6 +71,27 @@ export async function POST(req: NextRequest) {
     if (String(original.txn_type) !== "payment") {
       await client.query("ROLLBACK");
       return NextResponse.json({ error: "Only payment transactions can be corrected" }, { status: 409 });
+    }
+
+    // Optional idempotent replay: a retry with the same Idempotency-Key returns
+    // the original success response instead of the confusing "already reversed"
+    // 409. Checked before the existingReversal guard for exactly that reason.
+    // (Concurrency is serialized by the FOR UPDATE lock on the original txn.)
+    if (idempotencyKey) {
+      const existingIdem = await client.query(
+        `
+          SELECT response_json, status_code
+          FROM cashier_idempotency
+          WHERE idempotency_key = $1 AND endpoint = $2 AND bill_id = $3
+          LIMIT 1
+        `,
+        [idempotencyKey, "/api/cashier/correct", Number(original.bill_id)]
+      );
+      const cached = existingIdem.rows[0];
+      if (cached && cached.response_json && typeof cached.response_json === "object") {
+        await client.query("COMMIT");
+        return NextResponse.json(cached.response_json, { status: Number(cached.status_code ?? 200) });
+      }
     }
 
     const existingReversal = await client.query(
@@ -379,8 +401,7 @@ export async function POST(req: NextRequest) {
       ]
     );
 
-    await client.query("COMMIT");
-    return NextResponse.json({
+    const responseBody = {
       success: true,
       data: {
         originalTxnId: targetTxnId,
@@ -394,7 +415,21 @@ export async function POST(req: NextRequest) {
         terminalReopen,
         reopenedFrom,
       },
-    });
+    };
+
+    if (idempotencyKey) {
+      await client.query(
+        `
+          INSERT INTO cashier_idempotency (
+            idempotency_key, endpoint, bill_id, request_hash, response_json, status_code, created_by
+          ) VALUES ($1, $2, $3, $4, $5::jsonb, $6, $7)
+        `,
+        [idempotencyKey, "/api/cashier/correct", billId, JSON.stringify(body), JSON.stringify(responseBody), 200, staffId]
+      );
+    }
+
+    await client.query("COMMIT");
+    return NextResponse.json(responseBody);
   } catch (error: any) {
     await client.query("ROLLBACK");
     if (error instanceof AuthError) {

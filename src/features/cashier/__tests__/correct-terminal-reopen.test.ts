@@ -15,6 +15,7 @@ vi.mock("@/database/db", () => ({ default: { connect: connectMock } }));
 vi.mock("@/src/lib/server/cashier", () => ({
   requireCashierAdminOnlyForReversal: vi.fn(async () => ({ user_code: "ADM001", role: "Admin", name: "Admin" })),
   deriveBillPaymentStatus: vi.fn(() => "Partial"),
+  getIdempotencyKey: (req: any) => req?.headers?.get?.("idempotency-key") ?? "",
 }));
 vi.mock("@/src/lib/server/systemTimezone", () => ({
   getSystemTimezone: vi.fn(async () => "Asia/Karachi"),

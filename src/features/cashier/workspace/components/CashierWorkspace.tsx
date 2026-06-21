@@ -112,6 +112,14 @@ type OverdueItem = {
 // tolerate the old values so historical rows render unchanged.)
 const PAYMENT_TYPES = ["CASH", "CARD", "MOBILE"] as const;
 
+// One key per money-mutating action (settle / draft-apply / correct) so a
+// network retry replays the original result server-side instead of double-posting.
+function newIdempotencyKey() {
+  return typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+    ? crypto.randomUUID()
+    : `cashier-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
 const tabs: Array<{ id: CashierTab; label: string; icon: React.ReactNode }> = [
   { id: "worklist", label: "Worklist", icon: <ListFilter className="h-4 w-4" /> },
   { id: "settle", label: "Settle", icon: <HandCoins className="h-4 w-4" /> },
@@ -342,16 +350,11 @@ export default function CashierWorkspace() {
     setError(null);
     setNotice(null);
     try {
-      const idempotencyKey =
-        typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
-          ? crypto.randomUUID()
-          : `cashier-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-
       await fetchJson<{ success: boolean; data: { paymentStatus: string } }>("/api/cashier/settle", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Idempotency-Key": idempotencyKey,
+          "Idempotency-Key": newIdempotencyKey(),
         },
         body: JSON.stringify({
           billId: selectedBill.bill.billId,
@@ -415,7 +418,10 @@ export default function CashierWorkspace() {
     try {
       await fetchJson(`/api/cashier/drafts/${draftId}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(action === "apply" ? { "Idempotency-Key": newIdempotencyKey() } : {}),
+        },
         body: JSON.stringify({ action }),
       });
       setNotice(action === "apply" ? "Draft applied successfully." : "Draft cancelled.");
@@ -438,7 +444,10 @@ export default function CashierWorkspace() {
     try {
       await fetchJson("/api/cashier/correct", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Idempotency-Key": newIdempotencyKey(),
+        },
         body: JSON.stringify({
           cashierPaymentTxnId: correctingTxnId,
           reasonCode: correctionForm.reasonCode,

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import pool from "@/database/db";
 import { AuthError } from "@/src/lib/server/auth";
-import { deriveBillPaymentStatus, requireCashierOrAdmin } from "@/src/lib/server/cashier";
+import { deriveBillPaymentStatus, getIdempotencyKey, requireCashierOrAdmin } from "@/src/lib/server/cashier";
 import { getReceiptDateStamp, getSystemTimezone } from "@/src/lib/server/systemTimezone";
 
 async function resolveStaffId(userCode: string, client: any) {
@@ -17,6 +17,7 @@ export async function PATCH(
   try {
     const user = await requireCashierOrAdmin(req);
     const systemTimezone = await getSystemTimezone();
+    const idempotencyKey = getIdempotencyKey(req);
     const staffId = await resolveStaffId(user.user_code, client);
     if (!staffId) {
       return NextResponse.json({ error: "Unable to resolve cashier staff id" }, { status: 403 });
@@ -49,6 +50,28 @@ export async function PATCH(
       return NextResponse.json({ error: "Draft not found" }, { status: 404 });
     }
     const draft = draftResult.rows[0];
+
+    // Optional idempotent replay for apply: a retry with the same key returns the
+    // original success instead of the "Draft is not open" 409 — checked before
+    // the status guard. (The draft FOR UPDATE lock serializes concurrent applies;
+    // the draft_status flip is the underlying single-execution guarantee.)
+    if (action === "apply" && idempotencyKey) {
+      const existingIdem = await client.query(
+        `
+          SELECT response_json, status_code
+          FROM cashier_idempotency
+          WHERE idempotency_key = $1 AND endpoint = $2 AND bill_id = $3
+          LIMIT 1
+        `,
+        [idempotencyKey, "/api/cashier/drafts/apply", Number(draft.bill_id)]
+      );
+      const cached = existingIdem.rows[0];
+      if (cached && cached.response_json && typeof cached.response_json === "object") {
+        await client.query("COMMIT");
+        return NextResponse.json(cached.response_json, { status: Number(cached.status_code ?? 200) });
+      }
+    }
+
     if (String(draft.draft_status) !== "open") {
       await client.query("ROLLBACK");
       return NextResponse.json({ error: "Draft is not open" }, { status: 409 });
@@ -238,12 +261,25 @@ export async function PATCH(
       ]
     );
 
-    await client.query("COMMIT");
-    return NextResponse.json({
+    const responseBody = {
       success: true,
       action: "applied",
       data: { draftId, paymentTxnId, receiptNo, billId, dueAmount: dueAfter, paymentStatus },
-    });
+    };
+
+    if (idempotencyKey) {
+      await client.query(
+        `
+          INSERT INTO cashier_idempotency (
+            idempotency_key, endpoint, bill_id, request_hash, response_json, status_code, created_by
+          ) VALUES ($1, $2, $3, $4, $5::jsonb, $6, $7)
+        `,
+        [idempotencyKey, "/api/cashier/drafts/apply", billId, JSON.stringify({ draftId, action }), JSON.stringify(responseBody), 200, staffId]
+      );
+    }
+
+    await client.query("COMMIT");
+    return NextResponse.json(responseBody);
   } catch (error: any) {
     await client.query("ROLLBACK");
     if (error instanceof AuthError) {

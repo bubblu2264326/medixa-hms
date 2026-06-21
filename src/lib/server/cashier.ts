@@ -20,6 +20,18 @@ export async function requireCashierAdminOnlyForReversal(req: NextRequest) {
   return requireAdminOrSuperAdmin(req);
 }
 
+// Reads the optional Idempotency-Key header. Returns "" when absent so callers
+// can treat idempotency as opt-in (settle requires it; correct/drafts-apply
+// accept it for retry-safety but fall back to their natural single-execution
+// guards when it is missing).
+export function getIdempotencyKey(req: NextRequest): string {
+  const maybeHeaders = (req as { headers?: { get?: (k: string) => string | null } })?.headers;
+  if (maybeHeaders && typeof maybeHeaders.get === "function") {
+    return maybeHeaders.get("idempotency-key")?.trim() ?? "";
+  }
+  return "";
+}
+
 export function deriveBillPaymentStatus(total: number, paid: number) {
   if (paid <= 0) return "Unpaid";
   if (paid >= total) return "Paid";
