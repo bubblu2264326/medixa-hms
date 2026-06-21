@@ -255,6 +255,47 @@ export default function StaffDirectoryPage() {
     }
   };
 
+  const toggleArchive = async (row: StaffRow) => {
+    const archiving = row.employment_status === "active";
+    const nextStatus = archiving ? "resigned" : "active";
+    if (archiving && !window.confirm(`Archive ${row.name}? They will be marked resigned and excluded from active workforce views.`)) {
+      return;
+    }
+    setSaving(true);
+    setError("");
+    setResultMessage("");
+    try {
+      const res = await fetch("/api/admin/staff/v2/directory", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          staff_id: row.staff_id,
+          account_type: row.account_type,
+          name: row.name,
+          user_code: row.user_code,
+          role: row.role,
+          department: row.department ?? null,
+          designation: row.designation ?? null,
+          facility_code: row.facility_code ?? null,
+          branch_code: row.branch_code ?? null,
+          contact_number: row.contact_number ?? null,
+          email: row.email ?? null,
+          employment_status: nextStatus,
+          password: "",
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Failed to update employment status");
+      await loadRows();
+      setResultMessage(archiving ? `${row.name} archived.` : `${row.name} reactivated.`);
+    } catch (e: any) {
+      setError(e?.message || "Failed to update employment status");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const openEditForm = (row: StaffRow) => {
     setResultMessage("");
     setError("");
@@ -419,6 +460,17 @@ export default function StaffDirectoryPage() {
                         className="h-8 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold px-3 shadow-sm"
                       >
                         Edit
+                      </Button>
+                      <Button
+                        disabled={saving}
+                        onClick={() => toggleArchive(row)}
+                        className={`h-8 rounded-md text-xs font-semibold px-3 ${
+                          row.employment_status === "active"
+                            ? "bg-muted text-foreground hover:bg-accent"
+                            : "bg-success/10 text-success hover:bg-success/20"
+                        }`}
+                      >
+                        {row.employment_status === "active" ? "Archive" : "Reactivate"}
                       </Button>
                     </div>
                   </td>
