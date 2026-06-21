@@ -1,0 +1,4 @@
+# Generated pitch artifacts (re-buildable via scripts/pitch/*). Keep text logs.
+shots/
+*.pdf
+preview-*.png
