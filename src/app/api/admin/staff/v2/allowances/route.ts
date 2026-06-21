@@ -140,6 +140,69 @@ export async function POST(req: NextRequest) {
   }
 }
 
+export async function PATCH(req: NextRequest) {
+  try {
+    const actor = await requireAdminOrSuperAdmin(req);
+    const body = await req.json();
+    const allowanceId = Number(body?.allowance_id ?? 0);
+    if (!allowanceId) {
+      return NextResponse.json({ error: "allowance_id is required" }, { status: 400 });
+    }
+
+    const mode =
+      body?.allowance_mode === "one_time"
+        ? "one_time"
+        : body?.allowance_mode === "recurring"
+          ? "recurring"
+          : null;
+
+    const result = await query(
+      `
+      UPDATE employee_allowance
+      SET
+        allowance_name = COALESCE($2, allowance_name),
+        amount = COALESCE($3, amount),
+        allowance_mode = COALESCE($4, allowance_mode),
+        taxable = COALESCE($5, taxable),
+        updated_at = CURRENT_TIMESTAMP
+      WHERE allowance_id = $1
+        AND is_active = true
+      RETURNING *
+      `,
+      [
+        allowanceId,
+        body?.allowance_name != null ? String(body.allowance_name).trim() : null,
+        body?.amount != null ? Number(body.amount) : null,
+        mode,
+        typeof body?.taxable === "boolean" ? body.taxable : null,
+      ]
+    );
+
+    if (!result.rows[0]) {
+      return NextResponse.json({ error: "Active allowance not found" }, { status: 404 });
+    }
+
+    await logAuditEvent({
+      actorUserCode: actor.user_code,
+      action: "Allowance updated",
+      entityType: "employee_allowance",
+      entityId: allowanceId,
+      details: {
+        amount: result.rows[0]?.amount ?? null,
+        allowanceMode: result.rows[0]?.allowance_mode ?? null,
+      },
+    });
+
+    return NextResponse.json(result.rows[0]);
+  } catch (error: any) {
+    if (error instanceof AuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    console.error("allowances PATCH error", error);
+    return NextResponse.json({ error: "Failed to update allowance" }, { status: 500 });
+  }
+}
+
 export async function DELETE(req: NextRequest) {
   try {
     const actor = await requireAdminOrSuperAdmin(req);

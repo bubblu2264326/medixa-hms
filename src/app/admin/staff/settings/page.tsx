@@ -74,6 +74,7 @@ export default function EmployeeSettingsPage() {
     allowance_mode: "recurring" as "recurring" | "one_time",
     taxable: false,
   });
+  const [editingAllowanceId, setEditingAllowanceId] = useState<number | null>(null);
   const [policy, setPolicy] = useState<LeavePolicyPayload>({ role_quotas: [], employee_overrides: [] });
   const [policyForm, setPolicyForm] = useState({
     leave_type_id: "",
@@ -191,37 +192,64 @@ export default function EmployeeSettingsPage() {
     }
   };
 
+  const resetAllowanceForm = () => {
+    setAllowanceForm({
+      allowance_code: "",
+      allowance_name: "",
+      amount: 0,
+      allowance_mode: "recurring",
+      taxable: false,
+    });
+    setEditingAllowanceId(null);
+  };
+
   const addAllowance = async () => {
     if (!selected || !allowanceForm.allowance_code || !allowanceForm.allowance_name) return;
     setSaving(true);
     setError("");
     try {
+      const isEditing = editingAllowanceId !== null;
       const res = await fetch("/api/admin/staff/v2/allowances", {
-        method: "POST",
+        method: isEditing ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({
-          account_type: selected.accountType,
-          person_id: selected.personId,
-          ...allowanceForm,
-          amount: Number(allowanceForm.amount),
-        }),
+        body: JSON.stringify(
+          isEditing
+            ? {
+                allowance_id: editingAllowanceId,
+                allowance_name: allowanceForm.allowance_name,
+                amount: Number(allowanceForm.amount),
+                allowance_mode: allowanceForm.allowance_mode,
+                taxable: allowanceForm.taxable,
+              }
+            : {
+                account_type: selected.accountType,
+                person_id: selected.personId,
+                ...allowanceForm,
+                amount: Number(allowanceForm.amount),
+              }
+        ),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || "Failed to add allowance");
-      setAllowanceForm({
-        allowance_code: "",
-        allowance_name: "",
-        amount: 0,
-        allowance_mode: "recurring",
-        taxable: false,
-      });
+      if (!res.ok) throw new Error(data?.error || `Failed to ${isEditing ? "update" : "add"} allowance`);
+      resetAllowanceForm();
       await loadSelected();
     } catch (e: any) {
-      setError(e?.message || "Failed to add allowance");
+      setError(e?.message || "Failed to save allowance");
     } finally {
       setSaving(false);
     }
+  };
+
+  const startEditAllowance = (a: AllowanceRow) => {
+    setEditingAllowanceId(a.allowance_id);
+    setAllowanceForm({
+      allowance_code: a.allowance_code,
+      allowance_name: a.allowance_name,
+      amount: Number(a.amount),
+      allowance_mode: a.allowance_mode,
+      taxable: Boolean((a as { taxable?: boolean }).taxable),
+    });
   };
 
   const deactivateAllowance = async (allowanceId: number) => {
@@ -466,13 +494,24 @@ export default function EmployeeSettingsPage() {
             </div>
             <div className="space-y-1 md:col-span-2">
               <div className="h-[16px]" />
-              <Button
-                onClick={addAllowance}
-                disabled={!selected || saving || !allowanceForm.allowance_name || !allowanceForm.allowance_code}
-                className={`${primaryBtnClass} w-full md:w-auto`}
-              >
-                Add Allowance
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={addAllowance}
+                  disabled={!selected || saving || !allowanceForm.allowance_name || !allowanceForm.allowance_code}
+                  className={`${primaryBtnClass} w-full md:w-auto`}
+                >
+                  {editingAllowanceId !== null ? "Update Allowance" : "Add Allowance"}
+                </Button>
+                {editingAllowanceId !== null ? (
+                  <Button
+                    onClick={resetAllowanceForm}
+                    disabled={saving}
+                    className="h-10 rounded-md bg-muted text-foreground hover:bg-accent text-xs font-semibold px-4"
+                  >
+                    Cancel
+                  </Button>
+                ) : null}
+              </div>
             </div>
           </div>
 
@@ -505,13 +544,22 @@ export default function EmployeeSettingsPage() {
                       <td className="px-2 py-2 text-xs font-semibold text-foreground">{a.is_active ? "Active" : "Inactive"}</td>
                       <td className="px-2 py-2">
                         {a.is_active ? (
-                          <Button
-                            onClick={() => deactivateAllowance(a.allowance_id)}
-                            disabled={saving}
-                            className="h-8 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground text-[10px] font-semibold uppercase tracking-wide px-3"
-                          >
-                            Deactivate
-                          </Button>
+                          <div className="flex gap-1.5">
+                            <Button
+                              onClick={() => startEditAllowance(a)}
+                              disabled={saving}
+                              className="h-8 rounded-md bg-muted text-foreground hover:bg-accent text-[10px] font-semibold uppercase tracking-wide px-3"
+                            >
+                              Edit
+                            </Button>
+                            <Button
+                              onClick={() => deactivateAllowance(a.allowance_id)}
+                              disabled={saving}
+                              className="h-8 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground text-[10px] font-semibold uppercase tracking-wide px-3"
+                            >
+                              Deactivate
+                            </Button>
+                          </div>
                         ) : (
                           <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Archived</span>
                         )}
