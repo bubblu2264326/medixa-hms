@@ -1,7 +1,11 @@
 // Pitch capture harness — logs in per role (mints a token cookie for a real DB
-// user, like ux-shots) and captures annotated screenshots for the product PDFs.
-// For each module it writes pitch/shots/<module>/<label>.png plus a manifest.json
-// (title/subtitle + per-shot caption + blurb) that build-pdf.mjs renders.
+// user) and captures annotated screenshots for the product PDFs. Each module
+// writes pitch/shots/<module>/<label>.png + manifest.json (title/subtitle +
+// per-shot caption + blurb) that build-pdf.mjs renders.
+//
+// Some shots need interaction (populate POS cart, open settle drawer, open
+// procurement modal, pick a doctor patient) — those use a defensive prepare(page)
+// that best-effort drives the UI and never throws (falls back to the plain view).
 //
 // Run:  MODULE=pharmacy node --env-file=.env.local scripts/pitch/capture.mjs
 //       MODULE=all      node --env-file=.env.local scripts/pitch/capture.mjs
@@ -15,26 +19,119 @@ const { Pool } = pkg;
 const BASE = process.env.UX_BASE || "http://localhost:3100";
 const VW = Number(process.env.UX_W || 1536);
 const VH = Number(process.env.UX_H || 864);
-
-if (!process.env.secret_key) throw new Error("secret_key missing (run with --env-file=.env.local)");
-if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL missing");
+if (!process.env.secret_key || !process.env.DATABASE_URL) throw new Error("run with --env-file=.env.local");
 const secret = new TextEncoder().encode(process.env.secret_key);
 const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: false });
 
+const wait = (p, ms) => p.waitForTimeout(ms);
+async function clickByText(page, name, ms = 800) {
+  try { await page.getByRole("button", { name, exact: false }).first().click({ timeout: 4000 }); await wait(page, ms); return true; }
+  catch { return false; }
+}
+
+// ── prepare() helpers for interactive shots ─────────────────────────────────
+async function fillPos(page) {
+  // search + add a few medicines to the cart so the hero shot shows live totals
+  const names = ["Panadol", "Augmentin", "Risek"];
+  for (const name of names) {
+    try {
+      const search = page.getByPlaceholder(/Search Medicine/i).first();
+      await search.click({ timeout: 4000 });
+      await search.fill(name);
+      await wait(page, 1100);
+      // try clicking a dropdown option containing the name; else keyboard select
+      const opt = page.locator(`text=${name}`).last();
+      if (await opt.count()) { await opt.click({ timeout: 3000 }).catch(() => {}); }
+      else { await page.keyboard.press("ArrowDown"); await page.keyboard.press("Enter"); }
+      await wait(page, 700);
+      await clickByText(page, /add to bill/i, 700);
+    } catch { /* keep going */ }
+  }
+  await wait(page, 600);
+}
+async function openSettleDrawer(page) {
+  // from the Collect worklist, open the first bill into the Settle drawer
+  await clickByText(page, /^open$/i, 1200) || await clickByText(page, /open/i, 1200);
+}
+async function openProcurement(page) {
+  await clickByText(page, /new stock order/i, 1400);
+}
+async function pickDoctorPatientThen(tab) {
+  return async (page) => {
+    // click the first patient row/card in the queue, then the requested tab
+    try {
+      const row = page.locator("table tbody tr, [role='row']").first();
+      if (await row.count()) await row.click({ timeout: 4000 }).catch(() => {});
+      await wait(page, 1200);
+    } catch { /* */ }
+    if (tab) await clickByText(page, tab, 1200);
+  };
+}
+
 // ── Module definitions ──────────────────────────────────────────────────────
-// caption = bold label under the shot; blurb = one tight sentence of pitch copy.
 const MODULES = {
   pharmacy: {
-    title: "Pharmacy & Point-of-Sale",
-    subtitle: "Retail dispensing, inventory, and supplier operations in one terminal",
-    user: "STF002",
+    title: "Pharmacy & Point-of-Sale", user: "STF002",
+    subtitle: "Retail dispensing, inventory and supplier operations in one terminal",
     shots: [
-      { label: "pos", route: "/pharmacy", caption: "Point-of-Sale terminal", blurb: "Keyboard-first dispensing: search by brand or generic, automatic batch selection, live totals and change, and a single dominant Pay action." },
-      { label: "products", route: "/pharmacy?tab=medicines", caption: "Medicine catalogue", blurb: "Every product with form, strength, manufacturer and live multi-batch stock — full-text searchable." },
-      { label: "purchases", route: "/pharmacy?tab=purchases", caption: "Purchase invoices", blurb: "Supplier purchases recorded against batches; stock is updated automatically through the database trigger chain." },
-      { label: "transactions", route: "/pharmacy?tab=transactions", caption: "Sales ledger", blurb: "Every completed sale with reference, items and amount — the audit trail behind the till." },
-      { label: "parties", route: "/pharmacy?tab=addParty", caption: "Suppliers", blurb: "Supplier master with contact and tax details, linked to every purchase and batch." },
-      { label: "reports", route: "/pharmacy?tab=reports", caption: "Pharmacy reporting", blurb: "Daily sales and stock movement summaries for the pharmacy desk." },
+      { label: "pos", route: "/pharmacy", caption: "Point-of-Sale terminal", blurb: "Keyboard-first dispensing: search by brand or generic, automatic batch selection, live totals and a single dominant Pay action.", prepare: fillPos },
+      { label: "products", route: "/pharmacy?tab=medicines", caption: "Medicine & supply catalogue", blurb: "Every product — medicines, consumables and devices — with form, strength, manufacturer and live multi-batch stock." },
+      { label: "purchases", route: "/pharmacy?tab=purchases", caption: "Purchase invoices", blurb: "Supplier purchases recorded against batches; stock updates automatically through the database trigger chain." },
+      { label: "transactions", route: "/pharmacy?tab=transactions", caption: "Stock movement ledger", blurb: "Every purchase, sale and return as an immutable, colour-coded movement with batch and reference." },
+      { label: "parties", route: "/pharmacy?tab=addParty", caption: "Suppliers & parties", blurb: "Supplier directory with contact and tax details, linked to every purchase and batch." },
+      { label: "reports", route: "/pharmacy?tab=reports", caption: "Inventory reporting", blurb: "Expiring-soon, dead-stock and full medicine-stock reports — exportable to CSV.", clicks: ["Medicine Stock"] },
+    ],
+  },
+  cashier: {
+    title: "Cashier & Billing", user: "STF004",
+    subtitle: "Bill collection, settlement and shift reconciliation with an append-only ledger",
+    shots: [
+      { label: "collect", route: "/cashier", caption: "Collect worklist", blurb: "Outstanding bills ranked by due and aging, with 7+/30+/60+ alert chips and one-click open." },
+      { label: "settle", route: "/cashier", caption: "Settle drawer", blurb: "Open a bill into a side drawer: source breakdown, payment method, change/due, and a printable receipt.", prepare: openSettleDrawer },
+      { label: "history", route: "/cashier", caption: "Payment history", blurb: "Every payment and reversal — corrections are reverse-and-repost, never edits, preserving an append-only ledger.", clicks: ["History"] },
+      { label: "drafts", route: "/cashier", caption: "Held drafts", blurb: "Park a partial settlement as a draft and apply it later — idempotently.", clicks: ["Drafts"] },
+      { label: "shift", route: "/cashier", caption: "My Shift", blurb: "Open a cash drawer with an opening float; close it with a counted total and automatic variance.", clicks: ["My Shift"] },
+    ],
+  },
+  doctor: {
+    title: "Doctor Workspace", user: "DOC001",
+    subtitle: "Encounter, prescribing, lab ordering and patient history in one clinical view",
+    shots: [
+      { label: "queue", route: "/doctor", caption: "Doctor queue & workspace", blurb: "The day's patients with one-click entry into the encounter workspace." },
+      { label: "labs", route: "/doctor", caption: "Lab orders & results read-back", blurb: "Order tests and see results inline — including abnormal and critical flags surfaced to the ordering doctor.", prepare: pickDoctorPatientThen("Labs") },
+      { label: "medicines", route: "/doctor", caption: "Prescribing", blurb: "Build a prescription against the live formulary with dosage and quantity.", prepare: pickDoctorPatientThen("Medicines") },
+      { label: "history", route: "/doctor", caption: "Patient history", blurb: "Prior visits, prescriptions and lab results for continuity of care.", prepare: pickDoctorPatientThen("History") },
+    ],
+  },
+  lab: {
+    title: "Laboratory", user: "STF003",
+    subtitle: "Sample collection, result entry with critical-value alerts, and verification",
+    shots: [
+      { label: "collection", route: "/lab", caption: "Sample collection", blurb: "Pending orders with patient, test and urgency; collect with specimen-type traceability." },
+      { label: "results", route: "/lab", caption: "Result entry & critical alerts", blurb: "Enter parameter values against reference ranges; out-of-range and critical values are flagged and alerted to the doctor.", clicks: ["Test Results"] },
+      { label: "orders", route: "/lab", caption: "Lab order board", blurb: "All orders across statuses — Pending, Collected and Performed — for the lab bench.", clicks: ["Lab Orders"] },
+    ],
+  },
+  reception: {
+    title: "Reception & Front Desk", user: "SCN_RECEP",
+    subtitle: "Patient registration, appointments, vitals and live queue management",
+    shots: [
+      { label: "queue", route: "/receptionist", caption: "Live patient queue", blurb: "Real-time queue across clinics with status at a glance." },
+      { label: "register", route: "/receptionist", caption: "Patient registration", blurb: "Register a walk-in or returning patient and start a visit in seconds.", clicks: ["Register"] },
+      { label: "appointments", route: "/receptionist", caption: "Appointments", blurb: "Book and manage appointments against doctors and clinics.", clicks: ["Appointments"] },
+      { label: "vitals", route: "/receptionist", caption: "Vitals capture", blurb: "Record vitals at intake so the doctor opens a complete encounter.", clicks: ["Vitals"] },
+    ],
+  },
+  admin: {
+    title: "Administration", user: "ADM001",
+    subtitle: "Workforce, finance, pharmacy oversight and system control in one console",
+    shots: [
+      { label: "dashboard", route: "/admin", caption: "Operations dashboard", blurb: "Revenue, daily patients, active staff, low-stock and computed patient-growth at a glance." },
+      { label: "inventory", route: "/admin/inventory", caption: "Inventory & procurement", blurb: "Stock health, low-stock alerts and expiry watchlist — record a new stock order in a modal.", prepare: openProcurement },
+      { label: "staff", route: "/admin/staff", caption: "Staff directory", blurb: "Full workforce directory with profile drill-in, role-create and archive." },
+      { label: "payroll", route: "/admin/payroll", caption: "Payroll runs", blurb: "Generate month-wise payroll, adjust lines, and finalize with an immutable lock." },
+      { label: "audit", route: "/admin/audit", caption: "Security & system audit", blurb: "Real-time, filterable audit ledger of every administrative action with date and severity filters." },
+      { label: "financials", route: "/admin/financials", caption: "Clinic finance", blurb: "Cash-collected ledger and finance overview across pharmacy and cashier." },
     ],
   },
 };
@@ -49,7 +146,6 @@ async function resolveUser(userCode) {
   if (!r.rows[0]) throw new Error(`staff ${userCode} not found`);
   return { ...r.rows[0], account_type: "staff" };
 }
-
 async function mintToken(u) {
   return await new SignJWT({ user_code: u.user_code, role: u.role, name: u.name, sv: Number(u.sv), account_type: u.account_type })
     .setProtectedHeader({ alg: "HS256" }).setExpirationTime("8h").sign(secret);
@@ -61,49 +157,35 @@ async function captureModule(browser, key, def) {
   const manifestShots = [];
   console.log(`\n[${key}] ${def.title}`);
   for (const s of def.shots) {
-    const user = s.user || def.user;
     const context = await browser.newContext({ viewport: { width: VW, height: VH }, deviceScaleFactor: 2 });
     try {
-      if (user) {
-        const u = await resolveUser(user);
-        const token = await mintToken(u);
-        await context.addCookies([{ name: "token", value: token, url: BASE, httpOnly: true, sameSite: "Lax" }]);
-      }
+      const u = await resolveUser(s.user || def.user);
+      await context.addCookies([{ name: "token", value: await mintToken(u), url: BASE, httpOnly: true, sameSite: "Lax" }]);
       const page = await context.newPage();
       await page.goto(`${BASE}${s.route}`, { waitUntil: "networkidle", timeout: 60000 }).catch(() => {});
-      await page.waitForTimeout(1600);
-      if (s.clicks) {
-        for (const label of s.clicks) {
-          try { await page.getByRole("button", { name: label, exact: false }).first().click({ timeout: 5000 }); await page.waitForTimeout(1000); }
-          catch { /* keep current view */ }
-        }
-      }
-      const file = `${s.label}.png`;
-      await page.screenshot({ path: `${dir}/${file}`, fullPage: false });
-      manifestShots.push({ label: s.label, caption: s.caption, blurb: s.blurb, file });
+      await wait(page, 1600);
+      if (s.clicks) for (const c of s.clicks) await clickByText(page, c, 1000);
+      if (s.prepare) { try { await s.prepare(page); } catch { /* fallback to plain view */ } }
+      await wait(page, 500);
+      await page.screenshot({ path: `${dir}/${s.label}.png`, fullPage: false });
+      manifestShots.push({ label: s.label, caption: s.caption, blurb: s.blurb, file: `${s.label}.png` });
       console.log(`  ✓ ${s.label.padEnd(14)} ${s.route}`);
     } catch (e) {
       console.log(`  ✗ ${s.label.padEnd(14)} ${s.route}  ERR ${e.message}`);
-    } finally {
-      await context.close();
-    }
+    } finally { await context.close(); }
   }
   writeFileSync(`${dir}/manifest.json`, JSON.stringify({ key, title: def.title, subtitle: def.subtitle, shots: manifestShots }, null, 2));
   console.log(`  → ${dir}/manifest.json (${manifestShots.length} shots)`);
 }
 
 async function main() {
-  const which = (process.env.MODULE || "pharmacy").toLowerCase();
+  const which = (process.env.MODULE || "all").toLowerCase();
   const keys = which === "all" ? Object.keys(MODULES) : [which];
   const browser = await chromium.launch();
   console.log(`base=${BASE} viewport=${VW}x${VH}`);
-  for (const k of keys) {
-    if (!MODULES[k]) { console.log(`! unknown module ${k}`); continue; }
-    await captureModule(browser, k, MODULES[k]);
-  }
+  for (const k of keys) { if (!MODULES[k]) { console.log(`! unknown ${k}`); continue; } await captureModule(browser, k, MODULES[k]); }
   await browser.close();
   await pool.end();
   console.log("\ndone.");
 }
-
 main().catch((e) => { console.error(e); process.exit(1); });
