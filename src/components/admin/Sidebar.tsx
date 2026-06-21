@@ -43,26 +43,38 @@ export const AdminSidebar = () => {
     const router = useRouter();
     const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
 
+    // Four clear domains (audit IA fix): Workforce (everything people/HR),
+    // Finance (money the clinic earns/pays out), Pharmacy Ops (stock + dispense
+    // money), and System (config + oversight). Icons are domain-appropriate so
+    // each row reads at a glance rather than reusing one icon everywhere.
     const menuGroups = useMemo(() => [
         {
-            title: "Staff Management",
+            title: "Workforce",
             items: [
-                { href: "/admin/staff", icon: Users, label: "Directory" },
-                { href: "/admin/staff/access", icon: Settings, label: "Access & Roles" },
+                { href: "/admin/staff", icon: Users, label: "Staff Directory" },
+                { href: "/admin/staff/access", icon: ShieldAlert, label: "Access & Roles" },
                 { href: "/admin/staff/security", icon: History, label: "Security Sessions" },
                 { href: "/admin/attendance", icon: CalendarCheck, label: "Attendance" },
                 { href: "/admin/roster", icon: CalendarCheck, label: "Roster" },
                 { href: "/admin/leave", icon: CalendarCheck, label: "Leave" },
                 { href: "/admin/approvals", icon: CalendarCheck, label: "Approvals" },
-                { href: "/admin/credentialing", icon: Users, label: "Credentialing" },
+                { href: "/admin/credentialing", icon: FileText, label: "Credentialing" },
                 { href: "/admin/lifecycle", icon: Users, label: "Lifecycle" },
-                { href: "/admin/documents", icon: History, label: "Documents" },
-                { href: "/admin/analytics", icon: LayoutDashboard, label: "Analytics" },
+                { href: "/admin/documents", icon: FileText, label: "Documents" },
+                { href: "/admin/analytics", icon: LayoutDashboard, label: "Workforce Analytics" },
                 { href: "/admin/staff/settings", icon: Settings, label: "Employee Settings" },
             ]
         },
         {
-            title: "Pharmacy",
+            title: "Finance",
+            items: [
+                { href: "/admin/financials", icon: IndianRupee, label: "Clinic Finance" },
+                { href: "/admin/payroll", icon: HandCoins, label: "Payroll Runs" },
+                { href: "/admin/fbr-invoices", icon: FileText, label: "FBR Invoicing" },
+            ]
+        },
+        {
+            title: "Pharmacy Ops",
             items: [
                 { href: "/admin/inventory", icon: Package, label: "Inventory" },
                 { href: "/admin/cashier", icon: HandCoins, label: "Pharmacy Financials" },
@@ -70,15 +82,7 @@ export const AdminSidebar = () => {
             ]
         },
         {
-            title: "Financials",
-            items: [
-                { href: "/admin/financials", icon: IndianRupee, label: "System Finance" },
-                { href: "/admin/payroll", icon: HandCoins, label: "Payroll Runs" },
-                { href: "/admin/fbr-invoices", icon: FileText, label: "FBR Invoicing" },
-            ]
-        },
-        {
-            title: "General System",
+            title: "System",
             items: [
                 { href: "/admin/settings", icon: Settings, label: "Settings" },
                 { href: "/admin/audit", icon: History, label: "Audit Logs" },
