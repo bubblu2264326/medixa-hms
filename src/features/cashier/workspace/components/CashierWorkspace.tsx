@@ -544,6 +544,68 @@ export default function CashierWorkspace() {
     }
   };
 
+  // Render a clean, printable receipt in a new window (the buttons previously
+  // opened the raw JSON API response). Pure client-side print — no PDF lib.
+  const printReceipt = async (cashierPaymentTxnId: number) => {
+    type ReceiptPayload = {
+      receipt: {
+        cashierPaymentTxnId: number;
+        billId: number;
+        amount: number;
+        txnType: string;
+        paymentType: string;
+        paymentReference: string | null;
+        receiptNo: string | null;
+        notes: string | null;
+        createdAt: string | null;
+        patientName: string;
+        cashierName: string | null;
+      };
+    };
+    try {
+      const { receipt: r } = await fetchJson<ReceiptPayload>(`/api/cashier/receipt/${cashierPaymentTxnId}`);
+      const win = window.open("", "_blank", "width=420,height=640");
+      if (!win) {
+        setError("Pop-up blocked — allow pop-ups for this site to print receipts.");
+        return;
+      }
+      const esc = (s: string) =>
+        s.replace(/[&<>]/g, (c) => (c === "&" ? "&amp;" : c === "<" ? "&lt;" : "&gt;"));
+      const lines: Array<[string, string]> = [
+        ["Receipt No", r.receiptNo || `CPT-${r.cashierPaymentTxnId}`],
+        ["Date", dt(r.createdAt, systemTimezone)],
+        ["Patient", r.patientName || "-"],
+        ["Bill", `#${r.billId}`],
+        ["Method", r.paymentType],
+        ["Reference", r.paymentReference || "-"],
+        ["Cashier", r.cashierName || "-"],
+      ];
+      win.document.write(
+        `<!doctype html><html><head><title>Receipt ${esc(r.receiptNo || String(r.cashierPaymentTxnId))}</title>` +
+          `<style>` +
+          `*{font-family:ui-monospace,Menlo,Consolas,monospace;box-sizing:border-box}` +
+          `body{width:320px;margin:16px auto;color:#111}` +
+          `h1{font-size:15px;text-align:center;margin:0 0 2px}` +
+          `.sub{text-align:center;font-size:11px;color:#555;margin-bottom:12px}` +
+          `table{width:100%;border-collapse:collapse;font-size:12px}` +
+          `td{padding:3px 0;vertical-align:top}td.k{color:#555}td.v{text-align:right;font-weight:600}` +
+          `.amt{margin-top:12px;border-top:1px dashed #999;padding-top:8px;display:flex;justify-content:space-between;font-size:14px;font-weight:700}` +
+          `.foot{margin-top:14px;text-align:center;font-size:10px;color:#777}` +
+          `</style></head><body>` +
+          `<h1>Fouzia Ishaq Clinic</h1><div class="sub">Payment Receipt</div>` +
+          `<table>${lines.map(([k, v]) => `<tr><td class="k">${esc(k)}</td><td class="v">${esc(v)}</td></tr>`).join("")}</table>` +
+          `<div class="amt"><span>${r.txnType === "reversal" ? "Reversed" : "Amount Paid"}</span><span>${esc(fmt(r.amount))}</span></div>` +
+          (r.notes ? `<div class="foot">${esc(r.notes)}</div>` : "") +
+          `<div class="foot">Thank you.</div>` +
+          `<script>window.onload=function(){window.print()}<\/script>` +
+          `</body></html>`
+      );
+      win.document.close();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to load receipt");
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="rounded-lg border border-border bg-card px-4 py-3 shadow-sm">
@@ -732,10 +794,10 @@ export default function CashierWorkspace() {
                     onClick={() => {
                       const tx = selectedBill.paymentHistory[0];
                       if (!tx) return;
-                      window.open(`/api/cashier/receipt/${tx.cashierPaymentTxnId}`, "_blank");
+                      printReceipt(tx.cashierPaymentTxnId);
                     }}
                   >
-                    Open Latest Receipt
+                    Print Latest Receipt
                   </Button>
                 </div>
               </Card>
@@ -784,7 +846,7 @@ export default function CashierWorkspace() {
                         Correct Payment
                       </Button>
                       {row.receiptNo ? (
-                        <Button className="rounded-md px-3 py-1 text-xs" variant="outline" onClick={() => window.open(`/api/cashier/receipt/${row.cashierPaymentTxnId}`, "_blank")}>Open Receipt</Button>
+                        <Button className="rounded-md px-3 py-1 text-xs" variant="outline" onClick={() => printReceipt(row.cashierPaymentTxnId)}>Print Receipt</Button>
                       ) : null}
                     </div>
                   ) : null}
