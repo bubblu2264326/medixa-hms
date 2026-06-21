@@ -20,11 +20,11 @@ export default function LabTechnician({
     <div className="flex flex-col h-screen w-screen">
       {/* Clinic Header */}
       <div className="border-b border-border flex items-center justify-center bg-card">
-        <div className="relative h-[7dvh] w-[7dvh]">
-          <Image src="/logo.png" alt="Clinic Logo" fill sizes="7dvh" />
+        <div className="relative h-[7dvh] w-[7dvh] overflow-hidden">
+          <Image src="/logo_mark.png" alt="Medixa" fill sizes="7dvh" className="object-cover" />
         </div>
         <h1 className="text-3xl font-semibold tracking-tight text-primary">
-          Fouzia Ishaq Clinic
+          Medixa
         </h1>
         <Button onClick={async () => {
           await logoutUser()

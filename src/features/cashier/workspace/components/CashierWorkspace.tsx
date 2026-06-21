@@ -566,7 +566,7 @@ export default function CashierWorkspace() {
           `.amt{margin-top:12px;border-top:1px dashed #999;padding-top:8px;display:flex;justify-content:space-between;font-size:14px;font-weight:700}` +
           `.foot{margin-top:14px;text-align:center;font-size:10px;color:#777}` +
           `</style></head><body>` +
-          `<h1>Fouzia Ishaq Clinic</h1><div class="sub">Payment Receipt</div>` +
+          `<h1>Medixa</h1><div class="sub">Payment Receipt</div>` +
           `<table>${lines.map(([k, v]) => `<tr><td class="k">${esc(k)}</td><td class="v">${esc(v)}</td></tr>`).join("")}</table>` +
           `<div class="amt"><span>${r.txnType === "reversal" ? "Reversed" : "Amount Paid"}</span><span>${esc(fmt(r.amount))}</span></div>` +
           (r.notes ? `<div class="foot">${esc(r.notes)}</div>` : "") +

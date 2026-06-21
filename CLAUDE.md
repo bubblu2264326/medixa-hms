@@ -12,7 +12,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Single test: `pnpm test <path>` (e.g. `pnpm test src/features/admin/__tests__/auth.test.ts`) or `pnpm test -t "<test name>"`.
 - `pnpm docs` — generate TypeDoc HTML into `docs/` (treated as derived output, not canonical).
 
-There is no Prisma migration tooling wired up; `database/schema.prisma` is **not** the source of truth. Apply SQL changes via raw `.sql` files in `database/migrations/` against the Supabase project.
+There is no Prisma migration tooling wired up; `database/schema.prisma` is **not** the source of truth. Apply SQL changes via raw `.sql` files in `database/migrations/`.
+
+### Database source of truth — local first, sync to Supabase on completion
+
+- **The local Postgres DB is the source of truth during development.** `.env.local` points at the local DB (`localhost:5432`); `.env.local.supabase` points at the remote Supabase project (`*.pooler.supabase.com`).
+- **Always read from and write to the local DB only** while working. Run scripts/migrations against `.env.local`. Do **not** touch the remote Supabase DB mid-task.
+- **Every schema/data change still gets a committed migration** under `database/migrations/` (dated `YYYY_MM_DD_<name>.sql` + a paired `.down.sql`), applied to the local DB first.
+- **When a piece of work or phase is done**, check whether it changed the DB (schema or seeded/config data). If it did, **apply the same migrations to the remote Supabase DB** (`.env.local.supabase`) so the two stay in sync. Confirm with the user before running against the remote DB, then report rows affected.
 
 ## Big-picture architecture
 

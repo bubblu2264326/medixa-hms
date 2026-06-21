@@ -390,7 +390,7 @@
 
 | config_id | clinic_name | clinic_address | clinic_phone | clinic_email | tax_registration_number | receipt_header | receipt_footer | logo_url | printer_name | paper_size | is_active | created_at |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | Dr Fauzia Ishaq Clinic | 35HM+388, Sadaat Colony, Muzaffargarh | 034567654321 |  |  | Welcome to our Clinic | Get Well Soon |  |  | 80mm | true | "2026-02-06T06:42:40.173Z" |
+| 1 | Medixa | 35HM+388, Sadaat Colony, Muzaffargarh | 034567654321 |  |  | Welcome to our Clinic | Get Well Soon |  |  | 80mm | true | "2026-02-06T06:42:40.173Z" |
 
 
 

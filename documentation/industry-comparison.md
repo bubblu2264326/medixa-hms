@@ -39,7 +39,7 @@ updates to this document) are:
 
 Where a feature is described as "supported" below, it reflects the project's
 documented module catalog, not a live functional audit. The comparison is
-written for a small-to-mid outpatient clinic context (Dr Fauzia Ishaq Clinic /
+written for a small-to-mid outpatient clinic context (Medixa /
 Pakistan); items that only matter for tertiary hospitals or US-payer environments
 are flagged explicitly as "not relevant for this scope."
 

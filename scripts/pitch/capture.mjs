@@ -109,6 +109,14 @@ function returnFrom(filterLabel) {
     } catch { /* */ }
   };
 }
+async function openCollect(page) {
+  // open the sample-collection dialog on the first pending order
+  await clickByText(page, /^collect$/i, 1400);
+}
+async function openResultEntry(page) {
+  // on Test Results, open the entry panel/dialog for the first order
+  await clickByText(page, /enter results|enter|results/i, 1400);
+}
 async function openSettleDrawer(page) {
   // from the Collect worklist, open the first bill into the Settle drawer
   await clickByText(page, /^open$/i, 1200) || await clickByText(page, /open/i, 1200);
@@ -116,15 +124,29 @@ async function openSettleDrawer(page) {
 async function openProcurement(page) {
   await clickByText(page, /new stock order/i, 1400);
 }
-async function pickDoctorPatientThen(tab) {
+// NOTE: factory must NOT be `async` — it returns the prepare fn synchronously.
+// (An `async` factory returns Promise<fn>, so `await s.prepare(page)` would try to
+//  call a Promise and throw into the harness's silent catch — the prepare never runs.)
+function pickDoctorPatientThen(tab) {
   return async (page) => {
-    // click the first patient row/card in the queue, then the requested tab
+    // select the first queue card; once a patient is selected the placeholder clears.
     try {
-      const row = page.locator("table tbody tr, [role='row']").first();
-      if (await row.count()) await row.click({ timeout: 4000 }).catch(() => {});
-      await wait(page, 1200);
+      const card = page.locator('div[class*="cursor-pointer"][class*="rounded-md"]').first();
+      await card.waitFor({ state: "visible", timeout: 12000 });
+      // Let React finish hydrating before driving the card — a force-click that races
+      // hydration dispatches a DOM event with no handler attached yet (selection no-ops).
+      await wait(page, 2500);
+      // Check selection state BEFORE each click (count() never throws), so once the
+      // patient is selected we stop — clicking a selected card again can toggle it off.
+      for (let i = 0; i < 8; i++) {
+        const selected = (await page.getByText(/No patient selected/i).count().catch(() => 1)) === 0;
+        if (selected) break;
+        // normal click auto-waits for actionability (stable + receives events)
+        await card.click({ timeout: 5000 }).catch(() => card.click({ force: true, timeout: 5000 }).catch(() => {}));
+        await wait(page, 1400);
+      }
     } catch { /* */ }
-    if (tab) await clickByText(page, tab, 1200);
+    if (tab) await clickByText(page, tab, 1800);
   };
 }
 
@@ -172,9 +194,10 @@ const MODULES = {
     title: "Laboratory", user: "STF003",
     subtitle: "Sample collection, result entry with critical-value alerts, and verification",
     shots: [
-      { label: "collection", route: "/lab", caption: "Sample collection", blurb: "Pending orders with patient, test and urgency; collect with specimen-type traceability." },
-      { label: "results", route: "/lab", caption: "Result entry & critical alerts", blurb: "Enter parameter values against reference ranges; out-of-range and critical values are flagged and alerted to the doctor.", clicks: ["Test Results"] },
-      { label: "orders", route: "/lab", caption: "Lab order board", blurb: "All orders across statuses — Pending, Collected and Performed — for the lab bench.", clicks: ["Lab Orders"] },
+      { label: "collection", route: "/lab", caption: "Sample collection queue", blurb: "Pending orders with patient, test and urgency." },
+      { label: "collect", route: "/lab", caption: "Collecting a sample", blurb: "Record specimen type and collector against a pending order.", prepare: openCollect },
+      { label: "results", route: "/lab", caption: "Result entry & critical alerts", blurb: "Parameter values against reference ranges; abnormal and critical flags.", clicks: ["Test Results"] },
+      { label: "orders", route: "/lab", caption: "Lab order board", blurb: "All orders across Pending, Collected and Performed.", clicks: ["Lab Orders"] },
     ],
   },
   reception: {
@@ -196,7 +219,6 @@ const MODULES = {
       { label: "staff", route: "/admin/staff", caption: "Staff directory", blurb: "Full workforce directory with profile drill-in, role-create and archive." },
       { label: "payroll", route: "/admin/payroll", caption: "Payroll runs", blurb: "Generate month-wise payroll, adjust lines, and finalize with an immutable lock." },
       { label: "audit", route: "/admin/audit", caption: "Security & system audit", blurb: "Real-time, filterable audit ledger of every administrative action with date and severity filters." },
-      { label: "financials", route: "/admin/financials", caption: "Clinic finance", blurb: "Cash-collected ledger and finance overview across pharmacy and cashier." },
     ],
   },
 };
@@ -227,8 +249,9 @@ async function captureModule(browser, key, def) {
       const u = await resolveUser(s.user || def.user);
       await context.addCookies([{ name: "token", value: await mintToken(u), url: BASE, httpOnly: true, sameSite: "Lax" }]);
       const page = await context.newPage();
-      await page.goto(`${BASE}${s.route}`, { waitUntil: "networkidle", timeout: 60000 }).catch(() => {});
-      await wait(page, 1600);
+      // domcontentloaded (not networkidle — SSE/polling pages never idle) + settle
+      await page.goto(`${BASE}${s.route}`, { waitUntil: "domcontentloaded", timeout: 30000 }).catch(() => {});
+      await wait(page, 2600);
       if (s.clicks) for (const c of s.clicks) await clickByText(page, c, 1000);
       if (s.prepare) { try { await s.prepare(page); } catch { /* fallback to plain view */ } }
       await wait(page, 500);

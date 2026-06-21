@@ -1,0 +1,72 @@
+{
+  "key": "lab",
+  "title": "Laboratory",
+  "subtitle": "Sample collection, result entry with critical-value alerts, and a clean order board",
+  "overview": {
+    "lead": "The Laboratory module runs the bench from order to result. Doctor-ordered tests arrive as Pending; the technician records specimen collection, enters parameter values against reference ranges, and the system flags abnormal and critical results — alerting the ordering doctor automatically. Ordered tests are also billed to the patient's visit, so the lab feeds the same cashier flow as everything else.",
+    "highlights": [
+      "Order board across Pending, Collected and Performed states",
+      "Sample collection with specimen-type and collector traceability",
+      "Parameter result entry validated against reference ranges",
+      "Abnormal and critical values flagged and pushed to the doctor",
+      "Ordered tests auto-billed to the visit (lab → bill → cashier)",
+      "Demo: 19 orders — 6 pending, 7 collected, 6 performed (incl. 1 critical)"
+    ]
+  },
+  "features": {
+    "collection": {
+      "title": "Sample collection queue",
+      "description": "Every test a doctor has ordered lands in a Pending queue with the patient, test, category and urgency. The technician works straight down the list, so nothing waits unseen and urgent tests are visible at a glance.",
+      "bullets": [
+        "All pending orders in one work queue",
+        "Patient, test, category and urgency on each row",
+        "Urgent orders clearly marked",
+        "Ordered directly from the doctor's workspace"
+      ],
+      "impact": "The bench always knows exactly what is waiting and what is urgent."
+    },
+    "collect": {
+      "title": "Collecting a sample",
+      "description": "Collecting a sample records the specimen type and the collector against the order, moving it from Pending to Collected. That traceability — who drew what, and when — is captured at the moment of collection, not reconstructed later.",
+      "bullets": [
+        "Record specimen type (blood, serum, urine, …)",
+        "Collector and timestamp captured automatically",
+        "Order moves Pending → Collected",
+        "Full chain-of-custody from the start"
+      ],
+      "impact": "Specimen traceability is built in, supporting accreditation and dispute resolution."
+    },
+    "results": {
+      "title": "Result entry & critical alerts",
+      "description": "The technician enters each parameter's value against its reference range. Out-of-range values are flagged abnormal, and critical values are escalated and pushed to the ordering doctor — so a dangerous result never sits silently in a queue.",
+      "bullets": [
+        "Per-parameter values against reference ranges",
+        "Automatic abnormal flagging",
+        "Critical values escalated and alerted to the doctor",
+        "Results visible to the ordering doctor in their workspace",
+        "Verification gate before results are final"
+      ],
+      "impact": "Patient safety by design — critical results are surfaced, not buried."
+    },
+    "orders": {
+      "title": "Lab order board",
+      "description": "A single board shows every order across its lifecycle — Pending, Collected and Performed — so the lab lead can see throughput, bottlenecks and outstanding work in one view.",
+      "bullets": [
+        "Every order across all statuses",
+        "Patient, test and ordering doctor",
+        "Status at a glance for throughput and bottlenecks",
+        "Filterable for the day's workload"
+      ],
+      "impact": "The lab lead manages flow from one screen instead of chasing paper."
+    }
+  },
+  "closing": {
+    "lead": "From order to result — safely and traceably",
+    "points": [
+      "Critical values are flagged and pushed to the ordering doctor automatically.",
+      "Specimen collection captures chain-of-custody at the source.",
+      "Ordered tests are billed to the visit and settle through the cashier.",
+      "Every figure here is live from the running system on realistic demo data."
+    ]
+  }
+}

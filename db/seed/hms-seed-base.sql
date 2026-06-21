@@ -9526,7 +9526,7 @@ COPY public.pos_held_transaction_detail (detail_id, hold_id, medicine_id, qty, s
 --
 
 COPY public.pos_receipt_config (config_id, clinic_name, clinic_address, clinic_phone, clinic_email, tax_registration_number, receipt_header, receipt_footer, logo_url, printer_name, paper_size, is_active, created_at) FROM stdin;
-1	Dr Fauzia Ishaq Clinic	35HM+388, Sadaat Colony, Muzaffargarh	034567654321	\N	\N	Welcome to our Clinic	Get Well Soon	\N	\N	80mm	t	2026-02-06 11:42:40.173912
+1	Medixa	35HM+388, Sadaat Colony, Muzaffargarh	034567654321	\N	\N	Welcome to our Clinic	Get Well Soon	\N	\N	80mm	t	2026-02-06 11:42:40.173912
 \.
 
 

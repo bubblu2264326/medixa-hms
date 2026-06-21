@@ -389,10 +389,10 @@ export function SettingsView() {
               <input
                 value={receiptConfig.logo_url ?? ''}
                 onChange={(e) => setReceiptConfig((p) => ({ ...p, logo_url: e.target.value }))}
-                placeholder="/logo.png"
+                placeholder="/logo_new.png"
                 className="h-11 w-full rounded-xl border border-border bg-white px-3 text-sm text-foreground outline-none"
               />
-              <p className="mt-2 text-[12px] text-muted-foreground">Leave empty to use the navbar logo (`/logo.png`).</p>
+              <p className="mt-2 text-[12px] text-muted-foreground">Leave empty to use the navbar logo (`/logo_new.png`).</p>
             </div>
           </div>
 

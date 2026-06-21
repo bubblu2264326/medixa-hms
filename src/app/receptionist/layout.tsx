@@ -60,12 +60,12 @@ export default function Receptionist({
       {/* Premium Clinic Header - Restored to match Pharmacy Module */}
       <div className="px-6 py-2 border-b border-border bg-card shadow-sm flex items-center justify-between z-50">
         <div className="flex items-center gap-3">
-          <div className="relative h-9 w-9 bg-primary/10 rounded-md p-1 flex items-center justify-center border border-primary/20">
-            <Image src="/logo.png" alt="Clinic Logo" width={24} height={24} />
+          <div className="relative h-9 w-9 overflow-hidden bg-primary/10 rounded-md flex items-center justify-center border border-primary/20">
+            <Image src="/logo_mark.png" alt="Medixa" width={24} height={24} className="h-full w-full object-cover" />
           </div>
           <div>
             <h1 className="text-base font-semibold tracking-tight text-foreground leading-none">
-              Fouzia Ishaq Clinic
+              Medixa
             </h1>
             <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mt-0.5">Reception Portal</p>
           </div>

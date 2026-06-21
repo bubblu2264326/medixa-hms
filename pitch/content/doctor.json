@@ -1,0 +1,72 @@
+{
+  "key": "doctor",
+  "title": "Doctor Workspace",
+  "subtitle": "Encounter, prescribing, lab ordering and patient history in one clinical view",
+  "overview": {
+    "lead": "The Doctor Workspace is the clinician's cockpit. A live queue feeds patients in; selecting one opens a focused encounter where the doctor prescribes against the live formulary, orders lab tests (which auto-bill and flow to the lab), and reviews prior visits and results — including abnormal and critical lab values surfaced inline. Everything the doctor does updates the same patient record the rest of the clinic works from.",
+    "highlights": [
+      "Live queue — pick a patient and the encounter opens in context",
+      "Prescribe against the live formulary with dosage and quantity",
+      "Order lab tests that auto-bill the visit and reach the lab instantly",
+      "Lab results read back inline with abnormal / critical flags",
+      "Full patient history — prior visits, prescriptions and results",
+      "Every action writes to the shared patient record"
+    ]
+  },
+  "features": {
+    "queue": {
+      "title": "Live patient queue",
+      "description": "The workspace opens to the doctor's own live queue, split by OPD and Emergency. Selecting a patient loads their encounter into the workspace — one click from waiting-room to clinical work, with the queue staying visible for flow.",
+      "bullets": [
+        "Doctor's own queue, OPD / Emergency split",
+        "Real-time — updates as reception checks patients in",
+        "One click selects the patient and opens the encounter",
+        "Queue stays in view alongside the clinical tabs"
+      ],
+      "impact": "The doctor moves from one patient to the next without leaving the screen."
+    },
+    "labs": {
+      "title": "Lab orders & results read-back",
+      "description": "From the encounter the doctor orders lab tests in a click — and those orders both bill the visit and appear instantly on the lab bench. Crucially, results read back here inline, with abnormal and critical values flagged, so the ordering doctor sees a dangerous result without hunting for a report.",
+      "bullets": [
+        "Order one or more tests against the visit",
+        "Orders auto-bill the patient and reach the lab immediately",
+        "Results read back inline with value, unit and reference range",
+        "Abnormal and critical values clearly flagged",
+        "Closes the loop between doctor and laboratory"
+      ],
+      "impact": "Patient safety: the doctor who ordered the test is the one who sees the critical result."
+    },
+    "medicines": {
+      "title": "Prescribing",
+      "description": "The doctor builds a prescription against the live pharmacy formulary — the same catalogue and stock the pharmacy dispenses from — with dosage and quantity per item. The prescription flows to the pharmacy, so what's prescribed is exactly what can be dispensed and billed.",
+      "bullets": [
+        "Prescribe from the live formulary (same stock as pharmacy)",
+        "Dosage and quantity per medicine",
+        "Prescription flows straight to the pharmacy counter",
+        "Prior prescriptions visible for continuity"
+      ],
+      "impact": "No transcription gap between what's prescribed and what's dispensed."
+    },
+    "history": {
+      "title": "Patient history",
+      "description": "Every prior visit, prescription and lab result for the patient is on hand in the encounter, so the doctor makes decisions with the full picture rather than a fresh, blank chart each time.",
+      "bullets": [
+        "Prior visits with status and outcome",
+        "Past prescriptions and lab results",
+        "Continuity of care across encounters",
+        "All from the shared patient record"
+      ],
+      "impact": "Decisions are made with the whole history, not a blank page."
+    }
+  },
+  "closing": {
+    "lead": "One clinical view that closes every loop",
+    "points": [
+      "Lab orders auto-bill and return results inline — with critical values flagged.",
+      "Prescriptions flow to the same pharmacy stock they'll be dispensed from.",
+      "The queue, encounter and history are one continuous workflow.",
+      "Every figure here is live from the running system on realistic demo data."
+    ]
+  }
+}

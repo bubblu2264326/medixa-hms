@@ -109,12 +109,12 @@ function DoctorWorkspace({
     <div className="flex min-h-screen w-screen flex-col overflow-hidden bg-background text-foreground">
       <header className="relative z-20 flex h-20 items-center justify-between border-b border-border bg-card px-6 xl:px-8">
         <div className="flex min-w-0 items-center gap-4">
-          <div className="relative flex h-12 w-12 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 p-2 shadow-sm">
-            <Image src="/logo.png" alt="Clinic Logo" width={32} height={32} className="object-contain" />
+          <div className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-lg border border-primary/20 bg-primary/10 shadow-sm">
+            <Image src="/logo_mark.png" alt="Medixa" width={32} height={32} className="h-full w-full object-cover" />
           </div>
           <div className="min-w-0">
             <h1 className="truncate text-2xl font-semibold tracking-tight text-foreground">
-              Dr. Fauzia Ishaq&apos;s Clinic
+              Medixa
             </h1>
             <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Doctor Care Workspace

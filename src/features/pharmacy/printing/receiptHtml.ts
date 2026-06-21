@@ -27,7 +27,7 @@ export function buildReceiptHtml(payload: ReceiptPayload, opts?: { origin?: stri
   const footer = config.receipt_footer || '';
   const address = config.clinic_address || '';
   const phone = config.clinic_phone || '';
-  const logoUrl = config.logo_url || '/logo.png';
+  const logoUrl = config.logo_url || '/logo_new.png';
   const origin = opts?.origin;
   const saleId = transaction.sale_id;
   const ref = transaction.payment_reference || `SALE-${saleId}`;

@@ -1,0 +1,71 @@
+{
+  "key": "reception",
+  "title": "Reception & Front Desk",
+  "subtitle": "Registration, appointments, vitals and a live queue that feeds the whole clinic",
+  "overview": {
+    "lead": "Reception is where the patient journey starts. The front desk registers walk-ins and returning patients, books appointments, captures intake vitals, and starts visits that flow live into the doctors' queues. Everything the desk does is real-time, so a patient checked in here appears on the right doctor's screen instantly.",
+    "highlights": [
+      "Register walk-in or returning patients and start a visit in seconds",
+      "Live queue across clinics — drives the doctor workspaces in real time",
+      "Appointment booking against doctors and clinics",
+      "Intake vitals captured so the doctor opens a complete encounter",
+      "OPD and Emergency visit types",
+      "One shared patient record across the whole clinic"
+    ]
+  },
+  "features": {
+    "queue": {
+      "title": "Live patient queue",
+      "description": "The desk sees the whole clinic's live queue at a glance — who is waiting, for which clinic, and how long. The same queue feeds the doctors' workspaces in real time, so reception and clinicians always see the same picture.",
+      "bullets": [
+        "Real-time queue across all clinics",
+        "OPD / Emergency split with wait visibility",
+        "Drives the doctor workspaces instantly",
+        "Status at a glance for the whole front desk"
+      ],
+      "impact": "Reception and doctors work from one live list — no phone calls, no paper slips."
+    },
+    "register": {
+      "title": "Patient registration",
+      "description": "Registering a patient — new or returning — and starting their visit takes seconds: capture identity, pick the doctor and clinic, set the visit type, and the patient is in the queue. Returning patients are matched so their history carries forward.",
+      "bullets": [
+        "Register new or returning patients",
+        "Assign doctor, clinic and visit type (OPD / Emergency)",
+        "Returning patients matched to their existing record",
+        "Visit starts and enters the live queue immediately"
+      ],
+      "impact": "From walk-in to in-queue in under a minute, with history intact."
+    },
+    "appointments": {
+      "title": "Appointments",
+      "description": "Appointments are booked and managed against doctors and clinics from the same desk, so scheduled and walk-in flow are handled in one place rather than a separate calendar tool.",
+      "bullets": [
+        "Book against a doctor and clinic",
+        "Manage upcoming appointments",
+        "Scheduled and walk-in patients in one workflow",
+        "Feeds the same visit and queue model"
+      ],
+      "impact": "Scheduling lives where the patients arrive — one desk, one tool."
+    },
+    "vitals": {
+      "title": "Vitals capture",
+      "description": "Intake vitals — recorded at the desk or triage — travel with the visit, so when the doctor opens the encounter the clinical picture is already started rather than blank.",
+      "bullets": [
+        "Capture vitals at intake",
+        "Vitals attached to the visit",
+        "Doctor opens an encounter that's already populated",
+        "Part of the shared patient record"
+      ],
+      "impact": "The doctor starts with data, not a blank chart — faster, safer encounters."
+    }
+  },
+  "closing": {
+    "lead": "The front desk that keeps the whole clinic in sync",
+    "points": [
+      "Check-ins appear on the right doctor's queue in real time.",
+      "One shared patient record from registration through to billing.",
+      "Appointments, walk-ins and vitals handled at a single desk.",
+      "Every figure here is live from the running system on realistic demo data."
+    ]
+  }
+}

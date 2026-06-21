@@ -1,0 +1,85 @@
+{
+  "key": "admin",
+  "title": "Administration",
+  "subtitle": "Workforce, finance, pharmacy oversight and system control in one console",
+  "overview": {
+    "lead": "The Admin console is where the clinic is run, not just used. One operations dashboard surfaces revenue, patients, staffing, stock risk and patient growth; from there the administrator manages the workforce, runs payroll, records procurement, and reviews a real-time audit of every sensitive action. It is the management layer over the pharmacy, cashier, lab and clinical modules.",
+    "highlights": [
+      "Operations dashboard — revenue, patients, staff, low-stock, patient growth",
+      "Inventory oversight with a New Stock Order procurement flow",
+      "Staff directory with profile drill-in, role-create and archive",
+      "Payroll runs with line adjustments and a finalized-run lock",
+      "Real-time, filterable security & system audit ledger",
+      "Cash-collected and revenue trend on the live dashboard"
+    ]
+  },
+  "features": {
+    "dashboard": {
+      "title": "Operations dashboard",
+      "description": "The administrator opens to a live operations dashboard: 30-day revenue with trend, today's patients, active staff, critical low-stock, and a computed patient-growth metric (new registrations vs the prior period). It is the one-screen pulse of the clinic.",
+      "bullets": [
+        "30-day cash collected with trend",
+        "Daily patients and active-staff counts",
+        "Critical low-stock alerts",
+        "Computed patient growth (period over period)",
+        "Live activity feed of clinic actions"
+      ],
+      "impact": "The owner sees the health of the business at a glance, every morning."
+    },
+    "inventory": {
+      "title": "Inventory & procurement",
+      "description": "Admin oversees pharmacy stock health — total value, low-stock alerts and an expiry watchlist — and records a new supplier purchase directly through a New Stock Order flow that writes through the same trigger chain the pharmacy uses, so stock stays consistent.",
+      "bullets": [
+        "Stock value, low-stock and expiry watchlist",
+        "New Stock Order — supplier purchase from the admin console",
+        "Writes via the pharmacy trigger chain (consistent stock)",
+        "Oversight across the whole catalogue"
+      ],
+      "impact": "Management can act on stock risk and reorder without leaving the console."
+    },
+    "staff": {
+      "title": "Staff directory",
+      "description": "A full workforce directory covers staff and doctors, with a profile drill-in, role-based onboarding (including creating real doctor accounts), and one-click archive/reactivate. Status and role are clear at a glance.",
+      "bullets": [
+        "Staff and doctors in one searchable directory",
+        "Employee profile drill-in",
+        "Create staff or real doctor accounts by role",
+        "Archive / reactivate in one click",
+        "Employment status and role at a glance"
+      ],
+      "impact": "The whole workforce is managed from one place, cleanly and auditably."
+    },
+    "payroll": {
+      "title": "Payroll runs",
+      "description": "Payroll is generated month-wise, reviewed line by line with manual adjustments where needed, and then finalized — after which the run is locked and immutable. The finalized-run lock protects paid payroll from silent edits.",
+      "bullets": [
+        "Generate month-wise payroll",
+        "Per-line manual adjustments on draft runs",
+        "Finalize to lock the run (immutable)",
+        "Void path for genuine reversals"
+      ],
+      "impact": "Payroll is flexible while drafting and tamper-proof once finalized."
+    },
+    "audit": {
+      "title": "Security & system audit",
+      "description": "Every sensitive administrative action is written to a real-time audit ledger, filterable by date range and by severity (critical actions like reversals, deletions and reopens), and exportable to CSV for compliance.",
+      "bullets": [
+        "Real-time ledger of administrative actions",
+        "Date-range and critical-only filters",
+        "Actor, action, entity and timestamp on every row",
+        "CSV export for compliance",
+        "Live updates as actions occur"
+      ],
+      "impact": "Accountability for every sensitive action, ready for an auditor."
+    }
+  },
+  "closing": {
+    "lead": "The console that runs the clinic",
+    "points": [
+      "One management layer over pharmacy, cashier, lab and clinical modules.",
+      "Sensitive actions are audited; finalized payroll and stock are protected.",
+      "Procurement writes through the same trigger chain as the pharmacy.",
+      "Every figure here is live from the running system on realistic demo data."
+    ]
+  }
+}

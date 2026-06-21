@@ -120,12 +120,12 @@ export const AdminSidebar = () => {
         <aside className="w-72 h-screen bg-white border-r border-border flex flex-col p-6 sticky top-0">
             {/* Clinic Branding */}
             <div className="flex items-center gap-3 mb-10 px-2">
-                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center border border-primary/30/50">
-                    <Image src="/logo.png" alt="Logo" width={24} height={24} />
+                <div className="w-10 h-10 overflow-hidden bg-primary/10 rounded-xl flex items-center justify-center border border-primary/30/50">
+                    <Image src="/logo_mark.png" alt="Medixa" width={24} height={24} className="h-full w-full object-cover" />
                 </div>
                 <div>
                      <h1 className="text-sm font-bold     text-foreground leading-none">
-                        Fouzia Ishaq Clinic
+                        Medixa
                      </h1>
                      <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-1">Admin Portal</p>
                 </div>

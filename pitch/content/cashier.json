@@ -1,0 +1,86 @@
+{
+  "key": "cashier",
+  "title": "Cashier & Billing",
+  "subtitle": "Bill collection, settlement and shift reconciliation on an append-only ledger",
+  "overview": {
+    "lead": "The Cashier module is the clinic's money desk. It surfaces every outstanding bill ranked by amount and age, settles payments into a side drawer with a printable receipt, parks partial settlements as drafts, and reconciles the cash drawer at shift close. Corrections are reverse-and-repost — never edits — so the payment ledger is append-only and audit-clean.",
+    "highlights": [
+      "Collect worklist ranked by due amount and aging (7+/30+/60+ alerts)",
+      "Settle in a side drawer with source breakdown and printable receipt",
+      "Append-only ledger — corrections are reverse-and-repost, never edits",
+      "Hold partial settlements as drafts and apply them idempotently",
+      "My Shift: open with a float, close with a counted total and variance",
+      "Overpayment and terminal-reopen guards protect the books",
+      "Settles the same bills the pharmacy and clinic raise — one source of truth"
+    ]
+  },
+  "features": {
+    "collect": {
+      "title": "Collect worklist",
+      "description": "The cashier opens to a single prioritised worklist of every bill with an outstanding balance, ranked by a due-and-aging score with 7+/30+/60+ alert chips. Filters by patient, bill, clinic and aging bucket make a busy day's collection list actionable at a glance.",
+      "bullets": [
+        "Every outstanding bill in one ranked list",
+        "Due amount, paid, balance and aging on each row",
+        "7+ / 30+ / 60+ aging alert chips",
+        "Filter by patient, bill, clinic number or aging bucket",
+        "One click opens a bill into the settle drawer"
+      ],
+      "impact": "The cashier always knows who to chase first — no spreadsheet, no guesswork."
+    },
+    "settle": {
+      "title": "Settle a bill",
+      "description": "Opening a bill slides in a settle drawer showing the source breakdown (pharmacy, lab, consultation), the live paid/due, and a payment panel. The cashier takes cash or card, the system blocks overpayment, records the payment on the append-only ledger, and a receipt is ready to print.",
+      "bullets": [
+        "Side drawer keeps the worklist in context",
+        "Source breakdown — what the bill is actually made of",
+        "Live total / paid / due with overpayment blocked",
+        "Cash / card / mobile with a printable receipt",
+        "Settlement posts to the append-only payment ledger"
+      ],
+      "impact": "Fast, accurate collection that can never overpay or silently edit a bill."
+    },
+    "history": {
+      "title": "Payment history",
+      "description": "Every payment and every reversal is listed with its receipt number, method, amount and cashier. Because corrections are reverse-and-repost, the history is the complete, immutable story of a bill — ideal for audit and dispute resolution.",
+      "bullets": [
+        "All payments and reversals with receipt numbers",
+        "Method, amount, cashier and timestamp per row",
+        "Corrections shown as reversal + repost, never edits",
+        "Re-printable receipts",
+        "Searchable by bill, patient or reference"
+      ],
+      "impact": "A tamper-evident money trail the clinic owner and auditors can trust."
+    },
+    "drafts": {
+      "title": "Held drafts",
+      "description": "When a patient pays part now and the rest later, the cashier parks the settlement as a draft instead of forcing a decision. Drafts are applied later in one idempotent step, so a double-click or a retried request can never double-charge.",
+      "bullets": [
+        "Park a partial or pending settlement as a draft",
+        "Apply later in one click — idempotent (no double-charge)",
+        "Cancel a draft cleanly if circumstances change",
+        "Keeps the worklist clean while money is still in motion"
+      ],
+      "impact": "Real-world part-payments are handled without compromising the ledger."
+    },
+    "shift": {
+      "title": "My Shift",
+      "description": "The cashier opens a shift with an opening cash float and closes it by entering the counted total; the system computes the expected cash (opening + cash collected this shift) and the variance automatically. Drawer accountability without a manual tally sheet.",
+      "bullets": [
+        "Open a shift with an opening float",
+        "Close with a counted total — expected cash computed for you",
+        "Automatic variance (counted vs expected)",
+        "Shift bound to the cashier and the day's collections"
+      ],
+      "impact": "End-of-shift reconciliation in seconds, with variance surfaced for the supervisor."
+    }
+  },
+  "closing": {
+    "lead": "Money handled with an audit-grade ledger",
+    "points": [
+      "Append-only ledger with reverse-and-repost corrections — nothing is silently edited.",
+      "Overpayment, terminal-reopen and idempotency guards protect every transaction.",
+      "Settles the exact bills raised by pharmacy, lab and consultations across the clinic.",
+      "Every figure here is live from the running system on realistic demo data."
+    ]
+  }
+}

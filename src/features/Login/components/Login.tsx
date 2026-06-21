@@ -193,14 +193,12 @@ export function Login() {
         <div className="flex flex-col w-full lg:w-1/2 bg-white p-6 lg:p-10 relative">
           {/* Logo */}
           <div className="flex items-center gap-3 mb-6">
-            <div className="h-10 w-10 bg-white/10 backdrop-blur-md rounded-md flex items-center justify-center shadow-xl border border-white/20">
-              <img src="/logo_img.svg" alt="Logo" className="h-7 w-7 object-contain" />
+            <div className="h-12 w-12 flex items-center justify-center">
+              <img src="/logo_mark.png" alt="Medixa" className="h-full w-full object-contain" />
             </div>
             <div>
-              <h1 className="font-bold text-primary text-2xl leading-tight">
-                Dr Fauzia Ishaq Clinic
-              </h1>
-              <p className="text-xs text-primary font-medium tracking-wide">CLINICAL EXCELLENCE</p>
+              <h1 className="font-bold text-primary text-2xl leading-tight">Medixa</h1>
+              <p className="text-[11px] text-primary font-semibold tracking-[0.18em] uppercase">Clinical Excellence</p>
             </div>
           </div>
 
@@ -418,8 +416,8 @@ export function Login() {
 
           <div className="relative z-10 text-center">
             <div className="mb-8 flex justify-center">
-              <div className="h-40 w-40 bg-white/20 backdrop-blur-md rounded-lg flex items-center justify-center shadow-2xl animate-float border border-white/30">
-                <img src="/logo_img.svg" alt="Big Logo" className="h-28 w-28 object-contain drop-shadow-2xl" />
+              <div className="rounded-2xl bg-white/95 px-10 py-8 shadow-2xl animate-float">
+                <img src="/logo_new.png" alt="Medixa" className="h-24 w-auto object-contain" />
               </div>
             </div>
 

@@ -68,8 +68,8 @@ export default function IpdLayout({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-20 border-b border-border bg-card">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4">
           <div className="flex items-center gap-3">
-            <div className="rounded-md border border-info/20 bg-info/10 p-2 shadow-sm">
-              <Image src="/logo.png" alt="Clinic logo" width={28} height={28} />
+            <div className="h-11 w-11 overflow-hidden rounded-md border border-info/20 bg-info/10 shadow-sm">
+              <Image src="/logo_mark.png" alt="Medixa" width={28} height={28} className="h-full w-full object-cover" />
             </div>
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-wide text-info">

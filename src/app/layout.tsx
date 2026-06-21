@@ -32,11 +32,20 @@ import "./globals.css";
 // });
 
 export const metadata: Metadata = {
-  title: "Dr Fauzia Ishaq Clinic",
-  description: "Advanced Hospital Management System",
+  metadataBase: new URL("https://medixahms.vercel.app"),
+  title: "Medixa",
+  description: "Advanced Hospital Management System — Integrated. Secure. Efficient.",
   icons: {
-    icon: "/logo_img.svg"
-  }
+    icon: "/logo_mark.png"
+  },
+  openGraph: {
+    title: "Medixa",
+    description: "Advanced Hospital Management System — Integrated. Secure. Efficient.",
+    url: "https://medixahms.vercel.app",
+    siteName: "Medixa",
+    images: [{ url: "/logo_new.png", width: 2816, height: 1536, alt: "Medixa" }],
+    type: "website",
+  },
 };
 
 export default function RootLayout({
