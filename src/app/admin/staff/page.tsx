@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { Search, UserPlus, Users, Eye, EyeOff } from "lucide-react";
 import { Card } from "@/src/components/ui/Card";
 import { Button } from "@/src/components/ui/Button";
@@ -406,12 +407,20 @@ export default function StaffDirectoryPage() {
                     </span>
                   </td>
                   <td className="px-4 py-3">
-                    <Button
-                      onClick={() => openEditForm(row)}
-                      className="h-8 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold px-3 shadow-sm"
-                    >
-                      Edit
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href={`/admin/staff/${row.staff_id}?type=${row.account_type}`}
+                        className="inline-flex h-8 items-center rounded-md bg-muted px-3 text-xs font-semibold text-foreground hover:bg-accent"
+                      >
+                        View
+                      </Link>
+                      <Button
+                        onClick={() => openEditForm(row)}
+                        className="h-8 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold px-3 shadow-sm"
+                      >
+                        Edit
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ))}
