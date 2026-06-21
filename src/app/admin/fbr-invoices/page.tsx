@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { FileText, Receipt } from "lucide-react";
 import { Card } from "@/src/components/ui/Card";
 import { Button } from "@/src/components/ui/Button";
@@ -31,27 +31,46 @@ export default function FbrInvoicesPage() {
   const [rows, setRows] = useState<FbrRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("");
+  const [retryingId, setRetryingId] = useState<number | null>(null);
+  const [notice, setNotice] = useState("");
+
+  const fetchRows = useCallback(async () => {
+    setLoading(true);
+    try {
+      const qs = statusFilter ? `?status=${encodeURIComponent(statusFilter)}` : "";
+      const res = await fetch(`/api/admin/fbr-invoices${qs}`);
+      const data = await res.json();
+      if (res.ok && Array.isArray(data)) setRows(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, [statusFilter]);
 
   useEffect(() => {
-    let cancelled = false;
-    const fetchRows = async () => {
-      setLoading(true);
-      try {
-        const qs = statusFilter ? `?status=${encodeURIComponent(statusFilter)}` : "";
-        const res = await fetch(`/api/admin/fbr-invoices${qs}`);
-        const data = await res.json();
-        if (!cancelled && res.ok && Array.isArray(data)) setRows(data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
     void fetchRows();
-    return () => {
-      cancelled = true;
-    };
-  }, [statusFilter]);
+  }, [fetchRows]);
+
+  const retrySubmission = async (submissionId: number) => {
+    setRetryingId(submissionId);
+    setNotice("");
+    try {
+      const res = await fetch("/api/admin/fbr-invoices", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ submission_id: submissionId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Failed to retry submission");
+      setNotice(`Submission #${submissionId} re-queued for PRAL submission.`);
+      await fetchRows();
+    } catch (err) {
+      setNotice(err instanceof Error ? err.message : "Failed to retry submission");
+    } finally {
+      setRetryingId(null);
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -62,6 +81,12 @@ export default function FbrInvoicesPage() {
           <p className="text-muted-foreground text-sm mt-1">PRAL / FBR e-invoice submission status</p>
         </div>
       </div>
+
+      {notice ? (
+        <Card className="rounded-lg border border-info/20 bg-info/10 p-4">
+          <p className="text-sm font-semibold text-info">{notice}</p>
+        </Card>
+      ) : null}
 
       {/* Filter + table */}
       <Card className="p-0 rounded-lg border border-border shadow-sm bg-card overflow-hidden">
@@ -101,6 +126,7 @@ export default function FbrInvoicesPage() {
                   <th className="px-6 py-4 text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Status</th>
                   <th className="px-6 py-4 text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">FBR Invoice #</th>
                   <th className="px-6 py-4 text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Submitted</th>
+                  <th className="px-6 py-4 text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -116,6 +142,21 @@ export default function FbrInvoicesPage() {
                     <td className="px-6 py-4 font-mono tabular-nums text-xs text-muted-foreground">{r.fbr_invoice_number || "—"}</td>
                     <td className="px-6 py-4 text-muted-foreground font-mono tabular-nums text-xs">
                       {r.submitted_at ? formatDateTimeInTimezone(r.submitted_at, systemTimezone) : "—"}
+                    </td>
+                    <td className="px-6 py-4">
+                      {r.status !== "submitted" ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="rounded-md text-xs font-medium"
+                          disabled={retryingId === r.submission_id}
+                          onClick={() => retrySubmission(r.submission_id)}
+                        >
+                          {retryingId === r.submission_id ? "Re-queuing…" : r.status === "failed" ? "Retry" : "Re-queue"}
+                        </Button>
+                      ) : (
+                        <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Done</span>
+                      )}
                     </td>
                   </tr>
                 ))}
