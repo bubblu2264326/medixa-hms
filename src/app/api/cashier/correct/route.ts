@@ -12,6 +12,10 @@ type CorrectPayload = {
   replacementPaymentType?: "CASH" | "CARD" | "INSURANCE" | "MOBILE" | "SPLIT";
   replacementReference?: string;
   replacementNotes?: string;
+  // H2: explicit admin acknowledgement that the correction may reopen a
+  // completed/discharged visit (when the replacement no longer fully pays the
+  // bill). Without it, such a correction is refused.
+  allowTerminalReopen?: boolean;
 };
 
 async function resolveStaffId(userCode: string, client: any) {
@@ -33,6 +37,7 @@ export async function POST(req: NextRequest) {
     const replacementPaymentType = String(body.replacementPaymentType ?? "CASH").toUpperCase();
     const replacementReference = body.replacementReference ? String(body.replacementReference) : null;
     const replacementNotes = body.replacementNotes ? String(body.replacementNotes) : null;
+    const allowTerminalReopen = body.allowTerminalReopen === true;
 
     if (!targetTxnId || !reasonCode || !replacementAmount || replacementAmount <= 0) {
       return NextResponse.json(
@@ -305,6 +310,56 @@ export async function POST(req: NextRequest) {
     const paymentStatus = deriveBillPaymentStatus(total, paid);
     await client.query(`UPDATE bill SET payment_status = $2 WHERE bill_id = $1`, [billId, paymentStatus]);
 
+    // H2 terminal-reopen guard (mirrors cashier/reversal). When the replacement
+    // no longer fully pays the bill, the visit status that settle auto-advanced
+    // must be walked back. Reverting a TERMINAL visit (completed/discharged)
+    // reopens a closed encounter and requires an explicit admin override; without
+    // it the whole correction is refused so it can't happen by accident.
+    let terminalReopen = false;
+    let reopenedFrom: string | null = null;
+    if (visitId && due > 0) {
+      const currentVisit = await client.query(
+        `SELECT status FROM visit WHERE visit_id = $1 LIMIT 1`,
+        [visitId]
+      );
+      const currentStatus = currentVisit.rows[0]?.status as string | undefined;
+      const TERMINAL = ["completed", "discharged"];
+      const settleAdvanced = ["payment_done", ...TERMINAL];
+      if (currentStatus && settleAdvanced.includes(currentStatus)) {
+        const isTerminal = TERMINAL.includes(currentStatus);
+        if (isTerminal && !allowTerminalReopen) {
+          await client.query("ROLLBACK");
+          return NextResponse.json(
+            {
+              error: `Correction would reopen a '${currentStatus}' visit. Resubmit with allowTerminalReopen=true to confirm reopening the encounter.`,
+              code: "TERMINAL_REOPEN_REQUIRED",
+            },
+            { status: 409 }
+          );
+        }
+        const priorStatus = await client.query(
+          `SELECT status FROM visit_status_history
+           WHERE visit_id = $1 AND status NOT IN ('payment_done','completed','discharged')
+           ORDER BY updated_at DESC, visit_status_id DESC
+           LIMIT 1`,
+          [visitId]
+        );
+        const revertTo = priorStatus.rows[0]?.status;
+        if (revertTo) {
+          await client.query(`CALL update_and_log_visit_status($1, $2, $3, $4)`, [
+            visitId,
+            revertTo,
+            null,
+            staffId,
+          ]);
+          if (isTerminal) {
+            terminalReopen = true;
+            reopenedFrom = currentStatus;
+          }
+        }
+      }
+    }
+
     await client.query(
       `
         INSERT INTO cashier_audit_event (
@@ -320,7 +375,7 @@ export async function POST(req: NextRequest) {
         reasonCode,
         reasonNote || null,
         JSON.stringify({ originalTxnId: targetTxnId, reversalTxnId, originalAmount }),
-        JSON.stringify({ replacementTxnId: newPaymentTxnId, replacementAmount, paymentStatus, due }),
+        JSON.stringify({ replacementTxnId: newPaymentTxnId, replacementAmount, paymentStatus, due, terminalReopen, reopenedFrom }),
       ]
     );
 
@@ -336,6 +391,8 @@ export async function POST(req: NextRequest) {
         visitId,
         paymentStatus,
         dueAmount: due,
+        terminalReopen,
+        reopenedFrom,
       },
     });
   } catch (error: any) {
