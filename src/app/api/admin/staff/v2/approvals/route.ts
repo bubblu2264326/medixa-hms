@@ -8,6 +8,56 @@ export async function GET(req: NextRequest) {
     await requireAdminOrSuperAdmin(req);
     const { searchParams } = new URL(req.url);
     const type = searchParams.get("type") ?? "all";
+    const decided = searchParams.get("decided") === "true";
+
+    // Decision history: who decided each leave/attendance request, when, and why.
+    // The pending queue (below) only shows status='pending', so this surfaces the
+    // already-actioned trail.
+    if (decided) {
+      const [leaveHist, attHist] = await Promise.all([
+        query(
+          `
+          SELECT
+            'leave'::text AS approval_type,
+            lr.leave_request_id::text AS request_id,
+            lr.request_status AS status,
+            lr.final_decision_at AS decided_at,
+            ap.name AS approver_name,
+            lr.decision_note,
+            COALESCE(s.name, d.doctor_name) AS staff_name,
+            lt.leave_name AS title
+          FROM staff_leave_requests lr
+          LEFT JOIN staff s ON s.staff_id = lr.staff_id
+          LEFT JOIN doctor d ON d.doctor_id = lr.doctor_id
+          LEFT JOIN staff ap ON ap.staff_id = lr.final_approver
+          JOIN staff_leave_types lt ON lt.leave_type_id = lr.leave_type_id
+          WHERE lr.request_status IN ('approved', 'rejected')
+          ORDER BY lr.final_decision_at DESC NULLS LAST
+          LIMIT 200
+          `
+        ),
+        query(
+          `
+          SELECT
+            'attendance'::text AS approval_type,
+            arr.regularization_id::text AS request_id,
+            arr.request_status AS status,
+            arr.approved_at AS decided_at,
+            ap.name AS approver_name,
+            arr.decision_note,
+            s.name AS staff_name,
+            'Attendance correction'::text AS title
+          FROM attendance_regularization_requests arr
+          JOIN staff s ON s.staff_id = arr.staff_id
+          LEFT JOIN staff ap ON ap.staff_id = arr.approved_by
+          WHERE arr.request_status IN ('approved', 'rejected')
+          ORDER BY arr.approved_at DESC NULLS LAST
+          LIMIT 200
+          `
+        ),
+      ]);
+      return NextResponse.json({ decided: [...leaveHist.rows, ...attHist.rows] });
+    }
 
     const payload: Record<string, any> = {};
 
