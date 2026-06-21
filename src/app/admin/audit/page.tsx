@@ -25,9 +25,20 @@ export default function AuditLogsPage() {
   const [historyMode, setHistoryMode] = useState(false);
   const knownLogIdsRef = useRef<Set<string>>(new Set());
 
+  // Date + severity (critical-only) filters, applied server-side. Held in a ref
+  // too so the SSE/interval refreshers (bound once) read the current values.
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [criticalOnly, setCriticalOnly] = useState(false);
+  const [showDateRange, setShowDateRange] = useState(false);
+  const filtersRef = useRef({ dateFrom: "", dateTo: "", criticalOnly: false });
+  useEffect(() => {
+    filtersRef.current = { dateFrom, dateTo, criticalOnly };
+  }, [dateFrom, dateTo, criticalOnly]);
+
   useEffect(() => {
     void fetchLogs(historyMode ? 500 : 50, { showLoader: true, showToast: false });
-  }, [historyMode]);
+  }, [historyMode, dateFrom, dateTo, criticalOnly]);
 
   const fetchLogs = async (
     limit = 50,
@@ -38,7 +49,12 @@ export default function AuditLogsPage() {
 
     if (showLoader) setLoading(true);
     try {
-      const res = await fetch(`/api/admin/audit-logs?limit=${limit}`);
+      const f = filtersRef.current;
+      const qs = new URLSearchParams({ limit: String(limit) });
+      if (f.dateFrom) qs.set("startDate", f.dateFrom);
+      if (f.dateTo) qs.set("endDate", f.dateTo);
+      if (f.criticalOnly) qs.set("criticalOnly", "true");
+      const res = await fetch(`/api/admin/audit-logs?${qs.toString()}`);
       const data = await res.json();
       if (!res.ok || !Array.isArray(data)) return;
 
@@ -129,16 +145,44 @@ export default function AuditLogsPage() {
           <p className="text-muted-foreground text-sm mt-1">Real-time immutable ledger of all administrative actions</p>
         </div>
         <div className="flex gap-3">
-           <Button variant="outline" className="rounded-md border-border">
+           <Button
+              variant="outline"
+              className={`rounded-md border-border ${showDateRange || dateFrom || dateTo ? "bg-primary/10 text-primary" : ""}`}
+              onClick={() => setShowDateRange((v) => !v)}
+           >
                <Calendar className="w-4 h-4 mr-2" aria-hidden />
                Date Range
            </Button>
-           <Button variant="outline" className="rounded-md border-border">
+           <Button
+              variant="outline"
+              className={`rounded-md border-border ${criticalOnly ? "bg-destructive/10 text-destructive" : ""}`}
+              onClick={() => setCriticalOnly((v) => !v)}
+           >
                <Filter className="w-4 h-4 mr-2" aria-hidden />
                Critical Only
            </Button>
         </div>
       </div>
+
+      {showDateRange ? (
+        <Card className="rounded-lg border border-border p-4">
+          <div className="flex flex-wrap items-end gap-4">
+            <div>
+              <label className="block text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">From</label>
+              <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="h-10 rounded-md border border-input px-3 text-sm" />
+            </div>
+            <div>
+              <label className="block text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">To</label>
+              <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="h-10 rounded-md border border-input px-3 text-sm" />
+            </div>
+            {(dateFrom || dateTo) ? (
+              <Button variant="outline" className="rounded-md border-border" onClick={() => { setDateFrom(""); setDateTo(""); }}>
+                Clear dates
+              </Button>
+            ) : null}
+          </div>
+        </Card>
+      ) : null}
 
       <div className="grid grid-cols-1 gap-8">
         <Card className="p-0 rounded-lg border border-border shadow-sm bg-card overflow-hidden min-h-[700px]">

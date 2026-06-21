@@ -26,11 +26,16 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const limit = parseInt(searchParams.get("limit") || "50");
   const offset = parseInt(searchParams.get("offset") || "0");
+  // Optional date + severity filters. There is no severity column, so "critical"
+  // is derived from the action/event keywords (destructive or sensitive actions).
+  const startDate = searchParams.get("startDate") || null;
+  const endDate = searchParams.get("endDate") || null;
+  const criticalOnly = searchParams.get("criticalOnly") === "true";
 
   try {
     const logs = await query(`
-      SELECT 
-        l.*, 
+      SELECT
+        l.*,
         COALESCE(
           s.name,
           l.details->>'userName',
@@ -41,9 +46,16 @@ export async function GET(req: NextRequest) {
         COALESCE(s.user_code, l.details->>'userCode') AS user_code
       FROM audit_logs l
       LEFT JOIN staff s ON l.staff_id = s.staff_id
+      WHERE ($3::date IS NULL OR l.created_at >= $3::date)
+        AND ($4::date IS NULL OR l.created_at < ($4::date + 1))
+        AND ($5::boolean IS NOT TRUE OR (
+          l.action ILIKE '%delete%' OR l.action ILIKE '%remove%' OR l.action ILIKE '%revers%'
+          OR l.action ILIKE '%correct%' OR l.action ILIKE '%override%' OR l.action ILIKE '%void%'
+          OR l.action ILIKE '%lock%' OR l.action ILIKE '%reopen%' OR l.action ILIKE '%suspend%'
+        ))
       ORDER BY l.created_at DESC
       LIMIT $1 OFFSET $2
-    `, [limit, offset]);
+    `, [limit, offset, startDate, endDate, criticalOnly]);
 
     if (logs.rows.length > 0) {
       return NextResponse.json(logs.rows);
@@ -67,10 +79,17 @@ export async function GET(req: NextRequest) {
           s.user_code
         FROM cashier_audit_event cae
         LEFT JOIN staff s ON s.staff_id = cae.actor_staff_id
+        WHERE ($3::date IS NULL OR cae.created_at >= $3::date)
+          AND ($4::date IS NULL OR cae.created_at < ($4::date + 1))
+          AND ($5::boolean IS NOT TRUE OR (
+            cae.event_type ILIKE '%revers%' OR cae.event_type ILIKE '%correct%'
+            OR cae.event_type ILIKE '%void%' OR cae.event_type ILIKE '%reopen%'
+            OR cae.event_type ILIKE '%cancel%'
+          ))
         ORDER BY cae.created_at DESC
         LIMIT $1 OFFSET $2
       `,
-      [limit, offset]
+      [limit, offset, startDate, endDate, criticalOnly]
     );
 
     const normalized = cashierFallback.rows.map((row: any) => ({
