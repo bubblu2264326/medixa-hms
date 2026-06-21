@@ -11,6 +11,17 @@ import { usePreviousLabOrders } from "../hooks/usePreviousLabOrders";
 
 type DatePreset = "all" | "7d" | "30d" | "90d" | "custom";
 
+type ResultRow = {
+  parameter_name: string;
+  unit: string | null;
+  result_value: string | null;
+  is_abnormal: boolean;
+  is_critical: boolean;
+  reference_range_min: number | null;
+  reference_range_max: number | null;
+  reference_value_text: string | null;
+};
+
 function toTimestamp(input?: string) {
   if (!input) return null;
   const ts = new Date(input).getTime();
@@ -293,11 +304,11 @@ export default function PreviousLabOrders() {
                           </td>
                         </tr>
 
-                        {group.items.map((item, index) => (
-                          <tr
-                            key={String(item.order_id ?? `${group.visitId}-${index}`)}
-                            className="border-t border-border text-xs"
-                          >
+                        {group.items.map((item, index) => {
+                          const results = (((item as Record<string, unknown>).results as ResultRow[] | undefined) ?? []);
+                          return (
+                          <Fragment key={String(item.order_id ?? `${group.visitId}-${index}`)}>
+                          <tr className="border-t border-border text-xs">
                             <td className="px-3 py-2 font-medium text-foreground whitespace-nowrap">
                               {formatDate(item.visit_timestamp || item.order_date)}
                             </td>
@@ -312,7 +323,38 @@ export default function PreviousLabOrders() {
                             <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">{item.ordered_by || "-"}</td>
                             <td className="px-3 py-2 text-muted-foreground whitespace-nowrap font-mono tabular-nums">{formatPrice(Number(item.price ?? 0))}</td>
                           </tr>
-                        ))}
+                          {results.length > 0 && (
+                            <tr className="border-t border-border/50 bg-muted/30">
+                              <td colSpan={7} className="px-3 py-2">
+                                <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+                                  {results.map((r, i) => {
+                                    const critical = Boolean(r.is_abnormal && r.is_critical);
+                                    const ref = r.reference_value_text ??
+                                      (r.reference_range_min != null || r.reference_range_max != null
+                                        ? `${r.reference_range_min ?? ""}–${r.reference_range_max ?? ""}`
+                                        : null);
+                                    return (
+                                      <span key={i} className="inline-flex items-center gap-1.5 text-[11px]">
+                                        <span className="text-muted-foreground">{r.parameter_name}:</span>
+                                        <span className={`font-semibold font-mono tabular-nums ${critical ? "text-destructive" : r.is_abnormal ? "text-warning-foreground" : "text-foreground"}`}>
+                                          {r.result_value ?? "—"}{r.unit ? ` ${r.unit}` : ""}
+                                        </span>
+                                        {critical ? (
+                                          <span className="rounded-full bg-destructive/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase text-destructive">Critical</span>
+                                        ) : r.is_abnormal ? (
+                                          <span className="rounded-full bg-warning/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase text-warning-foreground">Abnormal</span>
+                                        ) : null}
+                                        {ref ? <span className="text-muted-foreground/70">(ref {ref})</span> : null}
+                                      </span>
+                                    );
+                                  })}
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                          </Fragment>
+                          );
+                        })}
                       </Fragment>
                     );
                   })}

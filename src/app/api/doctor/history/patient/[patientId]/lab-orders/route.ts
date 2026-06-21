@@ -40,7 +40,40 @@ export async function GET(
       [Number(patientId), HISTORY_LIMIT]
     );
 
-    return NextResponse.json(ordersResult.rows, { status: 200 });
+    // Attach result values + abnormal/critical flags so the ordering doctor can
+    // actually SEE results (not just status) — patient-safety: a critical value
+    // must surface to the doctor in-app.
+    const orders = ordersResult.rows as Array<{ order_id: number }>;
+    const orderIds = orders.map((o) => o.order_id);
+    const resultsByOrder: Record<number, unknown[]> = {};
+    if (orderIds.length) {
+      const rres = await query(
+        `
+          select
+            r.order_id,
+            p.parameter_name,
+            p.unit,
+            p.reference_range_min,
+            p.reference_range_max,
+            p.reference_value_text,
+            p.is_critical,
+            r.result_value,
+            r.is_abnormal,
+            to_char(r.verified_at, 'YYYY-MM-DD HH24:MI') as verified_at
+          from lab_test_results r
+          join lab_test_parameters p on p.parameter_id = r.parameter_id
+          where r.order_id = any($1::int[])
+          order by p.display_order asc, p.parameter_name asc
+        `,
+        [orderIds]
+      );
+      for (const row of rres.rows as Array<{ order_id: number }>) {
+        (resultsByOrder[row.order_id] ||= []).push(row);
+      }
+    }
+    const withResults = orders.map((o) => ({ ...o, results: resultsByOrder[o.order_id] ?? [] }));
+
+    return NextResponse.json(withResults, { status: 200 });
   } catch (error) {
     console.error(error);
     const message =
