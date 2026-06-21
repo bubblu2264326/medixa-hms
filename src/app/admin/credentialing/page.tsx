@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Card } from "@/src/components/ui/Card";
 import { Button } from "@/src/components/ui/Button";
+import { Dialog } from "@/src/components/ui/Dialog";
 import { formatDateInTimezone, formatDateTimeInTimezone, getTimezoneNowDateInput } from "@/src/lib/timezone/client";
 import { useSystemTimezone } from "@/src/lib/timezone/useSystemTimezone";
 
@@ -70,6 +71,14 @@ export default function CredentialingPage() {
 
   const [statusFilter, setStatusFilter] = useState("all");
   const today = getTimezoneNowDateInput(systemTimezone);
+
+  // Renewal modal — replaces two sequential window.prompt date entries (no date
+  // picker, no validation, no way to back out cleanly).
+  const [renewModal, setRenewModal] = useState<{
+    credentialId: number;
+    issuedOn: string;
+    expiresOn: string;
+  } | null>(null);
 
   const [form, setForm] = useState({
     person_key: "",
@@ -206,11 +215,16 @@ export default function CredentialingPage() {
     }
   };
 
-  const renewCredential = async (credentialId: number, existingExpiry?: string | null) => {
-    const issuedOn = window.prompt("Renewal issue date (YYYY-MM-DD)", today);
-    if (!issuedOn) return;
-    const proposedExpiry = window.prompt("Renewed expiry date (YYYY-MM-DD)", existingExpiry || "");
-    if (!proposedExpiry) return;
+  const submitRenewal = async () => {
+    if (!renewModal) return;
+    if (!renewModal.issuedOn || !renewModal.expiresOn) {
+      setError("Both the issue date and the renewed expiry date are required.");
+      return;
+    }
+    if (renewModal.expiresOn <= renewModal.issuedOn) {
+      setError("Renewed expiry date must be after the issue date.");
+      return;
+    }
     setSaving(true);
     setError("");
     try {
@@ -219,14 +233,15 @@ export default function CredentialingPage() {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          credential_id: credentialId,
+          credential_id: renewModal.credentialId,
           action: "renew",
-          issued_on: issuedOn,
-          expires_on: proposedExpiry,
+          issued_on: renewModal.issuedOn,
+          expires_on: renewModal.expiresOn,
         }),
       });
       const payload = await res.json();
       if (!res.ok) throw new Error(payload?.error || "Failed to renew credential");
+      setRenewModal(null);
       await loadCredentialing();
     } catch (e: any) {
       setError(e?.message || "Failed to renew credential");
@@ -401,7 +416,7 @@ export default function CredentialingPage() {
                             <Button onClick={() => triggerAction(item.credential_id, "reject")} disabled={saving} className="h-8 rounded-md bg-destructive text-white hover:bg-destructive/90 text-[10px] font-semibold uppercase px-2">Reject</Button>
                           </>
                         ) : null}
-                        <Button onClick={() => renewCredential(item.credential_id, item.expires_on)} disabled={saving} className="h-8 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 text-[10px] font-semibold uppercase px-2">Renew</Button>
+                        <Button onClick={() => { setError(""); setRenewModal({ credentialId: item.credential_id, issuedOn: today, expiresOn: item.expires_on || "" }); }} disabled={saving} className="h-8 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 text-[10px] font-semibold uppercase px-2">Renew</Button>
                         {item.verification_status !== "revoked" ? (
                           <Button onClick={() => triggerAction(item.credential_id, "revoke")} disabled={saving} className="h-8 rounded-md bg-destructive text-white hover:bg-destructive/90 text-[10px] font-semibold uppercase px-2">Revoke</Button>
                         ) : null}
@@ -414,6 +429,40 @@ export default function CredentialingPage() {
           </table>
         </div>
       </Card>
+
+      <Dialog
+        open={renewModal !== null}
+        onClose={() => setRenewModal(null)}
+        title="Renew credential"
+        description="Record the new issue and expiry dates for this credential."
+        footer={
+          <>
+            <Button onClick={() => setRenewModal(null)} className="h-9 rounded-md bg-muted text-foreground hover:bg-accent text-xs font-semibold px-4">Cancel</Button>
+            <Button disabled={saving || !renewModal?.issuedOn || !renewModal?.expiresOn} onClick={submitRenewal} className="h-9 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-semibold px-4">{saving ? "Saving…" : "Renew"}</Button>
+          </>
+        }
+      >
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-foreground">Issue date</label>
+            <input
+              type="date"
+              className="h-10 w-full rounded-md border border-input px-3 text-sm"
+              value={renewModal?.issuedOn ?? ""}
+              onChange={(e) => setRenewModal((p) => (p ? { ...p, issuedOn: e.target.value } : p))}
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-foreground">Renewed expiry date</label>
+            <input
+              type="date"
+              className="h-10 w-full rounded-md border border-input px-3 text-sm"
+              value={renewModal?.expiresOn ?? ""}
+              onChange={(e) => setRenewModal((p) => (p ? { ...p, expiresOn: e.target.value } : p))}
+            />
+          </div>
+        </div>
+      </Dialog>
     </div>
   );
 }

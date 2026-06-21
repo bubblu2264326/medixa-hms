@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Card } from "@/src/components/ui/Card";
 import { Button } from "@/src/components/ui/Button";
+import { Dialog } from "@/src/components/ui/Dialog";
 import { formatDateInTimezone, formatDateTimeInTimezone, getTimezoneNowDateInput } from "@/src/lib/timezone/client";
 import { useSystemTimezone } from "@/src/lib/timezone/useSystemTimezone";
 
@@ -74,6 +75,14 @@ export default function DocumentsPage() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+
+  // New-version upload modal (replaces back-to-back window.prompt calls, which
+  // offered no validation, no cancel-after-first-field, and looked unbranded).
+  const [versionModal, setVersionModal] = useState<{
+    documentId: number;
+    fileUrl: string;
+    fileName: string;
+  } | null>(null);
 
   const [form, setForm] = useState({
     person_key: "",
@@ -216,10 +225,14 @@ export default function DocumentsPage() {
     }
   };
 
-  const addVersion = async (documentId: number) => {
-    const fileUrl = window.prompt("New version file URL");
-    if (!fileUrl) return;
-    const fileName = window.prompt("File name", "document.pdf") || "document.pdf";
+  const submitVersion = async () => {
+    if (!versionModal) return;
+    const fileUrl = versionModal.fileUrl.trim();
+    if (!fileUrl) {
+      setError("A file URL is required to add a new version.");
+      return;
+    }
+    const fileName = versionModal.fileName.trim() || "document.pdf";
     setSaving(true);
     setError("");
     try {
@@ -228,7 +241,7 @@ export default function DocumentsPage() {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          document_id: documentId,
+          document_id: versionModal.documentId,
           action: "add_version",
           file_url: fileUrl,
           file_name: fileName,
@@ -236,6 +249,7 @@ export default function DocumentsPage() {
       });
       const payload = await res.json();
       if (!res.ok) throw new Error(payload?.error || "Failed to add new version");
+      setVersionModal(null);
       await loadDocuments();
     } catch (e: any) {
       setError(e?.message || "Failed to add new version");
@@ -370,7 +384,7 @@ export default function DocumentsPage() {
                   </td>
                   <td className="px-3 py-2 text-right">
                     <div className="inline-flex gap-1 flex-wrap justify-end">
-                      <Button disabled={saving} onClick={() => addVersion(item.document_id)} className="h-8 rounded-md bg-muted text-foreground hover:bg-accent text-[10px] font-semibold uppercase px-2">Add Version</Button>
+                      <Button disabled={saving} onClick={() => { setError(""); setVersionModal({ documentId: item.document_id, fileUrl: "", fileName: "document.pdf" }); }} className="h-8 rounded-md bg-muted text-foreground hover:bg-accent text-[10px] font-semibold uppercase px-2">Add Version</Button>
                       {(item.review_status === "draft" || item.review_status === "rejected") ? (
                         <Button disabled={saving} onClick={() => changeStatus(item.document_id, "submit")} className="h-8 rounded-md bg-muted text-foreground hover:bg-accent text-[10px] font-semibold uppercase px-2">Submit</Button>
                       ) : null}
@@ -394,6 +408,41 @@ export default function DocumentsPage() {
           </table>
         </div>
       </Card>
+
+      <Dialog
+        open={versionModal !== null}
+        onClose={() => setVersionModal(null)}
+        title="Add new version"
+        description="Attach the file for the next version of this document."
+        footer={
+          <>
+            <Button onClick={() => setVersionModal(null)} className="h-9 rounded-md bg-muted text-foreground hover:bg-accent text-xs font-semibold px-4">Cancel</Button>
+            <Button disabled={saving || !versionModal?.fileUrl.trim()} onClick={submitVersion} className="h-9 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold px-4">{saving ? "Saving…" : "Add Version"}</Button>
+          </>
+        }
+      >
+        <div className="space-y-3">
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-foreground">File URL</label>
+            <input
+              autoFocus
+              className="h-10 w-full rounded-md border border-input px-3 text-sm"
+              placeholder="https://…"
+              value={versionModal?.fileUrl ?? ""}
+              onChange={(e) => setVersionModal((p) => (p ? { ...p, fileUrl: e.target.value } : p))}
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-foreground">File name</label>
+            <input
+              className="h-10 w-full rounded-md border border-input px-3 text-sm"
+              placeholder="document.pdf"
+              value={versionModal?.fileName ?? ""}
+              onChange={(e) => setVersionModal((p) => (p ? { ...p, fileName: e.target.value } : p))}
+            />
+          </div>
+        </div>
+      </Dialog>
     </div>
   );
 }
