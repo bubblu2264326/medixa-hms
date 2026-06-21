@@ -83,6 +83,11 @@ const TARGETS = [
   { route: "/lab", label: "lab-orders", user: "STF003", clicks: ["Lab Orders"] },
   // ipd sub-tabs (Admissions is default = 07-ipd)
   { route: "/ipd", label: "ipd-bedboard", user: "ADM001", clicks: ["Bed Board"] },
+  // doctor tabs (Patient is default = 04-doctor)
+  { route: "/doctor", label: "dr-medicines", user: "DOC001", clicks: ["Medicines"] },
+  { route: "/doctor", label: "dr-labs", user: "DOC001", clicks: ["Labs"] },
+  { route: "/doctor", label: "dr-history", user: "DOC001", clicks: ["History"] },
+  { route: "/doctor", label: "dr-dashboard", user: "DOC001", clicks: ["Dashboard"] },
 ];
 
 // UX_ONLY=rc-,ph-products  -> run only labels containing any of these substrings
