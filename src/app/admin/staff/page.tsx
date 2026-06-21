@@ -89,6 +89,8 @@ export default function StaffDirectoryPage() {
     facility_code: "",
     branch_code: "",
   });
+  // Doctor-only fee fields (kept separate so the staff form resets stay untouched).
+  const [doctorFees, setDoctorFees] = useState({ consultation_fee: "", emergency_fee: "" });
 
   const loadRows = useCallback(async () => {
     setLoading(true);
@@ -217,6 +219,7 @@ export default function StaffDirectoryPage() {
         user_code: form.user_code.toUpperCase().trim(),
         name: normalizeName(form.name),
       };
+      const isDoctorCreate = !isEditMode && form.role === "Doctor";
       const res = await fetch("/api/admin/staff/v2/directory", {
         method: isEditMode ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
@@ -224,8 +227,14 @@ export default function StaffDirectoryPage() {
         body: JSON.stringify({
           ...payload,
           staff_id: editingStaffId,
-          account_type: isEditMode ? editingAccountType : "staff",
+          account_type: isEditMode ? editingAccountType : isDoctorCreate ? "doctor" : "staff",
           password: payload.password?.trim() || "",
+          ...(isDoctorCreate
+            ? {
+                consultation_fee: Number(doctorFees.consultation_fee || 0),
+                emergency_fee: Number(doctorFees.emergency_fee || 0),
+              }
+            : {}),
         }),
       });
       const data = await res.json();
@@ -332,6 +341,7 @@ export default function StaffDirectoryPage() {
       designation: predictedDesignation,
       password: generateTempPassword(),
     }));
+    setDoctorFees({ consultation_fee: "", emergency_fee: "" });
     setShowCreatePassword(false);
   };
 
@@ -352,6 +362,7 @@ export default function StaffDirectoryPage() {
       facility_code: "",
       branch_code: "",
     });
+    setDoctorFees({ consultation_fee: "", emergency_fee: "" });
   };
 
   return (
@@ -617,6 +628,33 @@ export default function StaffDirectoryPage() {
                     ))}
                   </select>
                 </div>
+
+                {!isEditMode && form.role === "Doctor" ? (
+                  <>
+                    <div>
+                      <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">Consultation Fee (PKR)</label>
+                      <input
+                        type="number"
+                        min={0}
+                        className="h-11 rounded-md border border-input px-3 text-sm w-full font-mono tabular-nums"
+                        placeholder="0"
+                        value={doctorFees.consultation_fee}
+                        onChange={(e) => setDoctorFees((p) => ({ ...p, consultation_fee: e.target.value }))}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">Emergency Fee (PKR)</label>
+                      <input
+                        type="number"
+                        min={0}
+                        className="h-11 rounded-md border border-input px-3 text-sm w-full font-mono tabular-nums"
+                        placeholder="0"
+                        value={doctorFees.emergency_fee}
+                        onChange={(e) => setDoctorFees((p) => ({ ...p, emergency_fee: e.target.value }))}
+                      />
+                    </div>
+                  </>
+                ) : null}
 
                 <div>
                   <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">Facility Code</label>

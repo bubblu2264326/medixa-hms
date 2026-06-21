@@ -138,6 +138,49 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Doctor accounts live in their own table (separate auth + fee columns). When
+    // account_type is 'doctor' we create a real doctor row rather than a staff row
+    // with role='Doctor' (which would never appear in clinical doctor lists).
+    if (body?.account_type === "doctor") {
+      const specialization = String(body.department || body.designation || "General Practitioner").trim();
+      const insertedDoctor = await query(
+        `
+        INSERT INTO doctor (
+          user_code, password, doctor_name, specialization,
+          consultation_fee, emergency_fee, contact_number, email, employment_status
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, COALESCE($9, 'active'))
+        RETURNING doctor_id, user_code, doctor_name AS name, employment_status
+        `,
+        [
+          String(body.user_code).toUpperCase(),
+          hashPassword(String(body.password)),
+          body.name,
+          specialization,
+          Number(body.consultation_fee ?? 0),
+          Number(body.emergency_fee ?? 0),
+          body.contact_number ?? null,
+          body.email ?? null,
+          body.employment_status ?? "active",
+        ]
+      );
+
+      await logAuditEvent({
+        actorUserCode: actor.user_code,
+        action: "Doctor directory profile created",
+        entityType: "doctor",
+        entityId: insertedDoctor.rows[0]?.doctor_id ?? null,
+        details: {
+          userCode: insertedDoctor.rows[0]?.user_code ?? null,
+          specialization,
+        },
+      });
+
+      return NextResponse.json(
+        { ...insertedDoctor.rows[0], account_type: "doctor", role: "Doctor" },
+        { status: 201 }
+      );
+    }
+
     const inserted = await query(
       `
       INSERT INTO staff (
