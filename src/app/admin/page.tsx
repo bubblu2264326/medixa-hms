@@ -51,6 +51,9 @@ type DashboardPayload = {
     activeStaff: number;
     totalStaff: number;
     criticalLowStockCount: number;
+    newPatients30d: number;
+    newPatientsPrev30d: number;
+    patientGrowthPct30d: number | null;
   };
   trendMeta: {
     range: TrendRange;
@@ -156,6 +159,9 @@ const sanitizePayload = (payload: DashboardPayload): DashboardPayload => {
     activeStaff: 0,
     totalStaff: 0,
     criticalLowStockCount: 0,
+    newPatients30d: 0,
+    newPatientsPrev30d: 0,
+    patientGrowthPct30d: 0,
   };
 
   return {
@@ -177,6 +183,14 @@ const sanitizePayload = (payload: DashboardPayload): DashboardPayload => {
       criticalLowStockCount: Number.isFinite(Number(metrics.criticalLowStockCount))
         ? Number(metrics.criticalLowStockCount)
         : 0,
+      newPatients30d: Number.isFinite(Number(metrics.newPatients30d)) ? Number(metrics.newPatients30d) : 0,
+      newPatientsPrev30d: Number.isFinite(Number(metrics.newPatientsPrev30d)) ? Number(metrics.newPatientsPrev30d) : 0,
+      patientGrowthPct30d:
+        metrics.patientGrowthPct30d === null
+          ? null
+          : Number.isFinite(Number(metrics.patientGrowthPct30d))
+            ? Number(metrics.patientGrowthPct30d)
+            : 0,
     },
     trend: safeTrend,
     activities: Array.isArray(payload?.activities) ? payload.activities : [],
@@ -585,6 +599,19 @@ export default function AdminDashboard() {
           icon={AlertCircle}
           color="bg-primary"
           onClick={() => router.push("/admin/inventory?focus=critical-low-stock")}
+        />
+        <StatCard
+          title="New Patients (30d)"
+          value={`${metrics.newPatients30d}`}
+          changeLabel={
+            metrics.patientGrowthPct30d === null
+              ? "New baseline"
+              : `${metrics.patientGrowthPct30d >= 0 ? "+" : ""}${metrics.patientGrowthPct30d.toFixed(0)}% vs prev 30d`
+          }
+          trend={metrics.patientGrowthPct30d != null && metrics.patientGrowthPct30d < 0 ? "down" : "up"}
+          icon={Stethoscope}
+          color="bg-primary"
+          onClick={() => router.push("/admin/patients")}
         />
       </div>
 

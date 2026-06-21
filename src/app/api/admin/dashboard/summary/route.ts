@@ -279,7 +279,7 @@ export async function GET(req: NextRequest) {
 
     const lifetimeStartPromise =
       range === "lifetime" ? getLifetimeStartDate(ledgerSourceSql) : Promise.resolve(null);
-    const [revenueResult, staffPatientResult, trendRawResult, activitiesResult, inventorySummary, lifetimeStart] =
+    const [revenueResult, staffPatientResult, trendRawResult, activitiesResult, inventorySummary, lifetimeStart, patientGrowthResult] =
       await Promise.all([
         query(`
           WITH ledger AS (
@@ -361,6 +361,16 @@ export async function GET(req: NextRequest) {
         `),
         getAdminInventorySummary(),
         lifetimeStartPromise,
+        query(`
+          SELECT
+            COUNT(*) FILTER (
+              WHERE created_at >= $1::timestamptz AND created_at < $2::timestamptz
+            )::int AS new_patients_30d,
+            COUNT(*) FILTER (
+              WHERE created_at >= $3::timestamptz AND created_at < $1::timestamptz
+            )::int AS new_patients_prev_30d
+          FROM patient
+        `, [current30.startUtcIso, current30.endUtcIso, current60.startUtcIso]),
       ]);
 
     const metrics = {
@@ -376,6 +386,15 @@ export async function GET(req: NextRequest) {
           ? 0
           : null
         : ((metrics.revenue - metrics.previous_revenue_30d) / metrics.previous_revenue_30d) * 100;
+
+    const newPatients30d = Number(patientGrowthResult.rows[0]?.new_patients_30d ?? 0);
+    const newPatientsPrev30d = Number(patientGrowthResult.rows[0]?.new_patients_prev_30d ?? 0);
+    const patientGrowthPct30d =
+      newPatientsPrev30d === 0
+        ? newPatients30d === 0
+          ? 0
+          : null
+        : ((newPatients30d - newPatientsPrev30d) / newPatientsPrev30d) * 100;
 
     const activities = activitiesResult.rows.map((row: any) => ({
       id: row.log_id,
@@ -435,6 +454,9 @@ export async function GET(req: NextRequest) {
         activeStaff: metrics.active_staff,
         totalStaff: metrics.total_staff,
         criticalLowStockCount: Number(inventorySummary.lowStockCount ?? 0),
+        newPatients30d,
+        newPatientsPrev30d,
+        patientGrowthPct30d,
       },
       trendMeta: {
         range,

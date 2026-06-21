@@ -35,6 +35,8 @@ type QueryRouterOptions = {
   dailyPatients?: string;
   activeStaff?: string;
   totalStaff?: string;
+  newPatients30d?: string;
+  newPatientsPrev30d?: string;
   trendRows?: Array<{ bucket_key: string; value: string }>;
   activityRows?: Array<Record<string, unknown>>;
   lifetimeMinDate?: string | null;
@@ -47,6 +49,8 @@ function installQueryRouter({
   dailyPatients = "0",
   activeStaff = "0",
   totalStaff = "0",
+  newPatients30d = "0",
+  newPatientsPrev30d = "0",
   trendRows = [],
   activityRows = [],
   lifetimeMinDate = null,
@@ -84,6 +88,10 @@ function installQueryRouter({
       text.includes("ORDER BY bucket_key ASC")
     ) {
       return { rows: trendRows };
+    }
+
+    if (text.includes("new_patients_30d") && text.includes("FROM patient")) {
+      return { rows: [{ new_patients_30d: newPatients30d, new_patients_prev_30d: newPatientsPrev30d }] };
     }
 
     if (text.includes("FROM audit_logs l")) {
@@ -142,6 +150,8 @@ describe("admin dashboard summary API", () => {
       dailyPatients: "9",
       activeStaff: "3",
       totalStaff: "5",
+      newPatients30d: "20",
+      newPatientsPrev30d: "10",
       trendRows: [{ bucket_key: "2026-03-23", value: "5000" }],
       activityRows: [
         {
@@ -167,6 +177,9 @@ describe("admin dashboard summary API", () => {
       activeStaff: 3,
       totalStaff: 5,
       criticalLowStockCount: 2,
+      newPatients30d: 20,
+      newPatientsPrev30d: 10,
+      patientGrowthPct30d: 100,
     });
     expect(body.trendMeta).toMatchObject({ range: "7d", bucket: "day", points: 7 });
     expect(body.trend).toHaveLength(7);
@@ -301,6 +314,9 @@ describe("admin dashboard summary API", () => {
       activeStaff: 0,
       totalStaff: 0,
       criticalLowStockCount: 0,
+      newPatients30d: 0,
+      newPatientsPrev30d: 0,
+      patientGrowthPct30d: 0,
     });
     expect(body.trendMeta).toMatchObject({ range: "7d", bucket: "day", points: 7 });
     expect(body.trend).toHaveLength(7);
