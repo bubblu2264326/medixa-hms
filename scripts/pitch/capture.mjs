@@ -30,6 +30,15 @@ async function clickByText(page, name, ms = 800) {
 }
 
 // ── prepare() helpers for interactive shots ─────────────────────────────────
+async function posSearch(page) {
+  // open the medicine search dropdown (don't add) to show live search
+  try {
+    const search = page.getByPlaceholder(/Search Medicine/i).first();
+    await search.click({ timeout: 4000 });
+    await search.fill("Augmentin");
+    await wait(page, 1300);
+  } catch { /* */ }
+}
 async function fillPos(page) {
   // search + add a few medicines to the cart so the hero shot shows live totals
   const names = ["Panadol", "Augmentin", "Risek"];
@@ -75,11 +84,14 @@ const MODULES = {
     subtitle: "Retail dispensing, inventory and supplier operations in one terminal",
     shots: [
       { label: "pos", route: "/pharmacy", caption: "Point-of-Sale terminal", blurb: "Keyboard-first dispensing: search by brand or generic, automatic batch selection, live totals and a single dominant Pay action.", prepare: fillPos },
+      { label: "pos-search", route: "/pharmacy", caption: "Live medicine search", blurb: "Type a brand or generic and the formulary filters instantly with stock and price.", prepare: posSearch },
       { label: "products", route: "/pharmacy?tab=medicines", caption: "Medicine & supply catalogue", blurb: "Every product — medicines, consumables and devices — with form, strength, manufacturer and live multi-batch stock." },
-      { label: "purchases", route: "/pharmacy?tab=purchases", caption: "Purchase invoices", blurb: "Supplier purchases recorded against batches; stock updates automatically through the database trigger chain." },
+      { label: "purchases", route: "/pharmacy?tab=purchases", caption: "Purchase entry", blurb: "Supplier purchases recorded against batches; stock updates automatically through the database trigger chain." },
       { label: "transactions", route: "/pharmacy?tab=transactions", caption: "Stock movement ledger", blurb: "Every purchase, sale and return as an immutable, colour-coded movement with batch and reference." },
+      { label: "preturn", route: "/pharmacy?tab=purchaseReturn", caption: "Purchase returns", blurb: "Return stock to a supplier with full batch traceability and an automatic ledger reversal." },
       { label: "parties", route: "/pharmacy?tab=addParty", caption: "Suppliers & parties", blurb: "Supplier directory with contact and tax details, linked to every purchase and batch." },
       { label: "reports", route: "/pharmacy?tab=reports", caption: "Inventory reporting", blurb: "Expiring-soon, dead-stock and full medicine-stock reports — exportable to CSV.", clicks: ["Medicine Stock"] },
+      { label: "settings", route: "/pharmacy?tab=settings", caption: "Pharmacy settings", blurb: "Receipt, tax and POS preferences for the pharmacy desk." },
     ],
   },
   cashier: {

@@ -1,0 +1,132 @@
+{
+  "key": "pharmacy",
+  "title": "Pharmacy & Point-of-Sale",
+  "subtitle": "Retail dispensing, inventory and supplier operations — one fast, accurate terminal",
+  "overview": {
+    "lead": "The Pharmacy module runs the whole retail and stock operation from a single screen: a keyboard-first point-of-sale, a live multi-batch inventory, supplier purchasing, returns, and reporting. Stock is never edited by hand — it is driven entirely by purchases, sales and returns through the database, so on-hand quantities, batch expiry and valuation always reconcile.",
+    "highlights": [
+      "Keyboard-first POS with brand/generic search and automatic batch selection",
+      "Live multi-batch stock with FEFO (first-expiry-first-out) dispensing",
+      "Supplier purchasing that updates stock through a database trigger chain",
+      "Immutable stock-movement ledger for every purchase, sale and return",
+      "Purchase returns with full batch traceability and automatic reversal",
+      "Expiring-soon, dead-stock and medicine-stock reports with CSV export",
+      "Append-to-bill or collect-now settlement, integrated with the cashier",
+      "Demo shown on 117 catalogue items across 6 suppliers and 100+ batches"
+    ]
+  },
+  "features": {
+    "pos": {
+      "title": "Point-of-Sale terminal",
+      "description": "The dispensing screen is built for speed and accuracy. The cashier searches by brand or generic, the system picks the correct batch automatically (first to expire, first out), and the bill totals — discount, savings, payable — update live as items are added. One dominant payment action keeps checkout to a few keystrokes.",
+      "bullets": [
+        "Search patient and medicine from the same keyboard-driven panel",
+        "Automatic FEFO batch selection — no manual batch hunting",
+        "Live Total Payable, item discount and savings as the cart changes",
+        "Cash / Card / Insurance with collect-now or append-to-bill settlement",
+        "Whole-unit and sub-unit (strip/tablet) sale support"
+      ],
+      "impact": "A trained cashier completes a sale in seconds, with the right batch and price every time."
+    },
+    "pos-search": {
+      "title": "Live medicine search",
+      "description": "Typing a brand or generic instantly filters the formulary and shows, per result, the live batch, on-hand stock, expiry date and selling price. The cashier sees exactly what is sellable before adding it — no separate stock lookup, no expired-stock surprises.",
+      "bullets": [
+        "Instant brand- and generic-name matching",
+        "Per-result batch, in-stock quantity and expiry date",
+        "Selling price shown inline before adding to the bill",
+        "Out-of-stock and expired batches are kept out of the sale"
+      ],
+      "impact": "Stock truth at the point of decision — the cashier never promises what isn't there."
+    },
+    "products": {
+      "title": "Medicine & supply catalogue",
+      "description": "One catalogue holds everything the clinic dispenses or consumes — medicines, syrups, injectables, IV fluids, surgical consumables and devices — each with form, strength, manufacturer and live multi-batch stock. Full-text search and category structure keep a large catalogue navigable.",
+      "bullets": [
+        "Medicines and non-medicine supplies in one structured catalogue",
+        "Form, strength, manufacturer and category on every item",
+        "Live aggregated stock across all active batches",
+        "Full-text search across brand and generic names",
+        "Prescription-only and controlled-drug flags"
+      ],
+      "impact": "A single source of truth for everything on the shelves and in the store room."
+    },
+    "purchases": {
+      "title": "Supplier purchasing",
+      "description": "Purchases are recorded against a supplier with per-line batch number, expiry, cost and selling price. Saving a purchase writes only the purchase detail — the database trigger chain then creates or updates the batch and increments stock automatically, so receiving stock can never drift from the ledger.",
+      "bullets": [
+        "Per-line batch number, expiry, unit cost and sale price",
+        "Auto-generated invoice numbers",
+        "Stock updated by the trigger chain — never edited directly",
+        "New batches created automatically; existing batches topped up",
+        "Price/expiry mismatch protection on repeat batches"
+      ],
+      "impact": "Goods-in is one screen, and inventory stays provably consistent with what was received."
+    },
+    "transactions": {
+      "title": "Stock movement ledger",
+      "description": "Every purchase, sale, return and adjustment is written as an immutable, colour-coded movement with its batch, reference and timestamp. This is the audit trail behind on-hand stock — nothing changes quantities without leaving a row here.",
+      "bullets": [
+        "Purchase-in, sale-out, returns and adjustments in one ledger",
+        "Batch, supplier/reference and timestamp on every movement",
+        "Colour-coded movement types for fast scanning",
+        "Filterable by type and searchable by medicine or reference",
+        "The single explanation for any stock level"
+      ],
+      "impact": "Complete inventory accountability — every unit is traceable to a movement."
+    },
+    "preturn": {
+      "title": "Purchase returns",
+      "description": "Damaged, expired or over-ordered stock is returned to the supplier against its original batch. The return reverses stock through the same trigger chain that received it, so quantities and valuation stay correct and the movement is logged for the supplier ledger.",
+      "bullets": [
+        "Return against the original supplier and batch",
+        "Automatic stock and ledger reversal",
+        "Full traceability back to the source purchase",
+        "Keeps supplier balances and valuation accurate"
+      ],
+      "impact": "Returns are handled cleanly without ever corrupting stock or supplier accounts."
+    },
+    "parties": {
+      "title": "Suppliers & parties",
+      "description": "A supplier directory holds contact and tax details for every distributor the clinic buys from, each linked to its purchases and batches. Searching by name, phone or tax number makes reconciliation and reordering straightforward.",
+      "bullets": [
+        "Contact, address and tax (GST) details per supplier",
+        "Linked to every purchase and batch for that party",
+        "Search by name, phone or tax number",
+        "Add or edit parties without leaving the pharmacy"
+      ],
+      "impact": "Supplier relationships and purchase history live in one place."
+    },
+    "reports": {
+      "title": "Inventory reporting",
+      "description": "Operational reports answer the questions a pharmacy lead asks daily: what is expiring soon, what is dead stock tying up cash, and what is the full medicine-stock position by batch. Each report expands to batch level and exports to CSV for finance or audit.",
+      "bullets": [
+        "Expiring-soon watchlist to act before write-offs",
+        "Dead-stock report to free up working capital",
+        "Medicine-stock batch summary with on-hand quantities",
+        "Row-level batch drill-down",
+        "One-click CSV export"
+      ],
+      "impact": "The pharmacy lead sees risk and opportunity without building a spreadsheet."
+    },
+    "settings": {
+      "title": "Pharmacy configuration",
+      "description": "Receipt, tax and point-of-sale preferences are configured per clinic so the till behaves the way the business runs — from receipt content to default settlement behaviour.",
+      "bullets": [
+        "Receipt and POS preferences",
+        "Tax and discount defaults",
+        "Configured per clinic"
+      ],
+      "impact": "The terminal adapts to the clinic, not the other way around."
+    }
+  },
+  "closing": {
+    "lead": "Built for real clinics, not a demo sandbox",
+    "points": [
+      "Stock integrity is enforced in the database, so it holds under real-world concurrency.",
+      "Every figure on these screens is live from the running system on realistic demo data.",
+      "The pharmacy settles directly into the same billing and cashier flow used clinic-wide.",
+      "Designed keyboard-first for high-volume counters, with reporting for the people who run them."
+    ]
+  }
+}
