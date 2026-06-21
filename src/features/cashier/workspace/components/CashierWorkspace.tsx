@@ -3,7 +3,6 @@
 import React, { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
-  AlertTriangle,
   CheckCircle2,
   Clock3,
   CreditCard,
@@ -20,7 +19,7 @@ import { Button } from "@/src/components/ui/Button";
 import { formatDateTimeInTimezone } from "@/src/lib/timezone/client";
 import { useSystemTimezone } from "@/src/lib/timezone/useSystemTimezone";
 
-type CashierTab = "worklist" | "settle" | "history" | "drafts" | "overdue" | "shift";
+type CashierTab = "worklist" | "settle" | "history" | "drafts" | "shift";
 
 type ShiftInfo = {
   cashier_shift_id: number;
@@ -107,15 +106,6 @@ type DraftItem = {
   patientName: string | null;
 };
 
-type OverdueItem = {
-  billId: number;
-  visitId: number;
-  patientName: string;
-  dueAmount: number;
-  overdueDays: number;
-  riskScore: number;
-  agingBucket: string;
-};
 
 // INSURANCE and SPLIT were selectable but unimplemented — the settle/correct
 // routes store payment_type as a plain string with no split-tender capture and
@@ -133,11 +123,10 @@ function newIdempotencyKey() {
 }
 
 const tabs: Array<{ id: CashierTab; label: string; icon: React.ReactNode }> = [
-  { id: "worklist", label: "Worklist", icon: <ListFilter className="h-4 w-4" /> },
+  { id: "worklist", label: "Collect", icon: <ListFilter className="h-4 w-4" /> },
   { id: "settle", label: "Settle", icon: <HandCoins className="h-4 w-4" /> },
   { id: "history", label: "History", icon: <History className="h-4 w-4" /> },
   { id: "drafts", label: "Drafts", icon: <FileClock className="h-4 w-4" /> },
-  { id: "overdue", label: "Overdue & Alerts", icon: <AlertTriangle className="h-4 w-4" /> },
   { id: "shift", label: "My Shift", icon: <Clock3 className="h-4 w-4" /> },
 ];
 
@@ -214,8 +203,6 @@ export default function CashierWorkspace() {
 
   const [drafts, setDrafts] = useState<DraftItem[]>([]);
   const [draftStatus, setDraftStatus] = useState("open");
-  const [overdueRows, setOverdueRows] = useState<OverdueItem[]>([]);
-  const [overdueFilter, setOverdueFilter] = useState({ patient: "", bucket: "" });
 
   const [shift, setShift] = useState<ShiftInfo | null>(null);
   const [shiftLoaded, setShiftLoaded] = useState(false);
@@ -324,21 +311,6 @@ export default function CashierWorkspace() {
     }
   };
 
-  const loadOverdue = async () => {
-    setGlobalLoading(true);
-    setError(null);
-    try {
-      const qs = new URLSearchParams();
-      if (overdueFilter.patient) qs.set("patient", overdueFilter.patient);
-      if (overdueFilter.bucket) qs.set("bucket", overdueFilter.bucket);
-      const payload = await fetchJson<{ items: OverdueItem[] }>(`/api/cashier/overdue?${qs.toString()}`);
-      setOverdueRows(payload.items || []);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Unable to load overdue alerts");
-    } finally {
-      setGlobalLoading(false);
-    }
-  };
 
   React.useEffect(() => {
     void loadWorklist();
@@ -623,7 +595,6 @@ export default function CashierWorkspace() {
                 if (tab.id === "worklist") loadWorklist();
                 if (tab.id === "history") loadHistory();
                 if (tab.id === "drafts") loadDrafts();
-                if (tab.id === "overdue") loadOverdue();
                 if (tab.id === "shift") loadShift();
               }}
             >
@@ -643,7 +614,8 @@ export default function CashierWorkspace() {
         <Card className="rounded-lg shadow-sm">
           <div className="mb-4 flex items-center gap-2">
             <ListFilter className="h-5 w-5 text-muted-foreground" />
-            <h2 className="text-lg font-semibold tracking-tight text-foreground">Cashier Worklist</h2>
+            <h2 className="text-lg font-semibold tracking-tight text-foreground">Collect</h2>
+            <span className="text-xs text-muted-foreground">— outstanding bills, with aging & due-score ranking</span>
           </div>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
             <input className="rounded-md border border-input px-3 py-2 text-sm" placeholder="patient name" value={worklistFilters.patient} onChange={(e) => setWorklistFilters((p) => ({ ...p, patient: e.target.value }))} />
@@ -697,7 +669,14 @@ export default function CashierWorkspace() {
                       <td className="px-2 py-2 font-semibold font-mono tabular-nums">#{row.billId}</td>
                       <td className="px-2 py-2">{row.patientName}</td>
                       <td className="px-2 py-2 font-mono tabular-nums text-warning-foreground">{fmt(row.dueAmount)}</td>
-                      <td className="px-2 py-2 font-mono tabular-nums">{row.overdueDays} days</td>
+                      <td className="px-2 py-2 font-mono tabular-nums">
+                        <span className="inline-flex items-center gap-1">
+                          {row.overdueDays} days
+                          {row.overdueDays >= 60 ? <span className="rounded bg-destructive/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-destructive">60+</span> : null}
+                          {row.overdueDays >= 30 && row.overdueDays < 60 ? <span className="rounded bg-warning/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-warning-foreground">30+</span> : null}
+                          {row.overdueDays >= 7 && row.overdueDays < 30 ? <span className="rounded bg-info/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-info">7+</span> : null}
+                        </span>
+                      </td>
                       <td className="px-2 py-2 font-mono tabular-nums">{row.dueScore.toFixed(2)}</td>
                       <td className="px-2 py-2">
                         <span className={`rounded-md px-2 py-1 text-[10px] font-semibold uppercase tracking-wide ${statusPill(row.paymentStatus)}`}>
@@ -911,50 +890,6 @@ export default function CashierWorkspace() {
                         <Button className="rounded-md bg-destructive px-3 py-1 text-xs text-white hover:bg-destructive/90" onClick={() => applyDraftAction(draft.cashierSettlementDraftId, "cancel")}>Cancel</Button>
                       </>
                     ) : null}
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </Card>
-      ) : null}
-
-      {activeTab === "overdue" ? (
-        <Card className="rounded-lg shadow-sm">
-          <div className="mb-4 flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5 text-warning-foreground" />
-            <h2 className="text-lg font-semibold tracking-tight text-foreground">Overdue Intelligence</h2>
-          </div>
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-            <input className="rounded-md border border-input px-3 py-2 text-sm" placeholder="patient name" value={overdueFilter.patient} onChange={(e) => setOverdueFilter((p) => ({ ...p, patient: e.target.value }))} />
-            <select className="rounded-md border border-input px-3 py-2 text-sm" value={overdueFilter.bucket} onChange={(e) => setOverdueFilter((p) => ({ ...p, bucket: e.target.value }))}>
-              <option value="">all buckets</option>
-              <option value="7+">7+</option>
-              <option value="30+">30+</option>
-              <option value="60+">60+</option>
-            </select>
-            <Button className="rounded-md" onClick={loadOverdue} isLoading={globalLoading}>Rank Dues</Button>
-          </div>
-
-          <div className="mt-5 space-y-3">
-            {overdueRows.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No overdue rows found.</p>
-            ) : (
-              overdueRows.map((row) => (
-                <div key={row.billId} className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-border px-3 py-3">
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">Bill #{row.billId} • {row.patientName}</p>
-                    <p className="text-xs text-muted-foreground">Overdue {row.overdueDays} days • Bucket {row.agingBucket}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {row.overdueDays >= 60 ? <span className="rounded-md bg-destructive/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-destructive">60+ Alert</span> : null}
-                    {row.overdueDays >= 30 && row.overdueDays < 60 ? <span className="rounded-md bg-warning/15 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-warning-foreground">30+ Alert</span> : null}
-                    {row.overdueDays >= 7 && row.overdueDays < 30 ? <span className="rounded-md bg-info/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-info">7+ Alert</span> : null}
-                    <p className="text-sm font-semibold font-mono tabular-nums text-warning-foreground">{fmt(row.dueAmount)}</p>
-                    <p className="rounded-md bg-muted px-2 py-1 text-xs font-semibold font-mono tabular-nums text-muted-foreground">score {row.riskScore.toFixed(2)}</p>
-                    <Button className="rounded-md bg-success px-3 py-1 text-xs text-success-foreground hover:bg-success/90" onClick={async () => { await loadBillById(row.billId); setActiveTab("settle"); }}>
-                      Follow Up
-                    </Button>
                   </div>
                 </div>
               ))
