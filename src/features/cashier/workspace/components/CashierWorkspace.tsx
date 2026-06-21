@@ -20,7 +20,19 @@ import { Button } from "@/src/components/ui/Button";
 import { formatDateTimeInTimezone } from "@/src/lib/timezone/client";
 import { useSystemTimezone } from "@/src/lib/timezone/useSystemTimezone";
 
-type CashierTab = "worklist" | "settle" | "history" | "drafts" | "overdue";
+type CashierTab = "worklist" | "settle" | "history" | "drafts" | "overdue" | "shift";
+
+type ShiftInfo = {
+  cashier_shift_id: number;
+  opening_cash: number | string | null;
+  opened_at: string | null;
+  closed_at: string | null;
+  closing_cash_counted: number | string | null;
+  expected_cash: number | string | null;
+  variance: number | string | null;
+  status: string;
+  notes: string | null;
+};
 
 type BillDetail = {
   bill: {
@@ -126,6 +138,7 @@ const tabs: Array<{ id: CashierTab; label: string; icon: React.ReactNode }> = [
   { id: "history", label: "History", icon: <History className="h-4 w-4" /> },
   { id: "drafts", label: "Drafts", icon: <FileClock className="h-4 w-4" /> },
   { id: "overdue", label: "Overdue & Alerts", icon: <AlertTriangle className="h-4 w-4" /> },
+  { id: "shift", label: "My Shift", icon: <Clock3 className="h-4 w-4" /> },
 ];
 
 const fmt = (value: number) =>
@@ -203,6 +216,12 @@ export default function CashierWorkspace() {
   const [draftStatus, setDraftStatus] = useState("open");
   const [overdueRows, setOverdueRows] = useState<OverdueItem[]>([]);
   const [overdueFilter, setOverdueFilter] = useState({ patient: "", bucket: "" });
+
+  const [shift, setShift] = useState<ShiftInfo | null>(null);
+  const [shiftLoaded, setShiftLoaded] = useState(false);
+  const [openingCash, setOpeningCash] = useState("");
+  const [countedCash, setCountedCash] = useState("");
+  const [shiftNotes, setShiftNotes] = useState("");
 
   const dueAmount = useMemo(() => Number(selectedBill?.bill?.dueAmount ?? 0), [selectedBill?.bill?.dueAmount]);
   const groupedLines = useMemo(() => {
@@ -469,6 +488,62 @@ export default function CashierWorkspace() {
     }
   };
 
+  const loadShift = React.useCallback(async () => {
+    setGlobalLoading(true);
+    setError(null);
+    try {
+      const payload = await fetchJson<{ activeShift: ShiftInfo | null }>("/api/cashier/shift");
+      setShift(payload.activeShift);
+      setShiftLoaded(true);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to load shift");
+    } finally {
+      setGlobalLoading(false);
+    }
+  }, []);
+
+  const openShift = async () => {
+    setGlobalLoading(true);
+    setError(null);
+    setNotice(null);
+    try {
+      await fetchJson("/api/cashier/shift", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ openingCash: Number(openingCash || 0), notes: shiftNotes.trim() || undefined }),
+      });
+      setOpeningCash("");
+      setShiftNotes("");
+      setNotice("Shift opened.");
+      await loadShift();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to open shift");
+    } finally {
+      setGlobalLoading(false);
+    }
+  };
+
+  const closeShift = async () => {
+    setGlobalLoading(true);
+    setError(null);
+    setNotice(null);
+    try {
+      const res = await fetchJson<{ shift: ShiftInfo }>("/api/cashier/shift", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ countedCash: Number(countedCash || 0), notes: shiftNotes.trim() || undefined }),
+      });
+      setCountedCash("");
+      setShiftNotes("");
+      setNotice(`Shift closed. Variance ${fmt(Number(res.shift?.variance ?? 0))}.`);
+      await loadShift();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to close shift");
+    } finally {
+      setGlobalLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="rounded-lg border border-border bg-card px-4 py-3 shadow-sm">
@@ -487,6 +562,7 @@ export default function CashierWorkspace() {
                 if (tab.id === "history") loadHistory();
                 if (tab.id === "drafts") loadDrafts();
                 if (tab.id === "overdue") loadOverdue();
+                if (tab.id === "shift") loadShift();
               }}
             >
               {tab.icon}
@@ -822,6 +898,58 @@ export default function CashierWorkspace() {
               ))
             )}
           </div>
+        </Card>
+      ) : null}
+
+      {activeTab === "shift" ? (
+        <Card className="rounded-lg shadow-sm">
+          <div className="mb-4 flex items-center gap-2">
+            <Clock3 className="h-5 w-5 text-muted-foreground" />
+            <h2 className="text-lg font-semibold tracking-tight text-foreground">My Shift</h2>
+          </div>
+          {!shiftLoaded ? (
+            <p className="text-sm text-muted-foreground">Loading shift…</p>
+          ) : shift ? (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                <div className="rounded-md border border-border p-3">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Status</p>
+                  <p className="text-sm font-semibold text-success">Open</p>
+                </div>
+                <div className="rounded-md border border-border p-3">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Opened</p>
+                  <p className="text-sm font-semibold font-mono tabular-nums text-foreground">{dt(shift.opened_at, systemTimezone)}</p>
+                </div>
+                <div className="rounded-md border border-border p-3">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Opening Cash</p>
+                  <p className="text-sm font-semibold font-mono tabular-nums text-foreground">{fmt(Number(shift.opening_cash ?? 0))}</p>
+                </div>
+              </div>
+              <div className="rounded-md border border-warning/40 bg-warning/10 p-4">
+                <p className="text-sm font-semibold text-warning-foreground">Close shift</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Count the drawer and enter the total. The system computes expected cash (opening + cash collected this shift) and the variance.
+                </p>
+                <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
+                  <input className="rounded-md border border-input px-3 py-2 text-sm font-mono tabular-nums" type="number" placeholder="counted cash" value={countedCash} onChange={(e) => setCountedCash(e.target.value)} />
+                  <input className="rounded-md border border-input px-3 py-2 text-sm md:col-span-2" placeholder="notes (optional)" value={shiftNotes} onChange={(e) => setShiftNotes(e.target.value)} />
+                </div>
+                <Button className="mt-3 rounded-md bg-warning text-warning-foreground hover:bg-warning/90" onClick={closeShift} isLoading={globalLoading} disabled={!countedCash}>Close Shift</Button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">No open shift. Start one to track your drawer for this session.</p>
+              <div className="rounded-md border border-border p-4">
+                <p className="text-sm font-semibold text-foreground">Open shift</p>
+                <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
+                  <input className="rounded-md border border-input px-3 py-2 text-sm font-mono tabular-nums" type="number" placeholder="opening cash" value={openingCash} onChange={(e) => setOpeningCash(e.target.value)} />
+                  <input className="rounded-md border border-input px-3 py-2 text-sm md:col-span-2" placeholder="notes (optional)" value={shiftNotes} onChange={(e) => setShiftNotes(e.target.value)} />
+                </div>
+                <Button className="mt-3 rounded-md bg-primary text-primary-foreground hover:bg-primary/90" onClick={openShift} isLoading={globalLoading}>Open Shift</Button>
+              </div>
+            </div>
+          )}
         </Card>
       ) : null}
 
